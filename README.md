@@ -1,0 +1,1 @@
+This is the robofont extension for the package [fontGadgets](https://github.com/typoman/fontgadgets). Please refer to the main repo for the info.
