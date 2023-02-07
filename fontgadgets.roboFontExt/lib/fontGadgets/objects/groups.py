@@ -176,9 +176,10 @@ def _kerningGroupSide(glyph, side):
 @fontMethod
 def _kerningGroupSideMembers(glyph, side):
 	# `0` is left side, `1` is right side.
+	font = glyph.font
 	kerningGroup = glyph._kerningGroupSide(side)
-	group = kg.convertToKerningGroupName(groupName)
-	return glyph.font.groups.get(group, [])
+	group = font.kerningGroups.convertToKerningGroupName(kerningGroup, side)
+	return font.groups.get(group, [])
 
 @fontMethod
 def _setKerningGroupSide(glyph, kernGroupName, side):
