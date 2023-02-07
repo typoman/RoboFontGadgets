@@ -5,6 +5,15 @@ from warnings import warn
 RE_GROUP_TAG = re.compile(r'public.kern\d\.')
 GROUP_SIDE_TAG = ("public.kern1.", "public.kern2.")
 
+def isKerningGroup(entry):
+	"""
+	Return True if the given entry is a kerning group name starting either with
+	`public.kern1.` or `public.kern2.`
+	"""
+	if re.match(RE_GROUP_TAG, entry) is None:
+		return False
+	return True
+
 class KerningGroups():
 	"""
 	An object that gets destroyed every time font.groups change. This is
@@ -16,15 +25,6 @@ class KerningGroups():
 		self._glyphToKerningGroupMapping = None
 		self._items = None
 
-	def _isKerningGroup(self, entry):
-		"""
-		Return True if the given entry is a kerning group name starting either with
-		`public.kern1.` or `public.kern2.`
-		"""
-		if re.match(RE_GROUP_TAG, entry) is None:
-			return False
-		return True
-
 	@property
 	def glyphToKerningGroupMapping(self):
 		"""
@@ -33,7 +33,7 @@ class KerningGroups():
 		if self._glyphToKerningGroupMapping is None:
 			result = [{}, {}]
 			for group, members in self.groups.items():
-				if self._isKerningGroup(group):
+				if isKerningGroup(group):
 					for glyphName in members:
 						side, name = self._getSideAndRawGroupName(group)
 						result[side][glyphName] = name
@@ -49,7 +49,7 @@ class KerningGroups():
 		if self._items is None:
 			result = [{}, {}]
 			for group, members in self.groups.items():
-				if self._isKerningGroup(group):
+				if isKerningGroup(group):
 					side, name = self._getSideAndRawGroupName(group)
 					result[side][name] = members
 			self._items = tuple(result)
@@ -106,7 +106,7 @@ class KerningGroups():
 		otherwise the result will be empty.
 		"""
 		sides = (1, 0)
-		f = self.groups.font 
+		f = self.groups.font
 		rtlState = f.isGlyphSetRTL(glyphNames)
 		if rtlState is True:
 			sides = (0, 1)
@@ -142,7 +142,7 @@ class KerningGroups():
 		Clears only kerning groups.
 		"""
 		for group in list(self.groups):
-			if self._isKerningGroup(group):
+			if isKerningGroup(group):
 				del self.groups[group]
 
 	def _getSideAndRawGroupName(self, group_name):
@@ -157,7 +157,7 @@ class KerningGroups():
 		"""
 		assert side in (0, 1)
 		prefix = GROUP_SIDE_TAG[side]
-		if self._isKerningGroup(name):
+		if isKerningGroup(name):
 			warn(f"Kerning group name already starts with a prefix, it will be removed:\n{name}")
 			name = name[13:]
 		return f"{prefix}{name}"
