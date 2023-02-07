@@ -223,7 +223,6 @@ class ParsedFeatureFile():
                 self._addGsubAttributesToGlyph(source, target)
 
     def _addGsubAttributesToGlyph(self, sourceGlyphs, targetGlyphs):
-        print(sourceGlyphs, targetGlyphs)
         statement = self._currentElement
         sourceGlyphs, targetGlyphs = tuple(sourceGlyphs), tuple(targetGlyphs)
         for gn in targetGlyphs:
