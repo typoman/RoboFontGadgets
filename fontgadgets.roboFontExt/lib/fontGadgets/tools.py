@@ -27,6 +27,7 @@ defcon.objects.base.BaseObject._destroyRepresentationsForNotification = _destroy
 
 # All of the follwoing might be hacky, but it works!
 _registeredMethods = []
+DEBUG = False
 
 class FontMethodsRegistrar():
 
@@ -69,18 +70,19 @@ class FontMethodsRegistrar():
             exec("\n".join(code))
         else:
             # register the function as property
-            setattr(self.fontPartsObject, self.funcName, property(lambda o: self.funct(o)))
+            setattr(self.fontPartsObject, self.funcName, property(lambda o: self.funct(o.naked())))
             setattr(self.defconObject, self.funcName, property(lambda o: self.funct(o)))
         _registeredMethods.append(f'{self.objectName}.{self.funcName}')
 
     def _attributeAlreadyExist(self):
         method = f'{self.objectName}.{self.funcName}'
-        if method not in _registeredMethods:
+        if method not in _registeredMethods and not DEBUG:
             for obj in (self.defconObject, self.fontPartsObject):
                 if hasattr(obj, self.funcName):
-                    logger.error(f"Registration of `{self.funcName}` as a function for the class `{obj}` failed, "
-                                f"because the object already has an attribute/method with this exact name."
-                                )
+                    msg = f"""Registration of `{self.funcName}` as a function for the class `{obj}` failed,
+                            because the object already has an attribute/method with this exact name."""
+                    print(msg)
+                    logger.error(msg)
                     return True
         else:
             logger.warning(f"Overriding an exising `{method}` method.")
@@ -106,7 +108,7 @@ class FontMethodsRegistrar():
     def registerAsFontCachedMethod(self, *destructiveNotifications):
         if self._attributeAlreadyExist():
             return
-        self.funcRepresentationKey = f"{self.funcName}.representation"
+        self.funcRepresentationKey = f"{self.objectName}.{self.funcName}.representation"
         defobjc = self.defconObject
         defcon.registerRepresentationFactory(defobjc, self.funcRepresentationKey, self.funct, destructiveNotifications=destructiveNotifications)
         if self.args[1:]:

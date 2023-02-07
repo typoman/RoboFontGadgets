@@ -1,8 +1,14 @@
 from fontTools.feaLib.parser import Parser
 from fontTools.feaLib.ast import *
+from fontTools.feaLib.error import FeatureLibError
 from warnings import warn
 from copy import deepcopy
 from ufo2ft.featureCompiler import FeatureCompiler
+from ufo2ft.featureWriters import (
+                GdefFeatureWriter,
+                CursFeatureWriter,
+                KernFeatureWriter,
+                MarkFeatureWriter)
 from collections import OrderedDict
 from fontGadgets.tools import fontMethod, fontCachedMethod
 import os
@@ -48,11 +54,36 @@ class GlyphFeautres():
 def features(glyph):
     return glyph.font.features.parsed[glyph.name]
 
+def getParsedFontToolsFeatureFile(font, featureFilePath=None, followIncludes=True):
+    if featureFilePath is None:
+        featxt = font.features.text or ""
+    else:
+        with open(featureFilePath, "r", encoding="utf-8") as feaFile:
+            featxt = feaFile.read()
+
+    buf = StringIO(featxt)
+    ufoPath = font.path
+    includeDir = None
+    if ufoPath is not None:
+        ufoPath = os.path.normpath(ufoPath)
+        buf.name = os.path.join(ufoPath, "features.fea")
+        includeDir = os.path.dirname(ufoPath)
+    glyphNames = set(font.keys())
+    try:
+        return Parser(buf, glyphNames, includeDir=includeDir, followIncludes=followIncludes).parse()
+    except FeatureLibError as e:
+        logger.error(e)
+
 @fontMethod
-def getFontToolsFeaturesParser(features, followIncludes=True):
-    buf = StringIO(features.text)
-    buf.name = features.font.path
-    return Parser(buf, followIncludes=followIncludes)
+def isLigature(glyph):
+    if glyph.isMark:
+        return False
+
+    for gnames, rules in glyph.features.sourceGlyphs.items():
+        for r in rules:
+            if isinstance(r, LigatureSubstStatement):
+                return True
+    return False
 
 class ParsedFeatureFile():
 
@@ -82,9 +113,9 @@ class ParsedFeatureFile():
     rules.extend(gposGlyphsAttrs)
     rules = tuple(rules)
 
-    def __init__(self, font):
+    def __init__(self, font, featureFilePath=None, followIncludes=True):
         self._font = font
-        self.featureFile = font.features.getFontToolsFeaturesParser().parse()
+        self.featureFile = getParsedFontToolsFeatureFile(font, featureFilePath=featureFilePath, followIncludes=followIncludes)
         self.lookups = {}  # lookupName: astLookupBlock
         self.classes = {}  # className: astGlyphClassDefinition
         self.features = {}  # featureTag: [astFeatureBlock, ]
@@ -115,6 +146,8 @@ class ParsedFeatureFile():
             self._currentFeature = None
             self._currentLanguage = None
             self._currentScript = None
+        elif isinstance(e, NestedBlock):
+            self._parseStatements()
         elif isinstance(e, LookupBlock):
             self.lookups[e.name] = e
             self._parseStatements()
@@ -528,6 +561,16 @@ def featureReferenceSubset(self, glyphsToKeep):
     if any([feaBlock.subset(glyphsToKeep) is not None for feaBlock in self.featureBlocks]):
         return self
 
+def nestedBlockSubset(self, glyphsToKeep):
+    result = []
+    for statement in self.block.statements:
+        if statement == self:
+            continue
+        if statement.subset(glyphsToKeep):
+            result.append(statement)
+    if result:
+        return self
+
 LookupBlock.isEmpty = blockIsEmpty
 FeatureBlock.isEmpty = blockIsEmpty
 Element.subset = elementSubset
@@ -569,6 +612,7 @@ SinglePosStatement.subset = singlePosStatementSubset
 SubtableStatement.subset = dropInSubset
 LookupBlock.subset = blockRulesSubset
 FeatureBlock.subset = blockRulesSubset
+NestedBlock.subset = nestedBlockSubset
 AlternateSubstStatement.numInputGlyphs = numInputGlyphs
 LigatureSubstStatement.numInputGlyphs = numInputGlyphs
 CursivePosStatement.numInputGlyphs = numInputGlyphs
@@ -581,18 +625,23 @@ SingleSubstStatement.numInputGlyphs = numInputGlyphs
 SinglePosStatement.numInputGlyphs = numInputGlyphs
 
 @fontCachedMethod("Features.Changed")
-def subset(features, glyphsToKeep=None):
+def subset(features, glyphsToKeep=None, subsetIncludedFiles=True):
     """
-    Return a new features text file with features limited to the glyphsToKeep
+    Return a new features text file with features limited to the glyphsToKeep. If subsetIncludedFiles
+    is True then all the included files will be overwritten with the new subset features.
     """
+    files = set([features.path, ])
+    if subsetIncludedFiles:
+        files.update(features.getIncludedFilesPaths())
+    font = features.font
     if glyphsToKeep is None:
-        glyphsToKeep = features.font.keys()
-    featureFile = features.parsed.featureFile
-    featureFile.subset(glyphsToKeep)
-    return featureFile
+        glyphsToKeep = set(font.keys()) - set(font.lib.get("public.skipExportGlyphs", []))
 
-def _getFontToolsFeaturesParser(featureFilePath, followIncludes=True):
-    return Parser(featureFilePath, followIncludes=followIncludes)
+    for featureFilePath in files:
+        parsed = ParsedFeatureFile(features.font, featureFilePath, followIncludes=False)
+        parsed.featureFile.subset(glyphsToKeep)
+        with open(featureFilePath, "w", encoding="utf-8") as oldFile:
+            oldFile.write(str(parsed.featureFile))
 
 @fontMethod
 def path(features):
@@ -602,14 +651,15 @@ def path(features):
 def getIncludedFilesPaths(features, absolutePaths=True):
     """
     Returns paths of included feature files.
-    If absoulutePaths is True, the abs path of the included files will be returned.
+    If absoulutePaths is True, the abs path of the included files will be returned,
+    other wise the path that is used inside the feature file.
     """
     includeFiles = set()
-    parser = features.getFontToolsFeaturesParser(followIncludes=False)
     font = features.font
+    parsed = getParsedFontToolsFeatureFile(font, followIncludes=False)
     ufoName = font.fontFileName
     ufoRoot = font.folderPath
-    for s in parser.parse().statements:
+    for s in parsed.statements:
         if isinstance(s, IncludeStatement):
             path = os.path.join(ufoRoot, s.filename)
             normalPath = os.path.normpath(path)
@@ -619,43 +669,88 @@ def getIncludedFilesPaths(features, absolutePaths=True):
                 else:
                     includeFiles.add(s.filename)
             else:
-                print(f"{ufoName} | Feature file doesn't exist in:\n{normalPath}")
+                warn(f"{ufoName} | Feature file doesn't exist in:\n{normalPath}")
     return includeFiles
 
-class GPOSCompiler(FeatureCompiler):
+class IsolatedFeatureCompiler(FeatureCompiler):
     """
     overrides ufo2ft to exclude ufo existing features in the generated GPOS.
     """
 
     def setupFeatures(self):
-        featureFile = FeatureFile()
-        for writer in self.featureWriters:
-            writer.write(self.ufo, featureFile, compiler=self)
-        self.features = featureFile.asFea()
+        featureFile = self.ufo.features.defaultScripts # ufo2ft requires default scripts to function properly
+        lenExtraScripts = len(self.ufo.features.defaultScripts.asFea())
+        for writerClass in self.featureWriters:
+            writerClass().write(self.ufo, featureFile, compiler=self)
+        self.features = featureFile.asFea()[lenExtraScripts+1:]
 
-@fontCachedMethod("Glyph.AnchorsChanged", "Groups.Changed", "Kerning.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
-def gpos(features):
+@fontMethod
+def getCompiler(features, featureWriters=None, ttFont=None, glyphSet=None):
     """
-    Generates mark, kern features using ufo2ft.
+    Returns a `ufo2ft.featureCompiler.FeatureCompiler` based on the given featurewitres.
     """
     font = features.font
     skipExport = font.lib.get("public.skipExportGlyphs", [])
     glyphOrder = (gn for gn in font.glyphOrder if gn not in skipExport)
-    featureCompiler = GPOSCompiler(font)
-    featureCompiler.glyphSet = OrderedDict((gn, font[gn]) for gn in glyphOrder)
-    featureCompiler.compile()
-    return featureCompiler.features
+    if featureWriters is not None:
+        featuresCompiler = IsolatedFeatureCompiler(font, ttFont=ttFont, glyphSet=glyphSet, featureWriters=featureWriters)
+        featuresCompiler.featureWriters = featureWriters
+    else:
+        featuresCompiler = FeatureCompiler(font, ttFont=ttFont, glyphSet=glyphSet, featureWriters=featureWriters)
+    featuresCompiler.glyphSet = OrderedDict((gn, font[gn]) for gn in glyphOrder)
+    featuresCompiler.compile()
+    return featuresCompiler
+
+@fontCachedMethod("Kerning.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
+def kern(features):
+    """
+    Compiled kerning feature using ufo2ft.
+    """
+    return features.getCompiler([KernFeatureWriter, GdefFeatureWriter]).features
+
+@fontCachedMethod("Glyph.AnchorsChanged", "Layer.GlyphAdded", "Layer.GlyphDeleted")
+def mark(features):
+    """
+    Compiled mark feature using ufo2ft.
+    """
+    return features.getCompiler([MarkFeatureWriter, ]).features
+
+@fontMethod
+def gdef(features):
+    """
+    Compiled GDEF feature using ufo2ft.
+    """
+    return features.getCompiler([GdefFeatureWriter, ]).features
+
+@fontCachedMethod("Glyph.AnchorsChanged", "Layer.GlyphAdded", "Layer.GlyphDeleted")
+def curs(features):
+    """
+    Compiled cursive attatchment feature using ufo2ft.
+    """
+    return features.getCompiler([CursFeatureWriter, ]).features
 
 @fontMethod
 def normalize(features, includeFiles=True):
     """
     Normalizes the feature files using fontTools.fealib parser.
     """
-
-    features.text = [features.path]
+    files = [features.path]
     if includeFiles:
         files.extend(features.getIncludedFilesPaths())
-        for feaPath in files:
-            normalizedFea = _getFontToolsFeaturesParser(feaPath, followIncludes=False).parse()
-            with open(feaPath, "w", encoding="utf-8") as f:
-                f.write(str(normalizedFea))
+    for feaPath in files:
+        normalizedFea = Parser(featureFilePath, followIncludes=False).parse()
+        with open(feaPath, "w", encoding="utf-8") as f:
+            f.write(str(normalizedFea))
+
+# caching the following property causes the IsolatedFeatureCompiler to malfunction
+@fontMethod
+def defaultScripts(features):
+    """
+    Returns the default scripts in form of a feature file.
+    """
+    doc = FeatureFile()
+    for s in features.parsed.featureFile.statements:
+        if isinstance(s, LanguageSystemStatement):
+            if s.language == 'dflt' and s.script != 'DFLT':
+                doc.statements.append(s)
+    return doc

@@ -153,3 +153,16 @@ def normalize(font, includedFeatures=True):
     font.features.normalize(includedFeatures)
     font.save()
     normalizeUFO(font.path, onlyModified=False, writeModTimes=False)
+
+@fontMethod
+def ligatures(font, ligatureFeatureTags=("dlig", "liga", "rlig")):
+    """
+    Returns names of glyphs which are used inside ligature features.
+    """
+    ligatureFeatureTags = set(ligatureFeatureTags)
+    result = set()
+    for glyph in font:
+        if glyph.features.featureTags & ligatureFeatureTags:
+            result.add(glyph.name)
+            continue
+    return result

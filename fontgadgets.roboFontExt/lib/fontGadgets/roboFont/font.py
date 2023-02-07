@@ -15,10 +15,9 @@ def serializedDataForCompile(font):
 	]
 
 	def _getDefLayer(layers):
-			result = []
-			for l in layers:
-				if l[0] in defLayers:
-					return l
+		for l in layers:
+			if l[0] in defLayers:
+				return l
 
 	data = font.getDataForSerialization()
 	result = {}
@@ -47,3 +46,4 @@ def getSortedFonts(fonts=None):
 			continue
 		if len(widths) == numFonts:
 			return [widths[w] for w in sorted(widths)]
+

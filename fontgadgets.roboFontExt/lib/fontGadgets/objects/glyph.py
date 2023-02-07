@@ -1,5 +1,6 @@
 from fontGadgets.tools import fontMethod, fontCachedMethod
-from fontParts.fontshell.glyph import RGlyph
+from defcon import Glyph
+from defcon.objects.component import _defaultTransformation
 from ufo2ft.featureWriters.kernFeatureWriter import unicodeBidiType
 from fontTools.unicodedata import script_extension, script_name
 from fontPens.transformPointPen import TransformPointPen
@@ -16,50 +17,34 @@ todo:
 """
 PUA_CATEGORY = 'Zzzz'
 
-class DecomposePointPen(TransformPointPen):
+class DecomposePointPen(object):
 
-    """
-    A simple transform point pen able to decompose components
-    in a given point pen.
+    def __init__(self, glyphSet, outPointPen):
+        self._glyphSet = glyphSet
+        self._outPointPen = outPointPen
+        self.beginPath = outPointPen.beginPath
+        self.endPath = outPointPen.endPath
+        self.addPoint = outPointPen.addPoint
 
-    source:
-    https://github.com/typemytype/batchRoboFontExtension
-    """
-
-    def __init__(self, glyphSet, outPen, transformation):
-        TransformPointPen.__init__(self, outPen, transformation)
-        self.glyphSet = glyphSet
-
-    def beginPath(self, identifier=None):
-        super().beginPath()
-
-    def addPoint(self, pt, segmentType=None, smooth=False, name=None, **kwargs):
-        kwargs["identifier"] = None
-        super().addPoint(pt, segmentType=segmentType, smooth=smooth, name=name, **kwargs)
-
-    def addComponent(self, glyphName, transformation, identifier=None):
-        try:
-            glyph = self.glyphSet[glyphName]
-        except KeyError:
-            pass
-        else:
-            transfromPointPen = TransformPointPen(self, transformation)
-            # ignore anchors
-            for contour in glyph:
-                contour.drawPoints(transfromPointPen)
-            for component in glyph.components:
-                component.drawPoints(transfromPointPen)
+    def addComponent(self, baseGlyphName, transformation, identifier):
+        if baseGlyphName in self._glyphSet:
+            baseGlyph = self._glyphSet[baseGlyphName]
+            if transformation == _defaultTransformation:
+                baseGlyph.drawPoints(self)
+            else:
+                transformPointPen = TransformPointPen(self, transformation)
+                baseGlyph.drawPoints(transformPointPen)
 
 @fontCachedMethod("Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Component.BaseGlyphChanged")
 def decomposedCopy(glyph, layerName=None):
     """
-    Returns a decomposed copy of the glyph
+    Returns a decomposed copy of the glyph which only contains contours.
     """
     if layerName is not None:
         f = glyph.font.getLayer(layerName)
     else:
         f = glyph.font
-    decomposedGlyph = RGlyph()
+    decomposedGlyph = Glyph()
     decomposedGlyph.name = glyph.name
     decomposedGlyph.width = glyph.width
     dstPen = decomposedGlyph.getPointPen()
@@ -68,28 +53,20 @@ def decomposedCopy(glyph, layerName=None):
     return decomposedGlyph
 
 @fontCachedMethod("Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Component.BaseGlyphChanged")
-def T2CharString(glyph):
+def removedOverlapsCopy(glyph, decompose=True):
     """
-    Caching conoturs for compliling
+    Remove overlaps and returns a new glyph which only contains contours.
     """
-    p = T2CharStringPen(0, glyph.font)
-    glyph.flattenedCopy.draw(p)
-    return p.getCharString()
-
-@fontCachedMethod("Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Component.BaseGlyphChanged")
-def flattenedCopy(glyph):
-    """
-    Decomposes and remove overlaps and returns a new glyph.
-    """
-    result = glyph.decomposedCopy
-    if len(result):
-        contours = list(result)
+    result = Glyph()
+    if decompose:
+        contours = list(glyph.decomposedCopy())
+    else:
+        contours = list(glyph)
+    if len(contours):
         for contour in contours:
-            for point in contour.points:
-                if point.type == "qcurve":
-                    raise TypeError("fontshell can't removeOverlap for quadratics")
-        result.clear(contours=True, components=False,
-                   anchors=False, guidelines=False, image=False)
+            for point in contour:
+                if point.segmentType == "qcurve":
+                    raise TypeError("Can't removeOverlap for quadratics")
         booleanOperations.union(contours, result.getPointPen())
     return result
 
@@ -98,14 +75,13 @@ def isComposite(glyph):
     """
     Returns true if glyph contains any components and no contours.
     """
-    return len(glyph.contours) == 0 and len(glyph.components) > 0
+    return len(glyph) == 0 and len(glyph.components) > 0
 
 @fontCachedMethod("Glyph.AnchorsChanged")
 def anchorsMap(glyph):
     """
     Returns a dictionary of {anchorName: [anchor1, anchor2], etc}
     """
-
     result = {}
     [result.setdefault(a.name, []).append(a) for a in glyph.anchors]
     return result
@@ -233,7 +209,7 @@ class FontPseudoUnicodes():
             for composite in self.font.componentReferences.get(glyph.name, []):
                 unicodes.extend(self.glyph2UnicodesMap.get(composite, []))
         if unicodes:
-            self.glyph2UnicodesMap[glyph.name] = unicodes
+            self.glyph2UnicodesMap[glyph.name] = list(set(unicodes))
 
 @fontCachedMethod("UnicodeData.Changed", "Features.Changed")
 def pseudoUnicodesMapping(font):

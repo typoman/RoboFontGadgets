@@ -102,12 +102,17 @@ class KerningGroups():
 	def getGroupNamesForGlyphs(self, glyphNames):
 		"""
 		Returns two set of names which represent (in respective order) leftGroups and rightGroups
-		of the given glyphNames.
+		of the given glyphNames. All the given glyphs should be right to left or left to right,
+		otherwise the result will be empty.
 		"""
 		sides = (1, 0)
 		f = self.groups.font 
-		if f.isGlyphSetRTL(glyphNames):
+		rtlState = f.isGlyphSetRTL(glyphNames)
+		if rtlState is True:
 			sides = (0, 1)
+		elif rtlState is None:
+			return (None, None)
+
 		mapping = f.kerningGroups.glyphToKerningGroupMapping
 		result = []
 		for i in range(2):
@@ -118,6 +123,12 @@ class KerningGroups():
 					groupNames.append(thisMap[g])
 			result.append(set(groupNames))
 		return tuple(result)
+
+	def getRightSideGroupNamesForGlyphs(self, glyphNames):
+		return self.getGroupNamesForGlyphs(glyphNames)[1]
+
+	def getLeftSideGroupNamesForGlyphs(self, glyphNames):
+		return self.getGroupNamesForGlyphs(glyphNames)[0]
 
 	def update(self, kerningGroups):
 		"""
@@ -165,10 +176,7 @@ def _kerningGroupSide(glyph, side):
 @fontMethod
 def _kerningGroupSideMembers(glyph, side):
 	# `0` is left side, `1` is right side.
-	if not glyph.isRTL:
-		side = abs(side - 1)
-	kg = glyph.font.kerningGroups
-	groupName = kg.glyphToKerningGroupMapping[side].get(glyph.name, None)
+	kerningGroup = glyph._kerningGroupSide(side)
 	group = kg.convertToKerningGroupName(groupName)
 	return glyph.font.groups.get(group, [])
 
@@ -229,3 +237,11 @@ def getGroupNamesForGlyphs(font, glyphNames):
 	Returns two set of names which represent (in respective order) leftGroups, rightGroups.
 	"""
 	return font.kerningGroups.getGroupNamesForGlyphs(glyphNames)
+
+@fontMethod
+def getRightSideGroupNamesForGlyphs(font, glyphNames):
+	return font.kerningGroups.getRightSideGroupNamesForGlyphs(glyphNames)
+
+@fontMethod
+def getLeftSideGroupNamesForGlyphs(font, glyphNames):
+	return font.kerningGroups.getLeftSideGroupNamesForGlyphs(glyphNames)
