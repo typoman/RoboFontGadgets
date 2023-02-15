@@ -5,3 +5,4 @@ import fontGadgets.objects.features
 import fontGadgets.objects.groups
 import fontGadgets.objects.component
 import fontGadgets.objects.compiler
+import fontGadgets.objects.point
