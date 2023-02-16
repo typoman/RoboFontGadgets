@@ -12,9 +12,9 @@ set.
 
 Add your own methods to FontParts/Defcon objects by simply defining a function.
 The first argument of the function should be a name of a defcon object, like
-`font`, `glyph`, etc. Before the function use the one of the decorators from
-this package: `fontMethod` or `fontCachedMethod`. This function will also be
-registered for the the equivalent fontPart object automatically.
+`font`, `glyph`, etc. Before the function definition, use one of the decorators
+from this package: `fontMethod` or `fontCachedMethod`. This function will also
+be registered for the the equivalent fontPart object automatically.
 
 ## Examples
 
