@@ -1,0 +1,10 @@
+extensionName: Font Gadgets
+repository: https://github.com/typoman/RoboFontGadgets
+extensionPath: fontgadgets.roboFontExt
+description: Adds more functions and capabilities to RoboFont and Font objects.
+developer: Bahman Eslami
+developerURL: http:/bahman.design
+tags: [ fontgadgets ]
+icon: https://raw.githubusercontent.com/typoman/RoboFontGadgets/master/roboFontGadgetsIcon.png
+infoPath: https://raw.githubusercontent.com/typoman/RoboFontGadgets/master/fontgadgets.roboFontExt/info.plist
+dateAdded: 2023-02-16 10:10:10
