@@ -1,9 +1,10 @@
 from setuptools import setup, find_packages
+# Use this for installing the package using pip for usage in shell
 
 setup(
     name="fontGadgets",
     version="0.0.2",
-    description="A package to add more functions to fontParts and defcon",
+    description="A package to add more functions to fontParts and defcon objects.",
     author="Bahman Eslami",
     author_email="contact@bahman.design",
     url="http://bahman.design",
