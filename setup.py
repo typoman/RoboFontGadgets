@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="fontGadgets",
-    version="0.0.2",
+    version="0.1.101",
     description="A package to add more functions to fontParts and defcon objects.",
     author="Bahman Eslami",
     author_email="contact@bahman.design",

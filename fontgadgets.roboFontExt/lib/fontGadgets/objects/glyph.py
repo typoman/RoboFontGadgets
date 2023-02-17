@@ -1,10 +1,8 @@
 from fontGadgets.tools import fontMethod, fontCachedMethod
-from defcon import Glyph
 from defcon.objects.component import _defaultTransformation
 from ufo2ft.featureWriters.kernFeatureWriter import unicodeBidiType
 from fontTools.unicodedata import script_extension, script_name
 from fontPens.transformPointPen import TransformPointPen
-from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.basePen import MissingComponentError
 from fontTools.pens.pointPen import AbstractPointPen
 from fontTools.misc.roundTools import otRound
@@ -44,7 +42,7 @@ def decomposedCopy(glyph, layerName=None):
         f = glyph.font.getLayer(layerName)
     else:
         f = glyph.font
-    decomposedGlyph = Glyph()
+    decomposedGlyph = type(glyph)()
     decomposedGlyph.name = glyph.name
     decomposedGlyph.width = glyph.width
     dstPen = decomposedGlyph.getPointPen()
@@ -57,7 +55,7 @@ def removedOverlapsCopy(glyph, decompose=True):
     """
     Remove overlaps and returns a new glyph which only contains contours.
     """
-    result = Glyph()
+    result = type(glyph)()
     if decompose:
         contours = list(glyph.decomposedCopy())
     else:
