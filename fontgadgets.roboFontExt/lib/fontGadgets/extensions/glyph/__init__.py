@@ -1,4 +1,6 @@
 from fontgadgets.decorators import *
+import fontgadgets.extensions.component
+import fontgadgets.extensions.font
 
 @font_property
 def isComposite(glyph):
@@ -29,7 +31,7 @@ def orderIndex(glyph):
 @font_property
 def hasShape(glyph):
     font = glyph.font
-    if len(glyph) != 1:
+    if len(glyph) > 0:
         return True
     if glyph.components:
         for c in glyph.components:
