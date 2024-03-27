@@ -2,6 +2,7 @@ from fontTools.feaLib.parser import Parser
 from fontTools.feaLib.ast import *
 from fontgadgets.tools import FontGadgetsError
 import fontgadgets.extensions.font
+import fontgadgets.extensions.glyph.type
 from warnings import warn
 from copy import deepcopy
 from fontgadgets.decorators import *
@@ -12,8 +13,10 @@ from io import StringIO
 class GlyphFeautres:
     def __init__(self, glyph):
         self._glyph = glyph
+        self._font = glyph.font
         self.sourceGlyphs = {}  # g.name: AlternateSubstStatement...
         self.targetGlyphs = {}  # g.name: AlternateSubstStatement...
+        self._checked_for_num_source_glyphs = {} # to avoid infinite recursion
 
     @property
     def featureTags(self):
@@ -40,6 +43,34 @@ class GlyphFeautres:
     def glyph(self):
         return self._glyph
 
+    @property
+    def numberOfSourceGlyphs(self):
+        return self._getNumberOfSourceGlyphs(self._glyph.name)
+
+    def _getNumberOfSourceGlyphs(self, gname):
+        # this can be more complicated than just returning length of any item
+        # from features.sourceGlyphs since a ligature could just be a stylistic
+        # set of a another ligature or just a base glyph for ligatures
+
+        g = self._font[gname]
+        if gname in self._checked_for_num_source_glyphs:
+            return self._checked_for_num_source_glyphs[gname]
+        for sgnames, rules in g.features.sourceGlyphs.items():
+            num_comp = len(sgnames)
+            if not g.isLigature:
+                self._checked_for_num_source_glyphs[gname] = num_comp
+                return num_comp
+            elif num_comp > 1:
+                self._checked_for_num_source_glyphs[gname] = num_comp
+                return num_comp
+            num_comp = 0
+            for sg in sgnames:
+                sub_num_comp = self._getNumberOfSourceGlyphs(sg)
+                num_comp += sub_num_comp
+            if num_comp > 1:
+                self._checked_for_num_source_glyphs[gname] = num_comp
+                return num_comp
+        return 0
 
 @font_property
 def features(glyph):
