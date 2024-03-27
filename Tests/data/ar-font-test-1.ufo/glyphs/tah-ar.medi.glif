@@ -16,6 +16,9 @@
 		</contour>
 		<component base="tah-ar.init"/>
 	</outline>
+	<anchor name="#entry" x="688" y="0"/>
+	<anchor name="bottom" x="329" y="0"/>
+	<anchor name="top" x="394" y="492"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

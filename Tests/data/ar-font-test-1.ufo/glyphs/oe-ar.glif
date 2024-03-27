@@ -6,6 +6,8 @@
 		<component base="waw-ar"/>
 		<component base="vabove-ar" xOffset="104" yOffset="522"/>
 	</outline>
+	<anchor name="bottom" x="218" y="-205"/>
+	<anchor name="top" x="210" y="754"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

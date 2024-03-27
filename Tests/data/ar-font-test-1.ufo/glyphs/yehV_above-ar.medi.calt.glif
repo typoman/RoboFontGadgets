@@ -6,6 +6,8 @@
 		<component base="vabove-ar" xOffset="34" yOffset="530"/>
 		<component base="twodotshorizontalbelow-ar" xOffset="27" yOffset="-270"/>
 	</outline>
+	<anchor name="bottom" x="169" y="-184"/>
+	<anchor name="top" x="140" y="762"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

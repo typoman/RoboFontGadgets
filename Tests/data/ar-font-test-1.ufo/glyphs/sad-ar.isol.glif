@@ -5,6 +5,9 @@
 	<outline>
 		<component base="sad-ar"/>
 	</outline>
+	<anchor name="#entry" x="1322" y="0"/>
+	<anchor name="bottom" x="972" y="-15"/>
+	<anchor name="top" x="888" y="492"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

@@ -9,6 +9,8 @@
 			<point x="-10" y="330" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="bottom" x="139" y="0"/>
+	<anchor name="top" x="151" y="330"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.Export</key>

@@ -10,6 +10,7 @@
 			<point x="33" y="747" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="center" x="292" y="366"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

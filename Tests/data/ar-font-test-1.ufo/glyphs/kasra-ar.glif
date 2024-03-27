@@ -9,14 +9,14 @@
 			<point x="39" y="195" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="_bottom" x="118" y="249"/>
+	<anchor name="bottom" x="118" y="120"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/14 12:20:04</string>
 			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
 			<integer>236</integer>
-			<key>public.markColor</key>
-			<string>1,0.8907,0.1478,1</string>
 		</dict>
 	</lib>
 </glyph>

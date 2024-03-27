@@ -5,6 +5,10 @@
 		<component base="sad-ar.medi"/>
 		<component base="dotabove-ar" xOffset="465" yOffset="492"/>
 	</outline>
+	<anchor name="#entry" x="970" y="0"/>
+	<anchor name="#exit" x="970" y="0"/>
+	<anchor name="bottom" x="614" y="-15"/>
+	<anchor name="top" x="536" y="674"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

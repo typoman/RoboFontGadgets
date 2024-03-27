@@ -5,6 +5,9 @@
 		<component base="behDotless-ar.init"/>
 		<component base="twodotshorizontalbelow-ar" xOffset="-95" yOffset="-270"/>
 	</outline>
+	<anchor name="bottom" x="47" y="-184"/>
+	<anchor name="bottom_1" x="47" y="-184"/>
+	<anchor name="top" x="119" y="492"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>

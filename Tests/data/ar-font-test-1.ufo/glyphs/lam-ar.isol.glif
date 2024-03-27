@@ -5,6 +5,8 @@
 	<outline>
 		<component base="lam-ar"/>
 	</outline>
+	<anchor name="bottom" x="334" y="-140"/>
+	<anchor name="top" x="350" y="430"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

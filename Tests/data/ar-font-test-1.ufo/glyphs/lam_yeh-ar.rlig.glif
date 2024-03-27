@@ -5,6 +5,10 @@
 		<component base="lam_alefMaksura-ar.rlig"/>
 		<component base="twodotshorizontalbelow-ar" xOffset="242" yOffset="-503"/>
 	</outline>
+	<anchor name="bottom_1" x="630" y="-225"/>
+	<anchor name="bottom_2" x="384" y="-417"/>
+	<anchor name="top_1" x="419" y="584"/>
+	<anchor name="top_2" x="109" y="319"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -20,8 +24,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/18 15:25:25</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

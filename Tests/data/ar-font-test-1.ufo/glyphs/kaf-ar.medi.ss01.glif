@@ -5,6 +5,10 @@
 		<component base="_part.connectionFlat-ar" xOffset="611"/>
 		<component base="kaf-ar.init.ss01"/>
 	</outline>
+	<anchor name="#entry" x="998" y="0"/>
+	<anchor name="#exit" x="998" y="0"/>
+	<anchor name="bottom" x="499" y="0"/>
+	<anchor name="top" x="253" y="695"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

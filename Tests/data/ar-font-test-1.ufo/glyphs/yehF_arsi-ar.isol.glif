@@ -5,6 +5,8 @@
 	<outline>
 		<component base="yehFarsi-ar"/>
 	</outline>
+	<anchor name="bottom" x="387" y="-140"/>
+	<anchor name="top" x="109" y="412"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

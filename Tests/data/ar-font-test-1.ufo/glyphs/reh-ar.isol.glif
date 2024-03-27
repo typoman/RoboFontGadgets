@@ -5,6 +5,8 @@
 	<outline>
 		<component base="reh-ar"/>
 	</outline>
+	<anchor name="bottom" x="162" y="-215"/>
+	<anchor name="top" x="174" y="492"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

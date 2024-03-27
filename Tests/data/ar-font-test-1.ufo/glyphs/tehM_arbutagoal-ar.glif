@@ -5,6 +5,8 @@
 	<outline>
 		<component base="tehMarbuta-ar"/>
 	</outline>
+	<anchor name="bottom" x="213" y="-15"/>
+	<anchor name="top" x="215" y="776"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

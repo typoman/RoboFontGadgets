@@ -22,6 +22,8 @@
 		<component base="dot-ar" xOffset="142"/>
 		<component base="dot-ar"/>
 	</outline>
+	<anchor name="_top" x="142" y="0"/>
+	<anchor name="top" x="142" y="327"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -49,8 +51,6 @@
 			<integer>284</integer>
 			<key>com.schriftgestaltung.Glyphs.shapeOrder</key>
 			<string>CCP</string>
-			<key>public.markColor</key>
-			<string>1,0.8907,0.1478,1</string>
 		</dict>
 	</lib>
 </glyph>

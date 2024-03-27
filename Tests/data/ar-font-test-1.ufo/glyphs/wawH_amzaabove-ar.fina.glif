@@ -5,6 +5,8 @@
 		<component base="waw-ar.fina"/>
 		<component base="hamzaabove-ar" xOffset="98" yOffset="485"/>
 	</outline>
+	<anchor name="bottom" x="218" y="-242"/>
+	<anchor name="top" x="200" y="713"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

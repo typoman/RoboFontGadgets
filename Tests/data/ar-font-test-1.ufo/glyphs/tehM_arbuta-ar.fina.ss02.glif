@@ -5,6 +5,9 @@
 		<component base="heh-ar.fina"/>
 		<component base="twodotsverticalabove-ar" xOffset="148" yOffset="460"/>
 	</outline>
+	<anchor name="bottom" x="220" y="35"/>
+	<anchor name="top" x="212" y="548"/>
+	<anchor name="top_1" x="220" y="784"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>

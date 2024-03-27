@@ -4,6 +4,8 @@
 	<outline>
 		<component base="heh-ar.medi"/>
 	</outline>
+	<anchor name="bottom" x="219" y="-233"/>
+	<anchor name="top" x="219" y="586"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

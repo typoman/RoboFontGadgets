@@ -5,6 +5,8 @@
 		<component base="behDotless-ar.medi.calt"/>
 		<component base="twodotshorizontalabove-ar" xOffset="-2" yOffset="530"/>
 	</outline>
+	<anchor name="bottom" x="169" y="0"/>
+	<anchor name="top" x="140" y="716"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>

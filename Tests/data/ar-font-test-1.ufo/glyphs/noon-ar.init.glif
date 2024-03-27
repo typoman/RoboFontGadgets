@@ -5,6 +5,9 @@
 		<component base="behDotless-ar.init"/>
 		<component base="dotabove-ar" xOffset="48" yOffset="492"/>
 	</outline>
+	<anchor name="bottom" x="102" y="0"/>
+	<anchor name="bottom_1" x="47" y="0"/>
+	<anchor name="top" x="119" y="674"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

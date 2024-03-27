@@ -5,6 +5,8 @@
 		<component base="seen-ar.medi"/>
 		<component base="threedotsupabove-ar" xOffset="387" yOffset="330"/>
 	</outline>
+	<anchor name="bottom" x="536" y="0"/>
+	<anchor name="top" x="529" y="657"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

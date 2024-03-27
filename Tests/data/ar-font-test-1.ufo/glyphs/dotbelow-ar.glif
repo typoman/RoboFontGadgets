@@ -3,6 +3,8 @@
 	<outline>
 		<component base="dot-ar"/>
 	</outline>
+	<anchor name="_bottom" x="71" y="270"/>
+	<anchor name="bottom" x="71" y="86"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -20,8 +22,6 @@
 			<string>2023/11/18 14:02:16</string>
 			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
 			<integer>142</integer>
-			<key>public.markColor</key>
-			<string>1,0.8907,0.1478,1</string>
 		</dict>
 	</lib>
 </glyph>

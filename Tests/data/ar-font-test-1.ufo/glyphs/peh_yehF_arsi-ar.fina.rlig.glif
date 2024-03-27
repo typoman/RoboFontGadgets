@@ -5,6 +5,10 @@
 		<component base="_behdotless_alefMaksura-ar.fina"/>
 		<component base="threedotsdownbelow-ar" xOffset="623" yOffset="-410"/>
 	</outline>
+	<anchor name="bottom_1" x="765" y="-469"/>
+	<anchor name="bottom_2" x="377" y="-233"/>
+	<anchor name="top_1" x="632" y="440"/>
+	<anchor name="top_2" x="109" y="319"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -20,8 +24,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/18 15:34:47</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

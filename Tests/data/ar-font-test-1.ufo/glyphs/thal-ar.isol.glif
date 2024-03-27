@@ -5,6 +5,8 @@
 	<outline>
 		<component base="thal-ar"/>
 	</outline>
+	<anchor name="bottom" x="254" y="-15"/>
+	<anchor name="top" x="243" y="772"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

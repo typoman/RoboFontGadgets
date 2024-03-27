@@ -5,6 +5,8 @@
 		<component base="alefMaksura-ar.fina"/>
 		<component base="vabove-ar" xOffset="3" yOffset="319"/>
 	</outline>
+	<anchor name="bottom" x="374" y="-233"/>
+	<anchor name="top" x="109" y="551"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

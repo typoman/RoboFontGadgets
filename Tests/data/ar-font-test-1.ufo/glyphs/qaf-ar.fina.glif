@@ -5,6 +5,8 @@
 		<component base="qafDotless-ar.fina"/>
 		<component base="twodotshorizontalabove-ar" xOffset="356" yOffset="485"/>
 	</outline>
+	<anchor name="bottom" x="334" y="-250"/>
+	<anchor name="top" x="498" y="671"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

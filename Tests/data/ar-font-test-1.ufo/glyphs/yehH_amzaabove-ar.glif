@@ -6,6 +6,8 @@
 		<component base="alefMaksura-ar"/>
 		<component base="hamzaabove-ar" xOffset="-3" yOffset="412"/>
 	</outline>
+	<anchor name="bottom" x="387" y="-140"/>
+	<anchor name="top" x="99" y="640"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

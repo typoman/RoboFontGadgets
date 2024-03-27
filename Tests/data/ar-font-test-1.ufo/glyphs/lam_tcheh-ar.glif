@@ -5,12 +5,15 @@
 		<component base="lam_hah-ar"/>
 		<component base="threedotsdowncenter-ar" xOffset="186" yOffset="-63"/>
 	</outline>
+	<anchor name="bottom_1" x="554" y="281"/>
+	<anchor name="bottom_2" x="318" y="-398"/>
+	<anchor name="center" x="328" y="8"/>
+	<anchor name="top_1" x="373" y="1004"/>
+	<anchor name="top_2" x="88" y="554"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/18 11:00:41</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

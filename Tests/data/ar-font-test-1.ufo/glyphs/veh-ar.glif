@@ -6,6 +6,8 @@
 		<component base="fehDotless-ar"/>
 		<component base="threedotsupabove-ar" xOffset="647" yOffset="682"/>
 	</outline>
+	<anchor name="bottom" x="498" y="-15"/>
+	<anchor name="top" x="789" y="1009"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

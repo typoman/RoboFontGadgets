@@ -5,6 +5,12 @@
 		<component base="_behdotless_alefMaksura-ar"/>
 		<component base="tahabove-ar" xOffset="391" yOffset="677"/>
 	</outline>
+	<anchor name="bottom_1" x="727" y="-56"/>
+	<anchor name="bottom_2" x="374" y="-140"/>
+	<anchor name="bottom_3" x="567" y="-140"/>
+	<anchor name="bottom_4" x="277" y="-140"/>
+	<anchor name="top_1" x="539" y="1007"/>
+	<anchor name="top_2" x="109" y="412"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -20,8 +26,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/17 15:59:44</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

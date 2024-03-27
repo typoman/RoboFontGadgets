@@ -8,14 +8,14 @@
 			<point x="102" y="674" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="_kafbar" x="150" y="492"/>
+	<anchor name="top" x="108" y="547"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/10/18 13:11:39</string>
 			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
 			<integer>300</integer>
-			<key>public.markColor</key>
-			<string>1,0.8907,0.1478,1</string>
 		</dict>
 	</lib>
 </glyph>

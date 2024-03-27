@@ -15,12 +15,14 @@
 			<point x="-10" y="849" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="bottom_1" x="468" y="38"/>
+	<anchor name="bottom_2" x="289" y="-85"/>
+	<anchor name="top_1" x="140" y="779"/>
+	<anchor name="top_2" x="324" y="284"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/19 09:13:55</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

@@ -6,6 +6,8 @@
 		<component base="alefMaksura-ar"/>
 		<component base="twodotshorizontalbelow-ar" xOffset="245" yOffset="-410"/>
 	</outline>
+	<anchor name="bottom" x="387" y="-324"/>
+	<anchor name="top" x="109" y="412"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

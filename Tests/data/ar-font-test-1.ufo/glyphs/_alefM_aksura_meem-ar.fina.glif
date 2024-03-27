@@ -15,14 +15,17 @@
 			<point x="25" y="382" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="bottom_1" x="894" y="0"/>
+	<anchor name="bottom_2" x="662" y="-184"/>
+	<anchor name="bottom_3" x="965" y="0"/>
+	<anchor name="top_1" x="773" y="383"/>
+	<anchor name="top_2" x="438" y="231"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.Export</key>
 			<false/>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/14 15:51:25</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

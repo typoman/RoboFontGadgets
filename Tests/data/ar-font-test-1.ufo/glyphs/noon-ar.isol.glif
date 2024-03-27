@@ -5,6 +5,8 @@
 	<outline>
 		<component base="noon-ar"/>
 	</outline>
+	<anchor name="bottom" x="369" y="-138"/>
+	<anchor name="top" x="350" y="502"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

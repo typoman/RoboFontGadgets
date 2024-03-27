@@ -5,6 +5,8 @@
 		<component base="reh-ar.fina"/>
 		<component base="tahabove-ar" xOffset="29" yOffset="440"/>
 	</outline>
+	<anchor name="bottom" x="162" y="-225"/>
+	<anchor name="top" x="177" y="770"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

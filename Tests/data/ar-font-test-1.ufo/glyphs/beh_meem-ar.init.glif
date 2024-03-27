@@ -5,6 +5,10 @@
 		<component base="_alefMaksura_meem-ar.init.calt1"/>
 		<component base="dotbelow-ar" xOffset="467" yOffset="-1"/>
 	</outline>
+	<anchor name="bottom_1" x="538" y="85"/>
+	<anchor name="bottom_2" x="289" y="-85"/>
+	<anchor name="top_1" x="398" y="571"/>
+	<anchor name="top_2" x="142" y="436"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -20,8 +24,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/18 15:34:47</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

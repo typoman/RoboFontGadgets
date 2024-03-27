@@ -6,6 +6,8 @@
 		<component base="alef-ar.short"/>
 		<component base="wasla-ar" xOffset="-16" yOffset="655"/>
 	</outline>
+	<anchor name="bottom" x="108" y="0"/>
+	<anchor name="top" x="116" y="862"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

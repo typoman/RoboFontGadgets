@@ -4,6 +4,8 @@
 	<outline>
 		<component base="_alefmini-ar" xScale="0.9941" yScale="0.9941"/>
 	</outline>
+	<anchor name="_bottom" x="38" y="271"/>
+	<anchor name="bottom" x="38" y="33"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -21,8 +23,6 @@
 			<string>2023/10/21 11:20:35</string>
 			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
 			<integer>73</integer>
-			<key>public.markColor</key>
-			<string>1,0.8907,0.1478,1</string>
 		</dict>
 	</lib>
 </glyph>

@@ -6,6 +6,11 @@
 		<component base="gafsarkashabove-ar" xOffset="385" yOffset="215"/>
 		<component base="vabove-ar" xOffset="3" yOffset="252"/>
 	</outline>
+	<anchor name="bottom_1" x="655" y="-300"/>
+	<anchor name="bottom_2" x="384" y="-300"/>
+	<anchor name="kafbar" x="535" y="707"/>
+	<anchor name="top_1" x="639" y="742"/>
+	<anchor name="top_2" x="109" y="484"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -21,8 +26,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/17 16:22:37</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

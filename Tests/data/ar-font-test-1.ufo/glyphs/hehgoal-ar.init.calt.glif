@@ -5,6 +5,9 @@
 		<component base="behDotless-ar.init"/>
 		<component base="commabelow-ar" xOffset="-76" yOffset="-270"/>
 	</outline>
+	<anchor name="bottom" x="102" y="0"/>
+	<anchor name="bottom_1" x="47" y="-315"/>
+	<anchor name="top" x="119" y="492"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>

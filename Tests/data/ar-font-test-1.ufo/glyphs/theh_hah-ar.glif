@@ -5,6 +5,11 @@
 		<component base="_alefMaksura_hah-ar"/>
 		<component base="threedotsupabove-ar" xOffset="324" yOffset="740"/>
 	</outline>
+	<anchor name="bottom_1" x="534" y="259"/>
+	<anchor name="bottom_2" x="318" y="-398"/>
+	<anchor name="center" x="318" y="0"/>
+	<anchor name="top_1" x="466" y="1067"/>
+	<anchor name="top_2" x="130" y="595"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -20,8 +25,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/18 11:06:20</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

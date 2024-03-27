@@ -5,6 +5,9 @@
 		<component base="keheh-ar.fina"/>
 		<component base="gafsarkashabove-ar" xOffset="371" yOffset="215"/>
 	</outline>
+	<anchor name="bottom" x="385" y="0"/>
+	<anchor name="kafbar" x="521" y="707"/>
+	<anchor name="top" x="90" y="480"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

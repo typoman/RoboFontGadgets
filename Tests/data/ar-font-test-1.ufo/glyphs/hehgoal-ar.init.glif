@@ -22,6 +22,8 @@
 		</contour>
 		<component base="commabelow-ar" xOffset="126" yOffset="-270"/>
 	</outline>
+	<anchor name="bottom" x="264" y="-237"/>
+	<anchor name="top" x="184" y="330"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>

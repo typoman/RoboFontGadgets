@@ -5,6 +5,8 @@
 		<component base="yehbarree-ar.fina"/>
 		<component base="hamzaabove-ar" xOffset="62" yOffset="200"/>
 	</outline>
+	<anchor name="bottom" x="217" y="-290"/>
+	<anchor name="top" x="164" y="428"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

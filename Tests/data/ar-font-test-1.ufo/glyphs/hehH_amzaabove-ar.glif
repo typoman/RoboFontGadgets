@@ -6,6 +6,8 @@
 		<component base="heh-ar"/>
 		<component base="hamzaabove-ar" xOffset="103" yOffset="590"/>
 	</outline>
+	<anchor name="bottom" x="213" y="-15"/>
+	<anchor name="top" x="205" y="818"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

@@ -5,6 +5,8 @@
 	<outline>
 		<component base="heh-ar"/>
 	</outline>
+	<anchor name="bottom" x="213" y="-15"/>
+	<anchor name="top" x="215" y="590"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

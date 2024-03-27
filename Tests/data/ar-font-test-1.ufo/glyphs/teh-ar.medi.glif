@@ -5,6 +5,8 @@
 		<component base="behDotless-ar.medi"/>
 		<component base="twodotshorizontalabove-ar" xOffset="9" yOffset="330"/>
 	</outline>
+	<anchor name="bottom" x="139" y="0"/>
+	<anchor name="top" x="151" y="516"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

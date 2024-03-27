@@ -5,6 +5,8 @@
 		<component base="behDotless-ar.medi.calt"/>
 		<component base="tahabove-ar" xOffset="-25" yOffset="530"/>
 	</outline>
+	<anchor name="bottom" x="169" y="0"/>
+	<anchor name="top" x="123" y="860"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

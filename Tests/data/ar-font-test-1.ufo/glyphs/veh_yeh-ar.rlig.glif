@@ -6,6 +6,10 @@
 		<component base="twodotshorizontalbelow-ar" xOffset="235" yOffset="-503"/>
 		<component base="threedotsupabove-ar" xOffset="364" yOffset="744"/>
 	</outline>
+	<anchor name="bottom_1" x="644" y="-195"/>
+	<anchor name="bottom_2" x="377" y="-417"/>
+	<anchor name="top_1" x="506" y="1071"/>
+	<anchor name="top_2" x="109" y="319"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
@@ -29,8 +33,6 @@
 			</array>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/18 15:34:47</string>
-			<key>public.markColor</key>
-			<string>1,0,0.3594,1</string>
 		</dict>
 	</lib>
 </glyph>

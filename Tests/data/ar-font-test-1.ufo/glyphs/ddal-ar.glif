@@ -6,6 +6,8 @@
 		<component base="dal-ar"/>
 		<component base="tahabove-ar" xOffset="78" yOffset="590"/>
 	</outline>
+	<anchor name="bottom" x="254" y="-15"/>
+	<anchor name="top" x="226" y="920"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

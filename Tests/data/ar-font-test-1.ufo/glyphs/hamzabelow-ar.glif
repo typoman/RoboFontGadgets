@@ -4,14 +4,14 @@
 	<outline>
 		<component base="_hamza-ar"/>
 	</outline>
+	<anchor name="_bottom" x="112" y="300"/>
+	<anchor name="bottom" x="112" y="104"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
 			<string>2023/11/14 12:45:46</string>
 			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
 			<integer>224</integer>
-			<key>public.markColor</key>
-			<string>1,0.8907,0.1478,1</string>
 		</dict>
 	</lib>
 </glyph>

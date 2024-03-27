@@ -9,6 +9,9 @@
 			<point x="-10" y="836" type="line"/>
 		</contour>
 	</outline>
+	<anchor name="bottom" x="215" y="0"/>
+	<anchor name="kafbar" x="141" y="707"/>
+	<anchor name="top" x="141" y="717"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

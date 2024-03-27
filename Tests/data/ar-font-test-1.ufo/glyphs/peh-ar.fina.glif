@@ -5,6 +5,8 @@
 		<component base="behDotless-ar.fina"/>
 		<component base="threedotsdownbelow-ar" xOffset="353" yOffset="-285"/>
 	</outline>
+	<anchor name="bottom" x="495" y="-344"/>
+	<anchor name="top" x="495" y="270"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

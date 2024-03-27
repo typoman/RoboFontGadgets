@@ -5,6 +5,8 @@
 	<outline>
 		<component base="alef-ar"/>
 	</outline>
+	<anchor name="bottom" x="108" y="0"/>
+	<anchor name="top" x="116" y="729"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

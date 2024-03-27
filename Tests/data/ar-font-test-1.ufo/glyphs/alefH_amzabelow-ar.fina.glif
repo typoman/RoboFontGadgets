@@ -5,6 +5,8 @@
 		<component base="alef-ar.fina"/>
 		<component base="hamzabelow-ar" xOffset="8" yOffset="-300"/>
 	</outline>
+	<anchor name="bottom" x="120" y="-196"/>
+	<anchor name="top" x="116" y="729"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

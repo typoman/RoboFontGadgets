@@ -5,6 +5,8 @@
 	<outline>
 		<component base="waw-ar"/>
 	</outline>
+	<anchor name="bottom" x="218" y="-205"/>
+	<anchor name="top" x="210" y="522"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

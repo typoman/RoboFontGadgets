@@ -6,6 +6,8 @@
 		<component base="ain-ar"/>
 		<component base="dotabove-ar" xOffset="145" yOffset="675"/>
 	</outline>
+	<anchor name="bottom" x="-98" y="-140"/>
+	<anchor name="top" x="216" y="857"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

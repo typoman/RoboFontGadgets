@@ -5,6 +5,8 @@
 	<outline>
 		<component base="seen-ar"/>
 	</outline>
+	<anchor name="bottom" x="860" y="0"/>
+	<anchor name="top" x="842" y="330"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>

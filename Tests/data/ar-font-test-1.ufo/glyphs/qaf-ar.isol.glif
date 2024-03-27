@@ -5,6 +5,8 @@
 	<outline>
 		<component base="qaf-ar"/>
 	</outline>
+	<anchor name="bottom" x="334" y="-215"/>
+	<anchor name="top" x="512" y="706"/>
 	<lib>
 		<dict>
 			<key>com.schriftgestaltung.Glyphs.lastChange</key>
