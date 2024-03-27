@@ -21,6 +21,6 @@ setup(
     "ufonormalizer"
     ],
     tests_require=[
-        'pytest>=3.7',
+        'pytest>=3.9',
     ],
 )

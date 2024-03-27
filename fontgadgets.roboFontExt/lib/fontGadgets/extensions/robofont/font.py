@@ -1,6 +1,6 @@
-from fontGadgets.tools import fontMethod
+from fontgadgets.decorators import *
 
-@fontMethod
+@font_method
 def serializedDataForCompile(font):
 	keep = [
 	'features',
@@ -46,4 +46,3 @@ def getSortedFonts(fonts=None):
 			continue
 		if len(widths) == numFonts:
 			return [widths[w] for w in sorted(widths)]
-

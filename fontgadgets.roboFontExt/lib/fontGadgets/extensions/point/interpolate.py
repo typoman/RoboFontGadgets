@@ -1,6 +1,6 @@
-from fontGadgets.tools import fontMethod
+from fontgadgets.decorators import *
 
-@fontMethod
+@font_method
 def interpolate(point, otherPoint, interpolationFactor):
 	"""
 	Returns the x, y point coordinates of linear interpolation between
