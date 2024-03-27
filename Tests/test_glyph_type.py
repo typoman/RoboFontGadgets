@@ -8,7 +8,7 @@ import fontgadgets.extensions.glyph.type
     ("teh_heh-ar.init", True),
     ("yehVabove_yehVabove-ar.fina.rlig", True),
     ("alefMaksura_heh-ar.medi", True),
-    ("_fehDotless_alefMaksura-ar", True),
+    ("_fehDotless_alefMaksura-ar", False),
     ("beh-ar", False),
     ("kasratan-ar", False),
     ("_part.connection-ar", False),
@@ -43,7 +43,7 @@ def test_isMark(defcon_ar_font_1, glyph_name, expected_result):
     ("parenright", True),
     ("shaddaFathatan-ar", False),
     ("yehVabove_yehVabove-ar.fina.rlig", False),
-    ("_fehDotless_alefMaksura-ar", False),
+    ("_fehDotless_alefMaksura-ar", True),
     ("kasratan-ar", False),
     ("_part.connection-ar", True),
     ("hamza-ar", True),
@@ -76,8 +76,8 @@ def test_is_base(defcon_ar_font_1, glyph_name, expected_result):
     ("percent-ar", "base"),
     ("hamzaabove-ar", "mark"),
     ("shaddaKasratan-ar", "mark"),
-    ("_alefMaksura_meem-ar.medi", "ligature"),
-    ("_alefMaksura_meem-ar.calt1", "ligature"),
+    ("_alefMaksura_meem-ar.medi", "base"),
+    ("_alefMaksura_meem-ar.calt1", "base"),
     ],
 )
 def test_get_type(defcon_ar_font_1, glyph_name, expected_result):

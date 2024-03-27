@@ -85,8 +85,6 @@ class GlyphTypeInterpreter:
             for sgname in sgnames:
                 if self.isLigature(sgname) is True:
                     return self._setGlyphType(glyphName, "ligature")
-        if glyph.relatedComposites and all((map(self.isLigature, glyph.relatedComposites))):
-            return self._setGlyphType(glyphName, "ligature")
         return False
 
     def getGlyphType(self, glyphName):
