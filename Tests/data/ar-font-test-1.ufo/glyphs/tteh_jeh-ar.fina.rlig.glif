@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="tteh_jeh-ar.fina.rlig" format="2">
+	<advance width="677"/>
+	<outline>
+		<component base="_alefMaksura_reh-ar.fina.rlig"/>
+		<component base="threedotsupabove-ar" xOffset="52" yOffset="440"/>
+		<component base="tahabove-ar" xOffset="343" yOffset="530"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>top_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>threedotsupabove-ar</string>
+				</dict>
+				<dict>
+					<key>anchor</key>
+					<string>top_1</string>
+					<key>index</key>
+					<integer>2</integer>
+					<key>name</key>
+					<string>tahabove-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:24:14</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

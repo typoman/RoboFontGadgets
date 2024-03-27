@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="alefHamzaabove-ar.isol" format="2">
+	<unicode hex="FE83"/>
+	<advance width="215"/>
+	<outline>
+		<component base="alefHamzaabove-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:21:19</string>
+		</dict>
+	</lib>
+</glyph>

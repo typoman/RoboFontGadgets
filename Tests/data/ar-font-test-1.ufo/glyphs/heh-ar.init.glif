@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="heh-ar.init" format="2">
+	<advance width="588"/>
+	<outline>
+		<contour>
+			<point x="-10" y="-66" type="line"/>
+			<point x="558" y="-66" type="line"/>
+			<point x="558" y="631" type="line"/>
+			<point x="-10" y="631" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 10:26:03</string>
+		</dict>
+	</lib>
+</glyph>

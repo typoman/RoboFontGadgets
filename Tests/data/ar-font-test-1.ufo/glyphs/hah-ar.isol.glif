@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hah-ar.isol" format="2">
+	<unicode hex="FEA1"/>
+	<advance width="614"/>
+	<outline>
+		<component base="hah-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 09:29:12</string>
+		</dict>
+	</lib>
+</glyph>

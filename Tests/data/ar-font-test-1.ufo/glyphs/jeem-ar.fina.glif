@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="jeem-ar.fina" format="2">
+	<advance width="646"/>
+	<outline>
+		<component base="hah-ar.fina"/>
+		<component base="dotcenter-ar" xOffset="256" yOffset="-127"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:35:03</string>
+		</dict>
+	</lib>
+</glyph>

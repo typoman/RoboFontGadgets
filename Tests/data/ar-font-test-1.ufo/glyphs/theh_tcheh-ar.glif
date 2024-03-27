@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="theh_tcheh-ar" format="2">
+	<advance width="614"/>
+	<outline>
+		<component base="_alefMaksura_hah-ar"/>
+		<component base="threedotsdowncenter-ar" xOffset="176" yOffset="-71"/>
+		<component base="threedotsupabove-ar" xOffset="324" yOffset="740"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>top_1</string>
+					<key>index</key>
+					<integer>2</integer>
+					<key>name</key>
+					<string>threedotsupabove-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 11:06:20</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

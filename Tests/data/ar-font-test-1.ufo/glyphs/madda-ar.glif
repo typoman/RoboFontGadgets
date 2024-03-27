@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="madda-ar" format="2">
+	<unicode hex="0653"/>
+	<outline>
+		<contour>
+			<point x="42" y="36" type="line"/>
+			<point x="246" y="36" type="line"/>
+			<point x="246" y="176" type="line"/>
+			<point x="42" y="176" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>264</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

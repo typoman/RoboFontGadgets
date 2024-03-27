@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="thal-ar.isol" format="2">
+	<unicode hex="FEAB"/>
+	<advance width="508"/>
+	<outline>
+		<component base="thal-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/09 17:26:48</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="six" format="2">
+	<unicode hex="0036"/>
+	<advance width="646"/>
+	<outline>
+		<contour>
+			<point x="25" y="-15" type="line"/>
+			<point x="626" y="-15" type="line"/>
+			<point x="626" y="747" type="line"/>
+			<point x="25" y="747" type="line"/>
+		</contour>
+		<contour>
+			<point x="25" y="-15" type="line"/>
+			<point x="626" y="-15" type="line"/>
+			<point x="626" y="747" type="line"/>
+			<point x="25" y="747" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+		</dict>
+	</lib>
+</glyph>

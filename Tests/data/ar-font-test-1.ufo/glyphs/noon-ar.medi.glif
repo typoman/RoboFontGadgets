@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="noon-ar.medi" format="2">
+	<advance width="282"/>
+	<outline>
+		<component base="behDotless-ar.medi"/>
+		<component base="dotabove-ar" xOffset="80" yOffset="330"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/10/19 09:02:03</string>
+		</dict>
+	</lib>
+</glyph>

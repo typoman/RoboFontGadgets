@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="gaf-ar.medi" format="2">
+	<advance width="500"/>
+	<outline>
+		<component base="kaf-ar.medi"/>
+		<component base="gafsarkashabove-ar" xOffset="-9" yOffset="215"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/08/02 10:07:50</string>
+		</dict>
+	</lib>
+</glyph>

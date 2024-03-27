@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="fehDotless-ar" format="2">
+	<unicode hex="06A1"/>
+	<advance width="995"/>
+	<outline>
+		<contour>
+			<point x="25" y="-15" type="line"/>
+			<point x="970" y="-15" type="line"/>
+			<point x="970" y="682" type="line"/>
+			<point x="25" y="682" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:36:08</string>
+		</dict>
+	</lib>
+</glyph>

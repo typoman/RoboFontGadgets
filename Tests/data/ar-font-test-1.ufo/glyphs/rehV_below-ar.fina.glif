@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="rehVbelow-ar.fina" format="2">
+	<advance width="409"/>
+	<outline>
+		<component base="reh-ar.fina"/>
+		<component base="vbelow-ar" xOffset="56" yOffset="-535"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:59:03</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="lam_tcheh-ar" format="2">
+	<advance width="664"/>
+	<outline>
+		<component base="lam_hah-ar"/>
+		<component base="threedotsdowncenter-ar" xOffset="186" yOffset="-63"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 11:00:41</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

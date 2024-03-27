@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="khah-ar" format="2">
+	<unicode hex="062E"/>
+	<advance width="614"/>
+	<outline>
+		<component base="hah-ar"/>
+		<component base="dotabove-ar" xOffset="227" yOffset="517"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 09:27:07</string>
+		</dict>
+	</lib>
+</glyph>

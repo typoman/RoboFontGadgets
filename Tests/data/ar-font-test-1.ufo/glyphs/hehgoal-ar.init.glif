@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hehgoal-ar.init" format="2">
+	<advance width="433"/>
+	<outline>
+		<contour>
+			<point x="-10" y="-305" type="line"/>
+			<point x="408" y="-305" type="line"/>
+			<point x="408" y="440" type="line"/>
+			<point x="-10" y="440" type="line"/>
+		</contour>
+		<contour>
+			<point x="-10" y="-305" type="line"/>
+			<point x="408" y="-305" type="line"/>
+			<point x="408" y="440" type="line"/>
+			<point x="-10" y="440" type="line"/>
+		</contour>
+		<contour>
+			<point x="-10" y="-305" type="line"/>
+			<point x="408" y="-305" type="line"/>
+			<point x="408" y="440" type="line"/>
+			<point x="-10" y="440" type="line"/>
+		</contour>
+		<component base="commabelow-ar" xOffset="126" yOffset="-270"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>bottom_1</string>
+					<key>index</key>
+					<integer>0</integer>
+					<key>name</key>
+					<string>commabelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:56:00</string>
+			<key>com.schriftgestaltung.Glyphs.shapeOrder</key>
+			<string>PPC</string>
+		</dict>
+	</lib>
+</glyph>

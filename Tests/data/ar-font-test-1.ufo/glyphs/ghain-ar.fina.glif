@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="ghain-ar.fina" format="2">
+	<advance width="617"/>
+	<outline>
+		<component base="ain-ar.fina"/>
+		<component base="dotabove-ar" xOffset="269" yOffset="582"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:35:47</string>
+		</dict>
+	</lib>
+</glyph>

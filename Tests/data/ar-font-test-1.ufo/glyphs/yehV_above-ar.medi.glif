@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehVabove-ar.medi" format="2">
+	<advance width="282"/>
+	<outline>
+		<component base="behDotless-ar.medi"/>
+		<component base="vabove-ar" xOffset="45" yOffset="330"/>
+		<component base="twodotshorizontalbelow-ar" xOffset="-3" yOffset="-270"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 14:02:44</string>
+		</dict>
+	</lib>
+</glyph>

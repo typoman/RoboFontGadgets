@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="kaf-ar.medi.ss01" format="2">
+	<advance width="998"/>
+	<outline>
+		<component base="_part.connectionFlat-ar" xOffset="611"/>
+		<component base="kaf-ar.init.ss01"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/09 13:36:17</string>
+		</dict>
+	</lib>
+</glyph>

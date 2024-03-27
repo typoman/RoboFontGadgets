@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="_behdotless_alefMaksura-ar" format="2">
+	<advance width="747"/>
+	<outline>
+		<contour>
+			<point x="25" y="-140" type="line"/>
+			<point x="727" y="-140" type="line"/>
+			<point x="727" y="677" type="line"/>
+			<point x="25" y="677" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.Export</key>
+			<false/>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/20 14:19:14</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

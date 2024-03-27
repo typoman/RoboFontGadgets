@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="tcheh-ar.medi" format="2">
+	<advance width="671"/>
+	<outline>
+		<component base="hah-ar.medi"/>
+		<component base="threedotsdownbelow-ar" xOffset="194" yOffset="-213"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 14:03:21</string>
+		</dict>
+	</lib>
+</glyph>

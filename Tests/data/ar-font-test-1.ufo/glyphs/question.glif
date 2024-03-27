@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="question" format="2">
+	<unicode hex="003F"/>
+	<advance width="436"/>
+	<outline>
+		<contour>
+			<point x="30" y="-5" type="line"/>
+			<point x="431" y="-5" type="line"/>
+			<point x="431" y="747" type="line"/>
+			<point x="30" y="747" type="line"/>
+		</contour>
+		<contour>
+			<point x="30" y="-5" type="line"/>
+			<point x="431" y="-5" type="line"/>
+			<point x="431" y="747" type="line"/>
+			<point x="30" y="747" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+		</dict>
+	</lib>
+</glyph>

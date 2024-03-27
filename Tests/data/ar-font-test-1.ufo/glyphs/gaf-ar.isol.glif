@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="gaf-ar.isol" format="2">
+	<unicode hex="FB92"/>
+	<advance width="770"/>
+	<outline>
+		<component base="gaf-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:58:38</string>
+		</dict>
+	</lib>
+</glyph>

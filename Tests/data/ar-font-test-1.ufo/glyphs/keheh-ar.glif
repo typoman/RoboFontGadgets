@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="keheh-ar" format="2">
+	<unicode hex="06A9"/>
+	<advance width="770"/>
+	<outline>
+		<contour>
+			<point x="25" y="-15" type="line"/>
+			<point x="901" y="-15" type="line"/>
+			<point x="901" y="836" type="line"/>
+			<point x="25" y="836" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 09:31:48</string>
+		</dict>
+	</lib>
+</glyph>

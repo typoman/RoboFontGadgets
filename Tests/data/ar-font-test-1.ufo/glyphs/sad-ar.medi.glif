@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sad-ar.medi" format="2">
+	<advance width="970"/>
+	<outline>
+		<component base="_part.connection-ar" xOffset="716"/>
+		<component base="sad-ar.init"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:11:35</string>
+		</dict>
+	</lib>
+</glyph>

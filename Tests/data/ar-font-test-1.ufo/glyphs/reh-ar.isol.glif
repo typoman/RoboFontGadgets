@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="reh-ar.isol" format="2">
+	<unicode hex="FEAD"/>
+	<advance width="323"/>
+	<outline>
+		<component base="reh-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 07:30:53</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="alefMaksura-ar" format="2">
+	<unicode hex="0649"/>
+	<advance width="753"/>
+	<outline>
+		<contour>
+			<point x="25" y="-140" type="line"/>
+			<point x="733" y="-140" type="line"/>
+			<point x="733" y="637" type="line"/>
+			<point x="25" y="637" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 14:26:50</string>
+		</dict>
+	</lib>
+</glyph>

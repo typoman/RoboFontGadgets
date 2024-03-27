@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="gaf-ar.fina" format="2">
+	<advance width="880"/>
+	<outline>
+		<component base="keheh-ar.fina"/>
+		<component base="gafsarkashabove-ar" xOffset="371" yOffset="215"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:35:03</string>
+		</dict>
+	</lib>
+</glyph>

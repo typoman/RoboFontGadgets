@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="seen-ar" format="2">
+	<unicode hex="0633"/>
+	<advance width="1171"/>
+	<outline>
+		<contour>
+			<point x="25" y="-300" type="line"/>
+			<point x="1146" y="-300" type="line"/>
+			<point x="1146" y="440" type="line"/>
+			<point x="25" y="440" type="line"/>
+		</contour>
+		<contour>
+			<point x="25" y="-300" type="line"/>
+			<point x="1146" y="-300" type="line"/>
+			<point x="1146" y="440" type="line"/>
+			<point x="25" y="440" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 13:20:57</string>
+		</dict>
+	</lib>
+</glyph>

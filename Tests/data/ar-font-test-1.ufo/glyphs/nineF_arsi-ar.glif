@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="nineFarsi-ar" format="2">
+	<unicode hex="06F9"/>
+	<advance width="465"/>
+	<outline>
+		<component base="nine-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>1</integer>
+					<key>index</key>
+					<integer>0</integer>
+					<key>name</key>
+					<string>nine-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/20 15:55:11</string>
+		</dict>
+	</lib>
+</glyph>

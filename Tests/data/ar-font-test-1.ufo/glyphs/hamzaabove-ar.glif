@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hamzaabove-ar" format="2">
+	<unicode hex="0654"/>
+	<outline>
+		<component base="_hamza-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/14 12:26:25</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>224</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

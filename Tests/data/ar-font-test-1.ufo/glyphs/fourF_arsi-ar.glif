@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="fourFarsi-ar" format="2">
+	<unicode hex="06F4"/>
+	<advance width="531"/>
+	<outline>
+		<contour>
+			<point x="15" y="-15" type="line"/>
+			<point x="526" y="-15" type="line"/>
+			<point x="526" y="715" type="line"/>
+			<point x="15" y="715" type="line"/>
+		</contour>
+		<contour>
+			<point x="15" y="-15" type="line"/>
+			<point x="526" y="-15" type="line"/>
+			<point x="526" y="715" type="line"/>
+			<point x="15" y="715" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 14:27:10</string>
+		</dict>
+	</lib>
+</glyph>

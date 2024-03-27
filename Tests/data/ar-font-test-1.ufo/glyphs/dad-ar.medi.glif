@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="dad-ar.medi" format="2">
+	<advance width="970"/>
+	<outline>
+		<component base="sad-ar.medi"/>
+		<component base="dotabove-ar" xOffset="465" yOffset="492"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:57:27</string>
+		</dict>
+	</lib>
+</glyph>

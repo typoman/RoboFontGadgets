@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehFarsi-ar.init.calt" format="2">
+	<advance width="247"/>
+	<outline>
+		<component base="behDotless-ar.init"/>
+		<component base="twodotsverticalbelow-ar" xOffset="31" yOffset="-270"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 15:34:47</string>
+		</dict>
+	</lib>
+</glyph>

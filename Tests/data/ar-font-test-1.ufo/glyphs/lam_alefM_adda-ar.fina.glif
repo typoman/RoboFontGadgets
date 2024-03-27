@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="lam_alefMadda-ar.fina" format="2">
+	<advance width="601"/>
+	<outline>
+		<component base="lam_alef-ar.fina"/>
+		<component base="madda-ar" xOffset="117" yOffset="611"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>top_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>madda-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 13:57:59</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehbarree-ar" format="2">
+	<unicode hex="06D2"/>
+	<advance width="857"/>
+	<outline>
+		<contour>
+			<point x="20" y="0" type="line"/>
+			<point x="857" y="0" type="line"/>
+			<point x="857" y="494" type="line"/>
+			<point x="20" y="494" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 10:27:32</string>
+		</dict>
+	</lib>
+</glyph>

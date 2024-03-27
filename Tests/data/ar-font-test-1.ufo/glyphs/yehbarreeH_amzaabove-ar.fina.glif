@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehbarreeHamzaabove-ar.fina" format="2">
+	<advance width="697"/>
+	<outline>
+		<component base="yehbarree-ar.fina"/>
+		<component base="hamzaabove-ar" xOffset="62" yOffset="200"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 12:29:12</string>
+		</dict>
+	</lib>
+</glyph>

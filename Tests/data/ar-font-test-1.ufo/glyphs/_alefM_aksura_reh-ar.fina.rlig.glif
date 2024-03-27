@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="_alefMaksura_reh-ar.fina.rlig" format="2">
+	<advance width="677"/>
+	<outline>
+		<contour>
+			<point x="-100" y="-225" type="line"/>
+			<point x="677" y="-225" type="line"/>
+			<point x="677" y="530" type="line"/>
+			<point x="-100" y="530" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.Export</key>
+			<false/>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:29:44</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

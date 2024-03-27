@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="tah-ar" format="2">
+	<unicode hex="0637"/>
+	<advance width="870"/>
+	<outline>
+		<contour>
+			<point x="10" y="0" type="line"/>
+			<point x="830" y="0" type="line"/>
+			<point x="830" y="779" type="line"/>
+			<point x="10" y="779" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 13:22:49</string>
+		</dict>
+	</lib>
+</glyph>

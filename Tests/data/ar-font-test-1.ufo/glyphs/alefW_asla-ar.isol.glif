@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="alefWasla-ar.isol" format="2">
+	<unicode hex="FB50"/>
+	<advance width="215"/>
+	<outline>
+		<component base="alefWasla-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:21:19</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hah-ar" format="2">
+	<unicode hex="062D"/>
+	<advance width="614"/>
+	<outline>
+		<contour>
+			<point x="25" y="-400" type="line"/>
+			<point x="634" y="-400" type="line"/>
+			<point x="634" y="514.756688019" type="line"/>
+			<point x="25" y="514.756688019" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 09:29:55</string>
+		</dict>
+	</lib>
+</glyph>

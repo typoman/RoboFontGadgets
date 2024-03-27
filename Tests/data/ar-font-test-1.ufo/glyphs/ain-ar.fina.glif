@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="ain-ar.fina" format="2">
+	<advance width="617"/>
+	<outline>
+		<contour>
+			<point x="25" y="-400" type="line"/>
+			<point x="626" y="-400" type="line"/>
+			<point x="626" y="582" type="line"/>
+			<point x="25" y="582" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:35:47</string>
+		</dict>
+	</lib>
+</glyph>

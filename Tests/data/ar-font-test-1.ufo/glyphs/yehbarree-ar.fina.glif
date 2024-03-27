@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehbarree-ar.fina" format="2">
+	<advance width="697"/>
+	<outline>
+		<contour>
+			<point x="20" y="-290" type="line"/>
+			<point x="767" y="-290" type="line"/>
+			<point x="767" y="200" type="line"/>
+			<point x="20" y="200" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+		</dict>
+	</lib>
+</glyph>

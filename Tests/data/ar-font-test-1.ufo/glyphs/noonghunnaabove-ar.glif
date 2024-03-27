@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="noonghunnaabove-ar" format="2">
+	<unicode hex="0658"/>
+	<outline>
+		<contour>
+			<point x="30" y="53" type="line"/>
+			<point x="237" y="53" type="line"/>
+			<point x="237" y="235" type="line"/>
+			<point x="30" y="235" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:19:48</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>252</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="S" format="2">
+	<unicode hex="0053"/>
+	<advance width="601"/>
+	<outline>
+		<contour>
+			<point x="33" y="-15" type="line"/>
+			<point x="571" y="-15" type="line"/>
+			<point x="571" y="747" type="line"/>
+			<point x="33" y="747" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+		</dict>
+	</lib>
+</glyph>

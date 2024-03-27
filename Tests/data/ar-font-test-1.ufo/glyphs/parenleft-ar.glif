@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="parenleft-ar" format="2">
+	<unicode hex="FD3E"/>
+	<advance width="443"/>
+	<outline>
+		<contour>
+			<point x="40" y="-231" type="line"/>
+			<point x="428" y="-231" type="line"/>
+			<point x="428" y="755" type="line"/>
+			<point x="40" y="755" type="line"/>
+		</contour>
+		<contour>
+			<point x="40" y="-231" type="line"/>
+			<point x="428" y="-231" type="line"/>
+			<point x="428" y="755" type="line"/>
+			<point x="40" y="755" type="line"/>
+		</contour>
+		<contour>
+			<point x="40" y="-231" type="line"/>
+			<point x="428" y="-231" type="line"/>
+			<point x="428" y="755" type="line"/>
+			<point x="40" y="755" type="line"/>
+		</contour>
+		<contour>
+			<point x="40" y="-231" type="line"/>
+			<point x="428" y="-231" type="line"/>
+			<point x="428" y="755" type="line"/>
+			<point x="40" y="755" type="line"/>
+		</contour>
+		<contour>
+			<point x="40" y="-231" type="line"/>
+			<point x="428" y="-231" type="line"/>
+			<point x="428" y="755" type="line"/>
+			<point x="40" y="755" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:28:39</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="zero-ar" format="2">
+	<unicode hex="0660"/>
+	<advance width="329"/>
+	<outline>
+		<contour>
+			<point x="20" y="164" type="line"/>
+			<point x="309" y="164" type="line"/>
+			<point x="309" y="456" type="line"/>
+			<point x="20" y="456" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/20 14:05:54</string>
+		</dict>
+	</lib>
+</glyph>

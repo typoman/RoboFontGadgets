@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="five-ar" format="2">
+	<unicode hex="0665"/>
+	<advance width="464"/>
+	<outline>
+		<contour>
+			<point x="25" y="56" type="line"/>
+			<point x="439" y="56" type="line"/>
+			<point x="439" y="623" type="line"/>
+			<point x="25" y="623" type="line"/>
+		</contour>
+		<contour>
+			<point x="25" y="56" type="line"/>
+			<point x="439" y="56" type="line"/>
+			<point x="439" y="623" type="line"/>
+			<point x="25" y="623" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/20 15:53:31</string>
+		</dict>
+	</lib>
+</glyph>

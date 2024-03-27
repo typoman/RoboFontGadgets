@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="alefMaksura-ar.isol" format="2">
+	<unicode hex="FEEF"/>
+	<advance width="753"/>
+	<outline>
+		<component base="alefMaksura-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 12:29:12</string>
+		</dict>
+	</lib>
+</glyph>

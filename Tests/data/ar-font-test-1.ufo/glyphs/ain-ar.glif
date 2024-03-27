@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="ain-ar" format="2">
+	<unicode hex="0639"/>
+	<advance width="545"/>
+	<outline>
+		<contour>
+			<point x="20" y="-400" type="line"/>
+			<point x="665" y="-400" type="line"/>
+			<point x="665" y="675" type="line"/>
+			<point x="20" y="675" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 09:33:09</string>
+		</dict>
+	</lib>
+</glyph>

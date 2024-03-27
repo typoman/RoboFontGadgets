@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="rreh-ar" format="2">
+	<unicode hex="0691"/>
+	<advance width="323"/>
+	<outline>
+		<component base="reh-ar"/>
+		<component base="tahabove-ar" xOffset="9" yOffset="492"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 10:13:17</string>
+		</dict>
+	</lib>
+</glyph>

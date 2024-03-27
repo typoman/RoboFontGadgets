@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="gaf_yeh-ar.fina.rlig" format="2">
+	<advance width="894"/>
+	<outline>
+		<component base="kaf_alefMaksura-ar.fina.rlig"/>
+		<component base="twodotshorizontalbelow-ar" xOffset="242" yOffset="-570"/>
+		<component base="gafsarkashabove-ar" xOffset="385" yOffset="215"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>bottom_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>twodotshorizontalbelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 15:34:47</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

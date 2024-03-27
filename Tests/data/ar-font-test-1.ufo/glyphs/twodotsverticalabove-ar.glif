@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="twodotsverticalabove-ar" format="2">
+	<outline>
+		<contour>
+			<point x="-12" y="46" type="line"/>
+			<point x="155" y="46" type="line"/>
+			<point x="155" y="354" type="line"/>
+			<point x="-12" y="354" type="line"/>
+		</contour>
+		<contour>
+			<point x="-12" y="46" type="line"/>
+			<point x="155" y="46" type="line"/>
+			<point x="155" y="354" type="line"/>
+			<point x="-12" y="354" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 14:02:24</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>143</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

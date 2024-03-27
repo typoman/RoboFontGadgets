@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="alefMaksura_heh-ar.medi.ss01" format="2">
+	<advance width="672"/>
+	<outline>
+		<contour>
+			<point x="-10" y="-241" type="line"/>
+			<point x="672" y="-241" type="line"/>
+			<point x="672" y="382" type="line"/>
+			<point x="-10" y="382" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.Export</key>
+			<false/>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

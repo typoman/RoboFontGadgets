@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="two-ar" format="2">
+	<unicode hex="0662"/>
+	<advance width="475"/>
+	<outline>
+		<contour>
+			<point x="15" y="-15" type="line"/>
+			<point x="470" y="-15" type="line"/>
+			<point x="470" y="705" type="line"/>
+			<point x="15" y="705" type="line"/>
+		</contour>
+		<contour>
+			<point x="15" y="-15" type="line"/>
+			<point x="470" y="-15" type="line"/>
+			<point x="470" y="705" type="line"/>
+			<point x="15" y="705" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 15:04:37</string>
+		</dict>
+	</lib>
+</glyph>

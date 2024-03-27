@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="dal-ar" format="2">
+	<unicode hex="062F"/>
+	<advance width="508"/>
+	<outline>
+		<contour>
+			<point x="25" y="-15" type="line"/>
+			<point x="483" y="-15" type="line"/>
+			<point x="483" y="610" type="line"/>
+			<point x="25" y="610" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/19 09:36:58</string>
+		</dict>
+	</lib>
+</glyph>

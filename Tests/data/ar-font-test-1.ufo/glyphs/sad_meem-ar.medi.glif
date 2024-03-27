@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sad_meem-ar.medi" format="2">
+	<advance width="1094"/>
+	<outline>
+		<component base="_part.connection-ar" xOffset="840"/>
+		<component base="sad_meem-ar.init"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:19:49</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

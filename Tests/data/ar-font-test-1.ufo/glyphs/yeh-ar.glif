@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yeh-ar" format="2">
+	<unicode hex="064A"/>
+	<advance width="753"/>
+	<outline>
+		<component base="alefMaksura-ar"/>
+		<component base="twodotshorizontalbelow-ar" xOffset="245" yOffset="-410"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 14:27:17</string>
+		</dict>
+	</lib>
+</glyph>

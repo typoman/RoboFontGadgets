@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="kasra-ar" format="2">
+	<unicode hex="0650"/>
+	<outline>
+		<contour>
+			<point x="39" y="44" type="line"/>
+			<point x="197" y="44" type="line"/>
+			<point x="197" y="195" type="line"/>
+			<point x="39" y="195" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/14 12:20:04</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>236</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

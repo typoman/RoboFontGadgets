@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yeh_yehHamzaabove-ar.rlig" format="2">
+	<advance width="747"/>
+	<outline>
+		<component base="_behdotless_alefMaksura-ar"/>
+		<component base="hamzaabove-ar" xOffset="-3" yOffset="412"/>
+		<component base="twodotshorizontalbelow-ar" xOffset="425" yOffset="-410"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>1</integer>
+					<key>index</key>
+					<integer>0</integer>
+					<key>name</key>
+					<string>_behdotless_alefMaksura-ar</string>
+				</dict>
+				<dict>
+					<key>anchor</key>
+					<string>top_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>hamzaabove-ar</string>
+				</dict>
+				<dict>
+					<key>anchor</key>
+					<string>bottom_3</string>
+					<key>index</key>
+					<integer>2</integer>
+					<key>name</key>
+					<string>twodotshorizontalbelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/20 14:13:31</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

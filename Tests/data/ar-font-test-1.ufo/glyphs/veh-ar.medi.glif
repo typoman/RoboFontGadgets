@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="veh-ar.medi" format="2">
+	<advance width="398"/>
+	<outline>
+		<component base="fehDotless-ar.medi"/>
+		<component base="threedotsupabove-ar" xOffset="67" yOffset="600"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:37:26</string>
+		</dict>
+	</lib>
+</glyph>

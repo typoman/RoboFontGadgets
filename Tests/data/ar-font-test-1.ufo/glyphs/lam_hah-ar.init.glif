@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="lam_hah-ar.init" format="2">
+	<advance width="661"/>
+	<outline>
+		<contour>
+			<point x="-10" y="0" type="line"/>
+			<point x="661" y="0" type="line"/>
+			<point x="661" y="965" type="line"/>
+			<point x="-10" y="965" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 11:02:14</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

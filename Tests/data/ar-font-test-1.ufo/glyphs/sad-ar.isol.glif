@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sad-ar.isol" format="2">
+	<unicode hex="FEB9"/>
+	<advance width="1302"/>
+	<outline>
+		<component base="sad-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:59:03</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehVabove_noon-ar.fina.rlig" format="2">
+	<advance width="1092"/>
+	<outline>
+		<component base="_alefMaksura__noonghunna-ar.fina"/>
+		<component base="dotabove-ar" xOffset="279" yOffset="320"/>
+		<component base="twodotshorizontalbelow-ar" xOffset="694" yOffset="-270"/>
+		<component base="vabove-ar" xOffset="787" yOffset="530"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>top_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>dotabove-ar</string>
+				</dict>
+				<dict>
+					<key>alignment</key>
+					<integer>1</integer>
+					<key>anchor</key>
+					<string>bottom_1</string>
+					<key>index</key>
+					<integer>2</integer>
+					<key>name</key>
+					<string>twodotshorizontalbelow-ar</string>
+				</dict>
+				<dict>
+					<key>anchor</key>
+					<string>top_1</string>
+					<key>index</key>
+					<integer>3</integer>
+					<key>name</key>
+					<string>vabove-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 15:34:47</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

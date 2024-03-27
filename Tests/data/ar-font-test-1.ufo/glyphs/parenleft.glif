@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="parenleft" format="2">
+	<unicode hex="0028"/>
+	<advance width="344"/>
+	<outline>
+		<contour>
+			<point x="40" y="-130" type="line"/>
+			<point x="329" y="-130" type="line"/>
+			<point x="329" y="755" type="line"/>
+			<point x="40" y="755" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+		</dict>
+	</lib>
+</glyph>

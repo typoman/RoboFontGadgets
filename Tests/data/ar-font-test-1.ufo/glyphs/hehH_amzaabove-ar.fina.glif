@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hehHamzaabove-ar.fina" format="2">
+	<advance width="523"/>
+	<outline>
+		<component base="heh-ar.fina"/>
+		<component base="hamzaabove-ar" xOffset="100" yOffset="548"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 12:47:39</string>
+		</dict>
+	</lib>
+</glyph>

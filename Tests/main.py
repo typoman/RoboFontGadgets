@@ -53,3 +53,11 @@ def glyph_1():
     ]  # Mock transformation
     glyph.width = 100
     return glyph
+
+@pytest.fixture
+def defcon_ar_font_1():
+    """
+    arabic test font inc. features, unicodes, kerning, groups, components
+    """
+    font = defcon.Font("data/ar-font-test-1.ufo")
+    return font

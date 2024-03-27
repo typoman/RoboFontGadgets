@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hah_yehHamzaabove-ar.fina.rlig" format="2">
+	<advance width="1083"/>
+	<outline>
+		<component base="hah_alefMaksura-ar.fina.rlig"/>
+		<component base="hamzaabove-ar" xOffset="-3" yOffset="319"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>top_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>hamzaabove-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 16:26:40</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

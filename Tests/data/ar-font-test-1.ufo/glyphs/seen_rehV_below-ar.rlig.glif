@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="seen_rehVbelow-ar.rlig" format="2">
+	<advance width="1024"/>
+	<outline>
+		<component base="seen_reh-ar.rlig"/>
+		<component base="vbelow-ar" xOffset="56" yOffset="-535"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>bottom_2</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>vbelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 16:58:38</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

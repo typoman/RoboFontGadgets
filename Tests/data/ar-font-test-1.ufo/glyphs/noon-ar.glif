@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="noon-ar" format="2">
+	<unicode hex="0646"/>
+	<advance width="738"/>
+	<outline>
+		<component base="noonghunna-ar"/>
+		<component base="dotabove-ar" xOffset="279" yOffset="320"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 16:29:04</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="kaf-ar.init" format="2">
+	<advance width="390"/>
+	<outline>
+		<contour>
+			<point x="-10" y="0" type="line"/>
+			<point x="521" y="0" type="line"/>
+			<point x="521" y="836" type="line"/>
+			<point x="-10" y="836" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 16:32:16</string>
+		</dict>
+	</lib>
+</glyph>

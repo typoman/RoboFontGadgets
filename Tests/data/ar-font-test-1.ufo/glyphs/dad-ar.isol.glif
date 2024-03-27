@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="dad-ar.isol" format="2">
+	<unicode hex="FEBD"/>
+	<advance width="1302"/>
+	<outline>
+		<component base="dad-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 14:02:37</string>
+		</dict>
+	</lib>
+</glyph>

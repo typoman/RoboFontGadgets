@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="dot-ar" format="2">
+	<advance width="142"/>
+	<outline>
+		<contour>
+			<point x="-12" y="46" type="line"/>
+			<point x="154" y="46" type="line"/>
+			<point x="154" y="212" type="line"/>
+			<point x="-12" y="212" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 14:01:56</string>
+		</dict>
+	</lib>
+</glyph>

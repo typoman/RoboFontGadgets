@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehFarsi-ar.init" format="2">
+	<advance width="247"/>
+	<outline>
+		<component base="yeh-ar.init"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 13:04:16</string>
+		</dict>
+	</lib>
+</glyph>

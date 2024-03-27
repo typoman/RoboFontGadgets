@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="peh-ar.init" format="2">
+	<advance width="247"/>
+	<outline>
+		<component base="behDotless-ar.init"/>
+		<component base="threedotsdownbelow-ar" xOffset="-95" yOffset="-270"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>bottom_1</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>threedotsdownbelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 16:42:44</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="allah-ar" format="2">
+	<advance width="1263"/>
+	<outline>
+		<contour>
+			<point x="35" y="-14" type="line"/>
+			<point x="1258" y="-14" type="line"/>
+			<point x="1258" y="934" type="line"/>
+			<point x="35" y="934" type="line"/>
+		</contour>
+		<contour>
+			<point x="35" y="-14" type="line"/>
+			<point x="1258" y="-14" type="line"/>
+			<point x="1258" y="934" type="line"/>
+			<point x="35" y="934" type="line"/>
+		</contour>
+		<contour>
+			<point x="35" y="-14" type="line"/>
+			<point x="1258" y="-14" type="line"/>
+			<point x="1258" y="934" type="line"/>
+			<point x="35" y="934" type="line"/>
+		</contour>
+		<contour>
+			<point x="35" y="-14" type="line"/>
+			<point x="1258" y="-14" type="line"/>
+			<point x="1258" y="934" type="line"/>
+			<point x="35" y="934" type="line"/>
+		</contour>
+		<component base="shaddaAlefabove-ar" xOffset="524" yOffset="539"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/10/21 11:27:38</string>
+			<key>com.schriftgestaltung.Glyphs.shapeOrder</key>
+			<string>PPC</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

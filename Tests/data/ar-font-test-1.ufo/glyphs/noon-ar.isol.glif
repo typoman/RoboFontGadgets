@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="noon-ar.isol" format="2">
+	<unicode hex="FEE5"/>
+	<advance width="738"/>
+	<outline>
+		<component base="noon-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 08:25:38</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="gaf_alefMaksura-ar.rlig" format="2">
+	<advance width="742"/>
+	<outline>
+		<component base="kaf_alefMaksura-ar.rlig"/>
+		<component base="gafsarkashabove-ar" xOffset="292" yOffset="282"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 16:27:28</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hah-ar.medi" format="2">
+	<advance width="671"/>
+	<outline>
+		<component base="_part.connectionHahInit-ar" xOffset="61"/>
+		<component base="hah-ar.init"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/10 08:04:16</string>
+		</dict>
+	</lib>
+</glyph>

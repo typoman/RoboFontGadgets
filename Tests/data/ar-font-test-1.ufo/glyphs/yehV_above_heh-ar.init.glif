@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="yehVabove_heh-ar.init" format="2">
+	<advance width="666"/>
+	<outline>
+		<component base="alefMaksura_heh-ar.init"/>
+		<component base="vabove-ar" xOffset="386" yOffset="440"/>
+		<component base="twodotsverticalbelow-ar" xOffset="456" yOffset="-86"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>top_1</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>vabove-ar</string>
+				</dict>
+				<dict>
+					<key>anchor</key>
+					<string>bottom_1</string>
+					<key>index</key>
+					<integer>2</integer>
+					<key>name</key>
+					<string>twodotsverticalbelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 15:34:47</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

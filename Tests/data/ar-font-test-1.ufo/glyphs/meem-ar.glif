@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="meem-ar" format="2">
+	<unicode hex="0645"/>
+	<advance width="837"/>
+	<outline>
+		<contour>
+			<point x="-80" y="-41" type="line"/>
+			<point x="807.220945522" y="-41" type="line"/>
+			<point x="807.220945522" y="520" type="line"/>
+			<point x="-80" y="520" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 16:34:44</string>
+		</dict>
+	</lib>
+</glyph>

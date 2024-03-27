@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="noonghunna-ar.isol" format="2">
+	<unicode hex="FB9E"/>
+	<advance width="738"/>
+	<outline>
+		<component base="noonghunna-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:54:40</string>
+		</dict>
+	</lib>
+</glyph>

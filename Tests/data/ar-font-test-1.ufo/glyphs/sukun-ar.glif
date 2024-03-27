@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sukun-ar" format="2">
+	<unicode hex="0652"/>
+	<outline>
+		<contour>
+			<point x="20" y="66" type="line"/>
+			<point x="194" y="66" type="line"/>
+			<point x="194" y="241" type="line"/>
+			<point x="20" y="241" type="line"/>
+		</contour>
+		<contour>
+			<point x="20" y="66" type="line"/>
+			<point x="194" y="66" type="line"/>
+			<point x="194" y="241" type="line"/>
+			<point x="20" y="241" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/14 12:30:01</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>214</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

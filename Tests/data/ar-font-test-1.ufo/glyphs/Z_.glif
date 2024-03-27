@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="Z" format="2">
+	<unicode hex="005A"/>
+	<advance width="692"/>
+	<outline>
+		<contour>
+			<point x="13" y="0" type="line"/>
+			<point x="674" y="0" type="line"/>
+			<point x="674" y="732" type="line"/>
+			<point x="13" y="732" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+		</dict>
+	</lib>
+</glyph>

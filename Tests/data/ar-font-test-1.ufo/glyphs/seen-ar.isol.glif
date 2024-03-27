@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="seen-ar.isol" format="2">
+	<unicode hex="FEB1"/>
+	<advance width="1171"/>
+	<outline>
+		<component base="seen-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:15:33</string>
+		</dict>
+	</lib>
+</glyph>

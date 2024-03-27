@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="beh-ar.init" format="2">
+	<advance width="247"/>
+	<outline>
+		<component base="behDotless-ar.init"/>
+		<component base="dotbelow-ar" xOffset="31" yOffset="-270"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>anchor</key>
+					<string>bottom</string>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>dotbelow-ar</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 16:39:10</string>
+		</dict>
+	</lib>
+</glyph>

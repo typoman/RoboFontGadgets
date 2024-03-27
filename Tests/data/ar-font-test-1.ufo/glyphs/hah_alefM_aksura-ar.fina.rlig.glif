@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hah_alefMaksura-ar.fina.rlig" format="2">
+	<advance width="1083"/>
+	<outline>
+		<component base="_part.connectionHahInit-ar" xOffset="473"/>
+		<component base="hah_alefMaksura-ar.rlig"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:42:10</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

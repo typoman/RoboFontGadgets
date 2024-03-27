@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="kaf-ar.isol" format="2">
+	<unicode hex="FED9"/>
+	<advance width="908"/>
+	<outline>
+		<component base="kaf-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:33:48</string>
+		</dict>
+	</lib>
+</glyph>

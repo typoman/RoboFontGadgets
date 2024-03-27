@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="kaf_alefMaksura-ar.rlig" format="2">
+	<advance width="742"/>
+	<outline>
+		<contour>
+			<point x="25" y="-233" type="line"/>
+			<point x="822" y="-233" type="line"/>
+			<point x="822" y="903" type="line"/>
+			<point x="25" y="903" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 16:27:28</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="_alefMaksura_meem-ar" format="2">
+	<advance width="915"/>
+	<outline>
+		<contour>
+			<point x="25" y="-105" type="line"/>
+			<point x="905" y="-105" type="line"/>
+			<point x="905" y="571" type="line"/>
+			<point x="25" y="571" type="line"/>
+		</contour>
+		<contour>
+			<point x="25" y="-105" type="line"/>
+			<point x="905" y="-105" type="line"/>
+			<point x="905" y="571" type="line"/>
+			<point x="25" y="571" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.Export</key>
+			<false/>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 10:55:34</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

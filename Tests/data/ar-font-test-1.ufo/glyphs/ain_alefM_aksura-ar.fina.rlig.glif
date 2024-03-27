@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="ain_alefMaksura-ar.fina.rlig" format="2">
+	<advance width="1006"/>
+	<outline>
+		<contour>
+			<point x="25" y="-233" type="line"/>
+			<point x="1006" y="-233" type="line"/>
+			<point x="1006" y="582" type="line"/>
+			<point x="25" y="582" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 16:24:37</string>
+			<key>public.markColor</key>
+			<string>1,0,0.3594,1</string>
+		</dict>
+	</lib>
+</glyph>

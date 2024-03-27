@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="ddal-ar" format="2">
+	<unicode hex="0688"/>
+	<advance width="508"/>
+	<outline>
+		<component base="dal-ar"/>
+		<component base="tahabove-ar" xOffset="78" yOffset="590"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/18 16:38:20</string>
+		</dict>
+	</lib>
+</glyph>

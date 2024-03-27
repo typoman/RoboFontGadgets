@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="oe-ar.fina" format="2">
+	<advance width="431"/>
+	<outline>
+		<component base="waw-ar.fina"/>
+		<component base="vabove-ar" xOffset="104" yOffset="485"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 13:26:04</string>
+		</dict>
+	</lib>
+</glyph>

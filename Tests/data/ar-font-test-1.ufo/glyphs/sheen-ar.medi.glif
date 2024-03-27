@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sheen-ar.medi" format="2">
+	<advance width="911"/>
+	<outline>
+		<component base="seen-ar.medi"/>
+		<component base="threedotsupabove-ar" xOffset="387" yOffset="330"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 16:14:36</string>
+		</dict>
+	</lib>
+</glyph>

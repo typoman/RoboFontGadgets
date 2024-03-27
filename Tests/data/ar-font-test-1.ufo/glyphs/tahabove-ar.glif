@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="tahabove-ar" format="2">
+	<unicode hex="0615"/>
+	<outline>
+		<contour>
+			<point x="0" y="63" type="line"/>
+			<point x="266" y="63" type="line"/>
+			<point x="266" y="339" type="line"/>
+			<point x="0" y="339" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/13 14:13:50</string>
+			<key>com.schriftgestaltung.Glyphs.originalWidth</key>
+			<integer>296</integer>
+			<key>public.markColor</key>
+			<string>1,0.8907,0.1478,1</string>
+		</dict>
+	</lib>
+</glyph>

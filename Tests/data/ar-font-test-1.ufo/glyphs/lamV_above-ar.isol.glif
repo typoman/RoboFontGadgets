@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="lamVabove-ar.isol" format="2">
+	<advance width="739"/>
+	<outline>
+		<component base="lamVabove-ar"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.lastChange</key>
+			<string>2023/11/17 15:35:47</string>
+		</dict>
+	</lib>
+</glyph>
