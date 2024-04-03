@@ -54,7 +54,7 @@ def glyph_1():
     glyph.width = 100
     return glyph
 
-@pytest.fixture
+@pytest.fixture(scope="module", autouse=True)
 def defcon_ar_font_1():
     """
     arabic test font inc. features, unicodes, kerning, groups, components
