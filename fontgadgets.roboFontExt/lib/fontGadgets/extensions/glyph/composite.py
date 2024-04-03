@@ -51,6 +51,7 @@ def decomposeCopy(glyph, returnNewGlyph=True, layerName=None) -> defcon.Glyph:
 @font_property
 def relatedComposites(glyph):
     """
-    Returns related composites that are using the glyph in their components.
+    Returns a set of glyph names which is related composites that are using the
+    glyph in their components.
     """
     return glyph.font.componentReferences.get(glyph.name, set())
