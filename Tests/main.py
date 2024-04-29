@@ -61,3 +61,21 @@ def defcon_ar_font_1():
     """
     font = defcon.Font("data/ar-font-test-1.ufo")
     return font
+
+class DefconFontMock:
+    __slots__ = "path", "kerning", "groups", "glyphs", "fontSet"
+
+    def __init__(self, path):
+        self.path = path
+        self.kerning = {}
+        self.groups = {}
+        self.glyphs = {}
+        self.fontSet = None
+
+# Mock defcon.Font to make it light for testing
+@pytest.fixture(autouse=True)
+def mock_defcon_font_module():
+    original_font = defcon.Font
+    defcon.Font = DefconFontMock
+    yield
+    defcon.Font = original_font
