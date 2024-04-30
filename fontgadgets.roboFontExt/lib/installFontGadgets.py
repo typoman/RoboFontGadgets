@@ -5,7 +5,8 @@ This is the start up script for robofont.
 """
 
 root = os.path.dirname(__file__)
-sys.path.append(root)
+if root not in sys.path:
+    sys.path.append(root)
 
 import fontgadgets
 try:
