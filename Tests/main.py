@@ -112,6 +112,12 @@ def kerning_with_missing_glyphs():
         ('E', 'missing_glyph'): 20,
         ('missing_glyph', 'A'): 10,
         ('B', 'B'): 40,
+        ('E', 'empty_group'): 10,
+        ('E', 'not_group_not_glyph'): 10,
+        ('group_that_going_to_be_deleted', 'A'): 10,
+        ('group_with_missing_glyph', 'A'): 15,
+        ('group_that_going_to_be_deleted', 'empty_group'): 20,
+        ('missing_glyph', 'group_with_missing_glyph'): 20,
     }
     f.kerning.update(kerning)
 

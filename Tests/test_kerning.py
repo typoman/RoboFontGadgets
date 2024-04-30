@@ -8,6 +8,7 @@ def test_cleanup(kerning_with_missing_glyphs):
         ('A', 'B'): 50,
         ('C', 'D'): 30,
         ('B', 'B'): 40,
+        ('group_with_missing_glyph', 'A'): 15,
     }
 
 @pytest.mark.parametrize(
