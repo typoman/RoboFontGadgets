@@ -35,3 +35,23 @@ def cleanup(groups):
     f.groups.clear()
     f.groups.update(finalGroups)
     logger.info('Number of dropped groups: %i' %(len(currentGroups) - len(finalGroups)))
+
+@font_method
+def removeGlyphs(groups, glyphNamesToRemove, cleanup=True):
+    """
+    Remove all the given glyphNamesToRemove from the groups.
+    cleanup: cleanup empty groups after removing glyphs
+    """
+    f = groups.font
+    originalGroups = dict(groups.items())
+    finalGroups = {}
+    glyphNamesToRemove = set(glyphNamesToRemove)  # glyph names to remove them from groups
+
+    for groupName in originalGroups:
+        members = originalGroups[groupName]
+        newMembers = set(members) - glyphNamesToRemove
+        finalGroups[groupName] = tuple(sorted(newMembers, key=lambda g: members.index(g)))
+    f.groups.clear()
+    f.groups.update(finalGroups)
+    if cleanup:
+        groups.cleanup(groups)

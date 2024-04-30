@@ -67,3 +67,33 @@ def cleanup(kerning, cleanupGroups=True):
     logger.info('Number of dropped kern pairs: %i' %(len(currentKern) - len(finalKerning)))
     f.kerning.clear()
     f.kerning.update(finalKerning)
+
+@font_method
+def removeGlyphs(kerning, glyphNamesToRemove, pruneGroups=False, cleanup=True):
+    """
+    Remove all kerning pairs which reference the given glyphNamesToRemove.
+    pruneGroups: If True, remove the given glyphNamesToRemove from groups. This will automatically remove them from kerning.
+    cleanup: If True, remove empty groups and invalid kerning pairs at the end.
+    """
+    f = kerning.font
+    if pruneGroups:
+        f.groups.removeGlyphs(glyphNamesToRemove, cleanup=False)
+    groups = dict(f.groups)
+    originalKerning = dict(f.kerning.items())
+    finalKerning = {}
+    glyphNamesToRemove = set(glyphNamesToRemove) # glyph names to remove them from groups or kerning
+
+    for originalPair, value in originalKerning.items():
+        newPair = [e for e in originalPair if e in glyphNamesToRemove]
+        if len(newPair) == 2:
+            logger.info(f"The kerning pair '{newPair}' has been removed.")
+        elif len(newPair) == 1:
+            glyphs = groups.get(newPair[0], [newPair[0]])
+            logger.info(f"These glyphs are kerned next to a glyph that are being removed from kerning:\n{' '.join(glyphs)}")
+        else:
+            finalKerning[originalPair] = value
+
+    f.kerning.clear()
+    f.kerning.update(finalKerning)
+    if cleanup:
+        f.kerning.cleanup()

@@ -188,3 +188,42 @@ def test_groups_cleanup(kerning_with_missing_glyphs):
         'group2': ['D', 'E'],
         'group_with_missing_glyph': ['A'],
     }
+
+@pytest.mark.parametrize(
+    "glyph_names, expected_groups", [
+    (
+        ['B', 'C', 'not_a_glyph'],
+        {
+            'empty_group': (),
+            'group1': ('A',),
+            'group2': ('D', 'E'),
+            'group_with_missing_glyph': ('A', 'missing_glyph'),
+            'group_that_going_to_be_deleted': ('missing_glyph_2',),
+        }
+    ),
+    (
+        ['A', 'D', 'missing_glyph', 'missing_glyph_2'],
+        {
+            'empty_group': (),
+            'group1': ('B', 'C'),
+            'group2': ('E',),
+            'group_with_missing_glyph': (),
+            'group_that_going_to_be_deleted': (),
+        }
+    ),
+    (
+        ['B', 'C', 'D', 'E'],
+        {
+            'empty_group': (),
+            'group1': ('A',),
+            'group2': (),
+            'group_with_missing_glyph': ('A', 'missing_glyph',),
+            'group_that_going_to_be_deleted': ('missing_glyph_2',),
+        }
+    ),
+]
+)
+def test_removeGlyphsFromGroups(kerning_with_missing_glyphs, glyph_names, expected_groups):
+    font = kerning_with_missing_glyphs
+    font.groups.removeGlyphs(glyph_names, cleanup=False)
+    assert dict(font.groups) == expected_groups
