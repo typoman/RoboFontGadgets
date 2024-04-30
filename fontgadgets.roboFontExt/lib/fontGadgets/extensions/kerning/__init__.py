@@ -1,5 +1,8 @@
 import itertools
 from fontgadgets.decorators import *
+from fontgadgets.log import logger
+import fontgadgets.extensions.groups
+
 """
 get/set Kerning pairs per glyph basis. Makes it easy for transfering kerning from one font to another.
 """
@@ -30,3 +33,38 @@ def isKerningPairValid(kerning, pair):
 @font_cached_property("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
 def validKerningEntries(font):
     return set(font.keys()) | set(font.groups.keys())
+
+
+@font_method
+def cleanup(kerning, cleanup_groups=True):
+    """
+    Cleanup kerning by removing kerning pairs with missing references from
+    glyphs/groups.
+    """
+    f = kerning.font
+    currentKern = dict(f.kerning.items())
+    finalKern = {}
+    if cleanup_groups:
+        f.groups.cleanup()
+    validKerningEntries = f.validKerningEntries  # glyphs or groups that are valid and exist
+    missing = set()  # Missing glyphs/groups
+    removed = set()  # Kerning pairs to remove
+
+    for pair, value in currentKern.items():
+        valid_pair = [g if g in validKerningEntries else None for g in pair]
+        missing_entries = set(pair) - set(valid_pair)
+        if missing_entries:
+            missing.update(missing_entries)
+            removed.update([str(pair)])
+            continue
+        finalKern[tuple(valid_pair)] = value
+
+    if not removed:
+        logger.info('Kerning is not changed!')
+        return
+
+    logger.info('Missing glyphs/groups:\n%s' %(' '.join(sorted(missing))))
+    logger.info('Removed pairs:\n%s' %(' '.join(sorted(removed))))
+    f.kerning.clear()
+    f.kerning.update(finalKern)
+    logger.info('Number of dropped kern pairs: %i' %(len(currentKern) - len(finalKern)))

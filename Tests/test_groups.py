@@ -179,3 +179,12 @@ def test_setRightSideKerningGroup(defcon_font_1, glyphName, expected):
 )
 def test_getGroupNamesForGlyphs(defcon_font_1, glyphNames, expected):
     assert defcon_font_1.getGroupNamesForGlyphs(glyphNames) == expected
+
+def test_groups_cleanup(kerning_with_missing_glyphs):
+    f = kerning_with_missing_glyphs
+    f.groups.cleanup()
+    assert f.groups == {
+        'group1': ['A', 'B', 'C'],
+        'group2': ['D', 'E'],
+        'group_with_missing_glyph': ['A'],
+    }

@@ -63,19 +63,64 @@ def defcon_ar_font_1():
     return font
 
 class DefconFontMock:
+    # This will not work with fontgadets decorators and only is used for
+    # testing the collections module where a lot of ufo files are loaded.
     __slots__ = "path", "kerning", "groups", "glyphs", "fontSet"
 
-    def __init__(self, path):
+    def __init__(self, path=None):
         self.path = path
         self.kerning = {}
         self.groups = {}
         self.glyphs = {}
         self.fontSet = None
 
+    def keys(self):
+        return list(self.glyphs.keys())
+
+    def newGlyph(self, name):
+        glyph = MagicMock()
+        glyph.name = name
+        self.glyphs[name] = glyph
+        return glyph
+
+    def clear(self):
+        self.kerning.clear()
+        self.groups.clear()
+        self.glyphs.clear()
+
 # Mock defcon.Font to make it light for testing
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def mock_defcon_font_module():
     original_font = defcon.Font
     defcon.Font = DefconFontMock
     yield
     defcon.Font = original_font
+
+@pytest.fixture
+def kerning_with_missing_glyphs():
+    f = defcon.Font()
+
+    f.newGlyph('A')
+    f.newGlyph('B')
+    f.newGlyph('C')
+    f.newGlyph('D')
+    f.newGlyph('E')
+
+    kerning = {
+        ('A', 'B'): 50,
+        ('C', 'D'): 30,
+        ('E', 'missing_glyph'): 20,
+        ('missing_glyph', 'A'): 10,
+        ('B', 'B'): 40,
+    }
+    f.kerning.update(kerning)
+
+    groups = {
+        'group1': ['A', 'B', 'C'],
+        'group2': ['D', 'E'],
+        'empty_group': [],
+        'group_with_missing_glyph': ['A', 'missing_glyph'],
+        'group_that_going_to_be_deleted': ['missing_glyph_2'],
+    }
+    f.groups.update(groups)
+    return f
