@@ -36,15 +36,14 @@ def validKerningEntries(font):
 
 
 @font_method
-def cleanup(kerning, cleanup_groups=True):
+def cleanup(kerning, cleanupGroups=True):
     """
-    Cleanup kerning by removing kerning pairs with missing references from
-    glyphs/groups.
+    Cleanup kerning by removing kerning pairs with missing references from glyphs/groups.
     """
     f = kerning.font
     currentKern = dict(f.kerning.items())
-    finalKern = {}
-    if cleanup_groups:
+    finalKerning = {}
+    if cleanupGroups:
         f.groups.cleanup()
     validKerningEntries = f.validKerningEntries  # glyphs or groups that are valid and exist
     missing = set()  # Missing glyphs/groups
@@ -57,7 +56,7 @@ def cleanup(kerning, cleanup_groups=True):
             missing.update(missing_entries)
             removed.update([str(pair)])
             continue
-        finalKern[tuple(valid_pair)] = value
+        finalKerning[tuple(valid_pair)] = value
 
     if not removed:
         logger.info('Kerning is not changed!')
@@ -65,6 +64,6 @@ def cleanup(kerning, cleanup_groups=True):
 
     logger.info('Missing glyphs/groups:\n%s' %(' '.join(sorted(missing))))
     logger.info('Removed pairs:\n%s' %(' '.join(sorted(removed))))
+    logger.info('Number of dropped kern pairs: %i' %(len(currentKern) - len(finalKerning)))
     f.kerning.clear()
-    f.kerning.update(finalKern)
-    logger.info('Number of dropped kern pairs: %i' %(len(currentKern) - len(finalKern)))
+    f.kerning.update(finalKerning)
