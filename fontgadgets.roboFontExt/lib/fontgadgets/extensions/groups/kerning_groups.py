@@ -168,6 +168,8 @@ class KerningGroups:
         mapping = self._glyphToKerningGroupMapping
         for sideName in result:
             for glyphName in glyphNames:
+                if glyphName not in mapping:
+                    continue
                 groupName = mapping[glyphName].get(sideName, None)
                 if groupName is not None:
                     result[sideName].add(groupName)

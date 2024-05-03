@@ -175,6 +175,7 @@ def test_setRightSideKerningGroup(defcon_font_1, glyphName, expected):
         (("seen", "tah"), {"left": {"sin"}, "right": {"sad", "sin"}}),  # rtl
         (("C", "D", "O"), {"left": {"O", "H"}, "right": {"O", "C"}}),  # ltr
         (("C", "seen.init"), {"left": {"O"}, "right": {"C", "sin"}}),  # ltr
+        (("ain.medi"), {"left": set(), "right": set()}),
     ],
 )
 def test_getGroupNamesForGlyphs(defcon_font_1, glyphNames, expected):
