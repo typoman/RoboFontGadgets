@@ -6,13 +6,13 @@ import pytest
 @pytest.fixture
 def defcon_font_1():
     groups = {
-        "public.kern1.C": ("C", "Ccedilla"),
-        "public.kern1.O": ("D", "O", "Ograve"),
-        "public.kern1.sin": ("seen", "sad"),
-        "public.kern2.H": ("D", "E"),
-        "public.kern2.O": ("C", "Ccedilla", "O", "Ograve"),
-        "public.kern2.sad": ("sad", "tah"),
-        "public.kern2.sin": ("seen", "seen.init"),
+        "public.kern1.C": ("C", "Ccedilla"), # right side
+        "public.kern1.O": ("D", "O", "Ograve"), # right side
+        "public.kern1.sin.fina": ("seen", "sad"), # left side
+        "public.kern2.H": ("D", "E"), # right side
+        "public.kern2.O": ("C", "Ccedilla", "O", "Ograve"), # right side
+        "public.kern2.sad.init": ("sad", "tah"), # right side
+        "public.kern2.sin.init": ("seen", "seen.init"), # right side
         "control": ("seen",),
     }
 

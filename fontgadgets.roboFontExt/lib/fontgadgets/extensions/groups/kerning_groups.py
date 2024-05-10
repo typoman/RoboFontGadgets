@@ -14,6 +14,8 @@ def isKerningGroup(entry):
     Return True if the given entry is a kerning group name starting either with
     `public.kern1.` or `public.kern2.`
     """
+    if entry is None:
+        return False
     if re.match(RE_GROUP_TAG, entry) is None:
         return False
     return True
@@ -46,18 +48,23 @@ def getGroupOrderFromGroupSideName(side, RTL):
 
 class KerningGroups:
     """
-    An object that gets destroyed every time font.groups change. This is
-    used for changing kerning groups of the font.
+    Kerning group names don't contain the `public.kern1.` or `public.kern2.`
+    prefixes prefix tags. They're defined based on which visual side of the
+    glyph they're grouped, `left` or `right` side.
     """
+
+    # An object that gets destroyed every time font.groups change. This is used
+    # for changing kerning groups of the font.
 
     def __init__(self, groups):
         self.groups = groups
-        self._glyphToKerningGroupMapping = {}
-        self._items = None
         self.font = self.groups.font
-        self.convertGroupsToKerningGroups()
+        self._glyphToKerningGroupMapping = {} # {"glyphName": {"left": kerningGroupName, "right": kerningGroupName}, ...}
+        self._items = None # {"left": {kerningGroupsName: [glyphName1, glyphName2]}, "right": {kerningGroupsName: [glyphName1, glyphName2]}}
+        self._kerningGroupName2PrefixedGroupName = {"right": {}, "left": {}} # {"right": {"kerningGroupName1": "public.kern1.kerningGroupName1", ...}
+        self.convertPrefixedGroupsToKerningGroups()
 
-    def convertGroupsToKerningGroups(self):
+    def convertPrefixedGroupsToKerningGroups(self):
         """
         GlyphName to raw group name mapping. The groups are filtered so only
         kerning groups are returned.
@@ -70,30 +77,54 @@ class KerningGroups:
                     sideAndName = self._getSideAndRawGroupName(group)
                     if sideAndName is not None:
                         side, name = sideAndName
-                        self._glyphToKerningGroupMapping.setdefault(glyphName, {})[
-                            side
-                        ] = name
+                        self._glyphToKerningGroupMapping.setdefault(glyphName, {})[side] = name
+                        self._kerningGroupName2PrefixedGroupName[side][name] = group
                         self._items[side].setdefault(name, []).append(glyphName)
 
     @property
     def glyphToKerningGroupMapping(self):
         """
-        Kerning groups is a tuple with two members. First member is an group
-        dict that only appears in the first item of a kerning pair and also
-        same for the second member. This is the standard that UFO3 format uses.
+        Returns a dict that has glyph names as keys and values are kerning group
+        names in the follwing format. Kerning groups does contain the
+        `public.kern1.` or `public.kern2.` prefix tags.
+
+        format:
+        {
+            'glyphName1': {
+                'left': 'kerningGroupName1',
+                'right': 'kerningGroupName2'
+            }
+            'glyphName2': {
+                'left': 'kerningGroupName2',
+                'right': None
+            }
+            ...
+        }
         """
         if self._items is None:
-            self.convertGroupsToKerningGroups()
+            self.convertPrefixedGroupsToKerningGroups()
         return self._glyphToKerningGroupMapping
 
     def items(self):
         """
-        Kerning groups is a tuple with two members. First member is an group
-        dict that only appears in the first item of a kerning pair and also
-        same for the second member. This is the standard that UFO3 format uses.
+        Returns a dict that has only two keys, `left` and `right`. Values
+        are kerning groups for that side. Kerning groups does contain the
+        `public.kern1.` or `public.kern2.` prefix tags.
+
+        format:
+        {
+        "left": {
+            'kerningGroupName1':
+                    ['glyphName1', 'glyphName2']
+                },
+        "right": {
+            'kerningGroupName2':
+                    ['glyphName1']
+                }
+        }
         """
         if self._items is None:
-            self.convertGroupsToKerningGroups()
+            self.convertPrefixedGroupsToKerningGroups()
         return self._items
 
     def set(self, kerningGroups, update=False):
@@ -109,7 +140,7 @@ class KerningGroups:
         if not update:
             self.clear()
         if self._glyphToKerningGroupMapping == {}:
-            self.convertGroupsToKerningGroups()
+            self.convertPrefixedGroupsToKerningGroups()
         fontGroups = dict(self.groups)
         for side, sideKernGroups in kerningGroups.items():
             for kernGroupName, newMembers in sideKernGroups.items():
@@ -119,11 +150,7 @@ class KerningGroups:
                         glyphName, {}
                     ).get(side, None)
                     if prevKernGroupName is not None:
-                        prevGroupName = self.convertToGroupName(
-                            prevKernGroupName,
-                            side,
-                            self.font[glyphName].unicodeDirection == "rtl",
-                        )
+                        prevGroupName = self.convertToPrefixedGroupName(prevKernGroupName, side, self.font[glyphName].unicodeDirection == "rtl",)
                         prevMembers = list(fontGroups.get(prevGroupName, []))
                         if prevMembers:
                             prevMembers.remove(glyphName)
@@ -140,7 +167,7 @@ class KerningGroups:
                         "All the given glyphs should be either 'right to left' or 'left to right!'"
                     )
                 isRtl = uniDirection == "rtl"
-                newGroupName = self.convertToGroupName(kernGroupName, side, isRtl)
+                newGroupName = self.convertToPrefixedGroupName(kernGroupName, side, isRtl)
 
                 changed = True
                 if update:
@@ -157,11 +184,14 @@ class KerningGroups:
         self.groups.releaseHeldNotifications()
         return changed
 
-    def getGroupNamesForGlyphs(self, glyphNames):
+    def getGroupNamesForGlyphs(self, glyphNames, groupNamePrefixes=False):
         """
-        Returns two set of names which represent accumulated group names of the
-        given glyphNames. The result is a dictionary which represenst the
-        group side (e.g. 'left', 'right').
+        Returns a dictionary with two keys `right` and `left`, each indicating the
+        group kerning name for that side. The values of the keys is set of names
+        indicating the kerning groups for the given `glyphNames`.
+
+        groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+        prefixes will be added to the group name.
         """
         result = {"left": set(), "right": set()}
 
@@ -172,14 +202,16 @@ class KerningGroups:
                     continue
                 groupName = mapping[glyphName].get(sideName, None)
                 if groupName is not None:
+                    if groupNamePrefixes:
+                        groupName = self._kerningGroupName2PrefixedGroupName[sideName][groupName]
                     result[sideName].add(groupName)
         return result
 
-    def getRightSideGroupNamesForGlyphs(self, glyphNames):
-        return self.getGroupNamesForGlyphs(glyphNames)["right"]
+    def getRightSideGroupNamesForGlyphs(self, glyphNames, groupNamePrefixes=False):
+        return self.getGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)["right"]
 
-    def getLeftSideGroupNamesForGlyphs(self, glyphNames):
-        return self.getGroupNamesForGlyphs(glyphNames)["left"]
+    def getLeftSideGroupNamesForGlyphs(self, glyphNames, groupNamePrefixes=False):
+        return self.getGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)["left"]
 
     def update(self, kerningGroups):
         """
@@ -207,13 +239,14 @@ class KerningGroups:
                 re.split(RE_GROUP_TAG, groupName)[-1],
             )
 
-    def convertToGroupName(self, name, side, rtl):
+    def convertToPrefixedGroupName(self, name, side, rtl):
         """
-        Adds the kerning group name a prefix that will convert it to the
-        standard ufo kerning group name.
+        Adds the kerning group name the prefix `public.kern1.` or
+        `public.kern2.` prefixes to convert it to the standard ufo kerning
+        group name.
 
         - name: name of the group without any prefix
-        - side: 'left' or 'right'
+        - side: `left` or `right`
         - rtl: True or False depending on wether the group is defined for a
         right to left glyph or not.
         """
@@ -233,37 +266,52 @@ def kerningGroups(font):
 
 
 @font_method
-def kerningGroupSide(glyph, side):
-    return glyph.font.kerningGroups.glyphToKerningGroupMapping.get(glyph.name, {}).get(
-        side, None
-    )
+def kerningGroupSide(glyph, side, groupNamePrefixes=False):
+    """
+    Returns kerning group name for the given side.
 
+    if groupNamePrefixes is set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
+
+    side: `left` or `right`
+    """
+    kerningGroups = glyph.font.kerningGroups
+    groupName = kerningGroups.glyphToKerningGroupMapping.get(glyph.name, {}).get(side, None)
+    if groupNamePrefixes and groupName is not None:
+        groupName = kerningGroups._kerningGroupName2PrefixedGroupName[side][groupName]
+    return groupName
 
 @font_method
 def kerningGroupSideMembers(glyph, side):
+    """
+    Returns all the glyph names that are also members of the kerning group for
+    the given side of this glyph.
+
+    side: `left` or `right`
+    """
     font = glyph.font
-    kerningGroup = glyph._kerningGroupSide(side)
-    group = font.kerningGroups.convertToKerningGroupName(kerningGroup, side)
-    return font.groups.get(group, [])
+    group = glyph.kerningGroupSide(side)
+    members = font.kerningGroups.items().get(group, [])
+    return members
 
 
 @font_method
 def setKerningGroupSide(glyph, kernGroupName, side):
-    glyph.font.kerningGroups.update(
-        {
-        side: {
-                kernGroupName: [
-                    glyph.name,
-                ]
-            }
-        }
-    )
+    """
+    Set the kerning group name for the given side of the glyph.
+
+    side: `left` or `right`
+    """
+    if isKerningGroup(kernGroupName):
+        warn(f"Kerning group name already starts with a prefix, it will be removed:\n{kernGroupName}")
+        kernGroupName = kernGroupName[13:]
+    glyph.font.kerningGroups.update({side: {kernGroupName: [glyph.name, ]}})
 
 
 @font_property
 def getLeftSideKerningGroupMembers(glyph):
     """
-    Get the kerning group members for the left side of the glyph.
+    Returns the kerning group members for the left side of the glyph.
     """
     return glyph.kerningGroupSideMembers("left")
 
@@ -271,7 +319,7 @@ def getLeftSideKerningGroupMembers(glyph):
 @font_property
 def getRightSideKerningGroupMembers(glyph):
     """
-    Get the kerning group members for the right side of the glyph.
+    Returns the kerning group members for the right side of the glyph.
     """
     return glyph.kerningGroupSideMembers("right")
 
@@ -279,7 +327,7 @@ def getRightSideKerningGroupMembers(glyph):
 @font_method
 def setLeftSideKerningGroup(glyph, kernGroupName):
     """
-    Set the kerning group name for the left side of the glyph.
+    Sets the kerning group name for the left side of the glyph.
     """
     glyph.setKerningGroupSide(kernGroupName, "left")
 
@@ -287,28 +335,44 @@ def setLeftSideKerningGroup(glyph, kernGroupName):
 @font_method
 def setRightSideKerningGroup(glyph, kernGroupName):
     """
-    Set the kerning group name for the right side of the glyph.
+    Sets the kerning group name for the right side of the glyph.
     """
     glyph.setKerningGroupSide(kernGroupName, "right")
 
 
-@font_property
-def leftSideKerningGroup(glyph):
-    return glyph.kerningGroupSide("left")
+@font_method
+def getLeftSideKerningGroup(glyph, groupNamePrefixes=False):
+    """
+    Returns the kerning group name for the left side of the glyph.
 
-
-@font_property
-def rightSideKerningGroup(glyph):
-    return glyph.kerningGroupSide("right")
+    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
+    """
+    return glyph.kerningGroupSide("left", groupNamePrefixes)
 
 
 @font_method
-def getKerningGroups(glyph):
+def getRightSideKerningGroup(glyph, groupNamePrefixes=False):
     """
-    Returns a dictionary with two keys "right" and "left", each indicating the
-    group kerning side. The values of the keys is the name of the kerning group.
+    Returns the kerning group name for the right side of the glyph.
+
+    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
     """
-    return glyph.font.kerningGroups.getGroupNamesForGlyphs((glyph.name,))
+    return glyph.kerningGroupSide("right", groupNamePrefixes)
+
+
+@font_method
+def getKerningGroups(glyph, groupNamePrefixes=False):
+    """
+    Returns a dictionary with two keys `right` and `left`, each indicating the
+    group kerning name for that side. The values of the keys is set of names
+    indicating the kerning groups for the glyph.
+
+    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
+    """
+    return glyph.font.kerningGroups.getGroupNamesForGlyphs((glyph.name,), groupNamePrefixes=groupNamePrefixes)
 
 
 @font_property
@@ -322,15 +386,37 @@ def isGrouped(glyph):
 
 
 @font_cached_method("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
-def getGroupNamesForGlyphs(font, glyphNames):
-    return font.kerningGroups.getGroupNamesForGlyphs(glyphNames)
+def getKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=False):
+    """
+    Returns a dictionary with two keys `right` and `left`, each indicating the
+    group kerning name for that side. The values of the keys is set of names
+    indicating the kerning groups for the given `glyphNames`.
+
+    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
+    """
+    return font.kerningGroups.getGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)
 
 
 @font_cached_method("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
-def getRightSideGroupNamesForGlyphs(font, glyphNames):
-    return font.kerningGroups.getRightSideGroupNamesForGlyphs(glyphNames)
+def getRightSideKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=False):
+    """
+    Returns a set of names indicating the kerning groups for the right side of
+    the glyph.
+
+    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
+    """
+    return font.kerningGroups.getRightSideGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)
 
 
 @font_cached_method("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
-def getLeftSideGroupNamesForGlyphs(font, glyphNames):
-    return font.kerningGroups.getLeftSideGroupNamesForGlyphs(glyphNames)
+def getLeftSideKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=False):
+    """
+    Returns a set of names indicating the kerning groups for the right side of
+    the glyph.
+
+    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+    prefixes will be added to the group name.
+    """
+    return font.kerningGroups.getLeftSideGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)

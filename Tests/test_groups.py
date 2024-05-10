@@ -1,6 +1,12 @@
 import fontgadgets.extensions.groups.kerning_groups as kgroups
 from main import *
-
+"""
+todo:
+- setKerningGroups: where there is a glyph with two groups for the same side.
+- groupNamePrefixes test for:
+    getRightSideKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=False)
+    getLeftSideKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=False)
+"""
 
 def test_RE_GROUP_TAG():
     assert kgroups.RE_GROUP_TAG.match("public.kern1.sample") is not None
@@ -39,10 +45,10 @@ def test_glyphToKerningGroupMapping(defcon_font_1):
         "E": {"left": "H"},
         "O": {"left": "O", "right": "O"},
         "Ograve": {"left": "O", "right": "O"},
-        "sad": {"left": "sin", "right": "sad"},
-        "seen": {"left": "sin", "right": "sin"},
-        "seen.init": {"right": "sin"},
-        "tah": {"right": "sad"},
+        "sad": {"left": "sin.fina", "right": "sad.init"},
+        "seen": {"left": "sin.fina", "right": "sin.init"},
+        "seen.init": {"right": "sin.init"},
+        "tah": {"right": "sad.init"},
     }
     assert defcon_font_1.kerningGroups._glyphToKerningGroupMapping == result
 
@@ -65,13 +71,13 @@ def test_kerningGroups(defcon_font_1):
         "left": {
             "H": ["D", "E"],
             "O": ["C", "Ccedilla", "O", "Ograve"],
-            "sin": ["seen", "sad"],
+            "sin.fina": ["seen", "sad"],
         },
         "right": {
             "C": ["C", "Ccedilla"],
             "O": ["D", "O", "Ograve"],
-            "sad": ["sad", "tah"],
-            "sin": ["seen", "seen.init"],
+            "sad.init": ["sad", "tah"],
+            "sin.init": ["seen", "seen.init"],
         },
     }
     assert defcon_font_1.kerningGroups.items() == result
@@ -116,30 +122,54 @@ def test_isGrouped(defcon_font_1, glyphName, expected):
     [
         ("seen.init", None),
         ("ain.medi", None),
-        ("sad", "sin"),
+        ("sad", "sin.fina"),
         ("D", "H"),
         ("tah", None),
         ("C", "O"),
     ],
 )
 def test_leftSideKerningGroup(defcon_font_1, glyphName, expected):
-    assert defcon_font_1[glyphName].leftSideKerningGroup == expected
+    assert defcon_font_1[glyphName].getLeftSideKerningGroup() == expected
 
 
 @pytest.mark.parametrize(
     "glyphName, expected",
     [
-        ("seen.init", "sin"),
+        ("seen", "public.kern1.sin.fina"),
+        ("D", "public.kern2.H"),
+        ("C", "public.kern2.O"),
+    ],
+)
+def test_leftSideKerningGroup_groupNamePrefixes(defcon_font_1, glyphName, expected):
+    assert defcon_font_1[glyphName].getLeftSideKerningGroup(groupNamePrefixes=True) == expected
+
+@pytest.mark.parametrize(
+    "glyphName, expected",
+    [
+        ("seen.init", "sin.init"),
         ("ain.medi", None),
-        ("sad", "sad"),
+        ("sad", "sad.init"),
         ("E", None),
         ("D", "O"),
         ("Ccedilla", "C"),
     ],
 )
 def test_rightSideKerningGroup(defcon_font_1, glyphName, expected):
-    assert defcon_font_1[glyphName].rightSideKerningGroup == expected
+    assert defcon_font_1[glyphName].getRightSideKerningGroup() == expected
 
+@pytest.mark.parametrize(
+    "glyphName, expected",
+    [
+        ("seen.init", "public.kern2.sin.init"),
+        ("ain.medi", None),
+        ("sad", "public.kern2.sad.init"),
+        ("E", None),
+        ("D", "public.kern1.O"),
+        ("Ccedilla", "public.kern1.C"),
+    ],
+)
+def test_rightSideKerningGroup_groupNamePrefixes(defcon_font_1, glyphName, expected):
+    assert defcon_font_1[glyphName].getRightSideKerningGroup(groupNamePrefixes=True) == expected
 
 @pytest.mark.parametrize(
     "glyphName, expected",
@@ -152,7 +182,7 @@ def test_rightSideKerningGroup(defcon_font_1, glyphName, expected):
 def test_setLeftSideKerningGroup(defcon_font_1, glyphName, expected):
     g = defcon_font_1[glyphName]
     g.setLeftSideKerningGroup(expected)
-    assert g.leftSideKerningGroup == expected
+    assert g.getLeftSideKerningGroup() == expected
 
 
 @pytest.mark.parametrize(
@@ -166,20 +196,32 @@ def test_setLeftSideKerningGroup(defcon_font_1, glyphName, expected):
 def test_setRightSideKerningGroup(defcon_font_1, glyphName, expected):
     g = defcon_font_1[glyphName]
     g.setRightSideKerningGroup(expected)
-    assert g.rightSideKerningGroup == expected
+    assert g.getRightSideKerningGroup() == expected
 
 
 @pytest.mark.parametrize(
     "glyphNames, expected",
     [
-        (("seen", "tah"), {"left": {"sin"}, "right": {"sad", "sin"}}),  # rtl
+        (("seen", "tah"), {"left": {"sin.fina"}, "right": {"sad.init", "sin.init"}}),  # rtl
         (("C", "D", "O"), {"left": {"O", "H"}, "right": {"O", "C"}}),  # ltr
-        (("C", "seen.init"), {"left": {"O"}, "right": {"C", "sin"}}),  # ltr
+        (("C", "seen.init"), {"left": {"O"}, "right": {"C", "sin.init"}}),  # ltr
         (("ain.medi"), {"left": set(), "right": set()}),
     ],
 )
-def test_getGroupNamesForGlyphs(defcon_font_1, glyphNames, expected):
-    assert defcon_font_1.getGroupNamesForGlyphs(glyphNames) == expected
+def test_getKerningGroupNamesForGlyphs(defcon_font_1, glyphNames, expected):
+    assert defcon_font_1.getKerningGroupNamesForGlyphs(glyphNames) == expected
+
+@pytest.mark.parametrize(
+    "glyphNames, expected",
+    [
+        (("seen", "tah"), {"left": {"public.kern1.sin.fina"}, "right": {"public.kern2.sad.init", "public.kern2.sin.init"}}),  # rtl
+        (("C", "D", "O"), {"left": {"public.kern2.O", "public.kern2.H"}, "right": {"public.kern1.O", "public.kern1.C"}}),  # ltr
+        (("C", "seen.init"), {"left": {"public.kern2.O"}, "right": {"public.kern1.C", "public.kern2.sin.init"}}),  # ltr
+        (("ain.medi"), {"left": set(), "right": set()}),
+    ],
+)
+def test_getKerningGroupNamesForGlyphs_groupNamePrefixes(defcon_font_1, glyphNames, expected):
+    assert defcon_font_1.getKerningGroupNamesForGlyphs(glyphNames, groupNamePrefixes=True) == expected
 
 def test_groups_cleanup(kerning_with_missing_glyphs):
     f = kerning_with_missing_glyphs
