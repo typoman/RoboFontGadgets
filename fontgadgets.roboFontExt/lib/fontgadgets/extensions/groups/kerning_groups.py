@@ -49,8 +49,8 @@ def getGroupOrderFromGroupSideName(side, RTL):
 class KerningGroups:
     """
     Kerning group names don't contain the `public.kern1.` or `public.kern2.`
-    prefixes prefix tags. They're defined based on which visual side of the
-    glyph they're grouped, `left` or `right` side.
+    prefix tags. They're defined based on which visual side of the glyph
+    they're grouped, `left` or `right` side.
     """
 
     # An object that gets destroyed every time font.groups change. This is used
