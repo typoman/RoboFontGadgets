@@ -4,6 +4,7 @@ from fontTools.ufoLib.glifLib import readGlyphFromString
 import fontgadgets.extensions.layer.glifPath
 import os
 import git as gitPython
+from itertools import islice
 
 # seperate dict for fontGit and git.Repo since multiple font could exist in the same repo
 FONTPATH_2_GITROOT = {} # {fontPath: gitRoot}
@@ -190,14 +191,15 @@ class FontGit:
                     glyphName, layerName=None, index=None, targetGlyph=None,
                     clearTarget=True):
         """
-        Loads a previous commit for the given `fontPath` and `glyphName`.
+        Loads a previous commit for the given `fontPath` and `glyphName` and
+        returns the glyph object for that commit.
 
         index: An interger indicating the index of the commit. The higher the
         `index` the older the commit. 0 is the latest commit and the default
         value. The index only iterates the commits for the given `glyphName`
-        and does not correspond to the all the commits in the repo.
+        and does not correspond to all the commits in the repo.
 
-        targetGlyph: is optional to load the result into that glyph if it is
+        targetGlyph: is optional to load the result into that glyph. If it is
         not provided a new glyph is returned.
 
         clearTarget: is optional to clear the glyph before loading.
