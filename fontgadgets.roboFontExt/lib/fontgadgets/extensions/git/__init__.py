@@ -127,7 +127,7 @@ class FontGit:
             return font.layers
         return [font.getLayer(layerName), ]
 
-    def getModifiedGLyphsForFontPathAndLayerName(self, fontPath, layerName=None):
+    def getModifiedGLyphsForFontPath(self, fontPath, layerName=None):
         """
         Returns a list of glyphs which have been modified in the given
         `layerName` compared to the latest commit for the `fontPath`. If
@@ -138,7 +138,7 @@ class FontGit:
         """
         return self._getGlyphsForFontLayerFromFileList(fontPath, layerName, self.modifiedFiles)
 
-    def getNewGLyphsForFontPathAndLayerName(self, fontPath, layerName=None):
+    def getNewGLyphsForFontPath(self, fontPath, layerName=None):
         """
         Returns a list of glyphs which have been added in the given
         `layerName` compared to the latest commit for the `fontPath`. If
@@ -187,7 +187,7 @@ class FontGit:
             readGlyphFromString(glyphString, glyphObject=targetGlyph, pointPen=pointPen)
             yield result
 
-    def loadPreviousCommitByIndexForForFontPathAndGlyphName(self, fontPath,
+    def loadPreviousCommitForFontPathAndGlyphName(self, fontPath,
                     glyphName, layerName=None, index=None, targetGlyph=None,
                     clearTarget=True, validate=True):
         """
