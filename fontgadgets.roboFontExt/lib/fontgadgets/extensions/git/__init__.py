@@ -1,6 +1,6 @@
 from fontgadgets.decorators import *
 from fontgadgets.log import logger
-from fontTools.ufoLib.glifLib import readGlyphFromString
+from fontTools.ufoLib.glifLib import (readGlyphFromString, GlifLibError)
 import fontgadgets.extensions.layer.glifPath
 import os
 import git as gitPython
@@ -8,7 +8,7 @@ from itertools import islice
 
 # seperate dict for fontGit and git.Repo since multiple font could exist in the same repo
 FONTPATH_2_GITROOT = {} # {fontPath: gitRoot}
-# caching git root helps to reduce the number of calls to git
+# caching fontGit using the fontGit._repo.root helps to reduce the number of calls to git
 GITROOT_2_FONTGIT = {} # {gitRoot: {hash: fontGit}}
 
 class FontGit:
@@ -189,7 +189,7 @@ class FontGit:
 
     def loadPreviousCommitByIndexForForFontPathAndGlyphName(self, fontPath,
                     glyphName, layerName=None, index=None, targetGlyph=None,
-                    clearTarget=True):
+                    clearTarget=True, validate=True):
         """
         Loads a previous commit for the given `fontPath` and `glyphName` and
         returns the glyph object for that commit.
@@ -218,9 +218,16 @@ class FontGit:
             index = 0
         glifPath = glyph.glifPath
         commit = self.getCommitForFilePathByIndex(glifPath, index)
-        glyphString = self.loadFileAtCommit(glifPath, commit)
-        pointPen = glyph.getPointPen()
-        readGlyphFromString(glyphString, glyphObject=targetGlyph, pointPen=pointPen)
+        glifData = self.loadFileAtCommit(glifPath, commit)
+        try:
+            readGlyphFromString(
+                aString=glifData,
+                glyphObject=targetGlyph,
+                pointPen=targetGlyph.getPointPen(),
+                validate=validate
+            )
+        except GlifLibError:
+            raise
         return targetGlyph
 
 @font_property
