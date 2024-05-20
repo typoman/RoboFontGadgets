@@ -41,12 +41,12 @@ def hasShape(glyph):
     return False
 
 @font_method
-def copyFromGlyph(glyph, sourceGlyph, width=True, height=True, unicodes=True,
-             note=True, image=True, contours=True, components=True, anchors=True,
-             guidelines=True, lib=True):
+def copyFromGlyph(glyph: defcon.Glyph,
+    sourceGlyph, width=True, height=True, unicodes=True, note=True, image=True,
+    contours=True, components=True, anchors=True, guidelines=True, lib=True):
     """
     Copy data from another **sourceGlyph**. This copies all the data by
-    defualt unless on of these argument is set to False:
+    defualt unless one of these argument is set to False:
 
     width, height, unicodes, note, image, contours, components, anchors,
     guidelines, lib
@@ -77,3 +77,19 @@ def copyFromGlyph(glyph, sourceGlyph, width=True, height=True, unicodes=True,
         glyph.guidelines = [glyph.instantiateGuideline(g) for g in sourceGlyph.guidelines]
     if lib:
         glyph.lib = deepcopy(sourceGlyph.lib)
+
+@font_method
+def copyFromGlyph(glyph: fontParts.fontshell.RGlyph,
+    sourceGlyph, width=True, height=True, unicodes=True, note=True, image=True,
+    contours=True, components=True, anchors=True, guidelines=True, lib=True):
+    """
+    Copy data from another **sourceGlyph**. This copies all the data by
+    defualt unless one of these argument is set to False:
+
+    width, height, unicodes, note, image, contours, components, anchors,
+    guidelines, lib
+    """
+    sourceGlyph = sourceGlyph.naked()
+
+    glyph.naked().copyFromGlyph(sourceGlyph, width, height, unicodes, note,
+                            image, contours, components, anchors, guidelines, lib)
