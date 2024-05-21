@@ -2,6 +2,8 @@ from fontgadgets.decorators import *
 import os
 from fontTools.designspaceLib import DesignSpaceDocument
 from ufonormalizer import normalizeUFO
+from fontgadgets.tools import FontGadgetsError
+import fontgadgets.extensions.glyph
 
 @font_property
 def fontFileName(font):
@@ -93,3 +95,44 @@ def renameGlyphs(font, rename_map):
 
     for old_name in rename_map.keys():
         del font[old_name]
+
+
+@font_method
+def swapGlyphNames(font, swapMap):
+    """
+    Swap glyph data inside the font using a dict.
+
+    swapMap contains glyph names that should be swapped. {old_name: new_name}
+    """
+    glyphNames = set(font.keys())
+    glyphNamesToSwap = set([g for pair in swapMap.items() for g in pair])
+    diff = glyphNamesToSwap - glyphNames
+    if diff != set():
+        missing = " ".join(diff)
+        raise FontGadgetsError(
+            f"`swapMap` contains glyph name(s) that don't exist in font:\n{missing}")
+
+    for name1, name2 in swapMap.items():
+        glyph1 = font[name1]
+        glyph1.swapGlyphData(font[name2])
+
+    reverseSwapMap = {v: k for k, v in swapMap.items()}
+
+    def _swapNames(name):
+        return swapMap.get(name, reverseSwapMap.get(name, name))
+
+    # based on ufoProcessor: changes the names in groups the shapes will swap,
+    # that will invalidate the kerning so the names need to swap in the kerning
+    # as well.
+    newKerning = {}
+    for pair, value in font.kerning.items():
+        newPair = map(_swapNames, pair)
+        newKerning[tuple(newPair)] = value
+    font.kerning.clear()
+    font.kerning.update(newKerning)
+
+    newGroups = {}
+    for groupName, members in font.groups.items():
+        newGroups[groupName] = list(map(_swapNames, members))
+    font.groups.clear()
+    font.groups.update(newGroups)

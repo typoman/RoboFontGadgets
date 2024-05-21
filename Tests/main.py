@@ -1,7 +1,11 @@
 import defcon
 import fontParts.fontshell
 from unittest.mock import MagicMock
+from pathlib import Path
 import pytest
+from fontgadgets.tools import FontGadgetsError
+import random
+import operator
 
 @pytest.fixture
 def defcon_font_1():
@@ -59,7 +63,8 @@ def defcon_ar_font_1():
     """
     arabic test font inc. features, unicodes, kerning, groups, components
     """
-    font = defcon.Font("data/ar-font-test-1.ufo")
+    ufo_path = Path(__file__).parent.joinpath("data/ar-font-test-1.ufo")
+    font = defcon.Font(ufo_path)
     return font
 
 class DefconFontMock:
@@ -96,7 +101,7 @@ def mock_defcon_font_module():
     yield
     defcon.Font = original_font
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def kerning_with_missing_glyphs():
     f = defcon.Font()
 
@@ -130,3 +135,112 @@ def kerning_with_missing_glyphs():
     }
     f.groups.update(groups)
     return f
+
+
+def sample_random_glyph(seed: int) -> defcon.Glyph:
+    """
+    Generate a sample glyph object with random contents.
+
+    Args:
+    seed (int): The seed value for the random number generator.
+
+    Returns:
+    defcon.Glyph: A sample glyph object with random contents.
+    """
+    random.seed(seed)
+    layer = defcon.Layer()
+    source = layer.instantiateGlyphObject()
+    source.name = f"random_glyph_{seed}"
+    source.width = random.randint(1, 100)
+    source.height = random.randint(1, 100)
+    source.unicodes = [random.randint(1, 100) for _ in range(random.randint(1, 5))]
+    source.note = f"random note {seed}"
+    source.image = dict(
+        fileName=f"random_image_{seed}",
+        xScale=random.uniform(0.5, 2.0),
+        xyScale=random.uniform(-1.0, 1.0),
+        yxScale=random.uniform(-1.0, 1.0),
+        yScale=random.uniform(0.5, 2.0),
+        xOffset=random.randint(-100, 100),
+        yOffset=random.randint(-100, 100),
+        color=','.join(f"{random.random():.1f}" for _ in range(4))
+    )
+    source.anchors = [{"x": random.randint(-100, 100), "y": random.randint(-100, 100), "name": f"anchor {i}"} for i in range(random.randint(1, 5))]
+    source.guidelines = [{"x": random.randint(-100, 100), "y": random.randint(-100, 100), "name": f"guideline {i}"} for i in range(random.randint(1, 5))]
+    source.lib = {f"key {i}": f"value {i}" for i in range(random.randint(1, 5))}
+    pen = source.getPointPen()
+    segment_types = ["move", "line", "curve"]
+    pen.beginPath()
+    for _ in range(random.randint(2, 10)):
+        segment_type = random.choice(segment_types)
+        pen.addPoint((random.randint(-100, 100), random.randint(-100, 100)), segmentType=segment_type)
+    pen.endPath()
+    for _ in range(random.randint(1, 5)):
+        component = defcon.Component()
+        component.base = f"base {random.randint(1, 100)}"
+        component.transformation = (random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.randint(-100, 100), random.randint(-100, 100))
+        source.appendComponent(component)
+    return source
+
+def _contour_points_as_list(glyph):
+    result = []
+    for contour in glyph:
+        result.append([])
+        for point in contour:
+            result[-1].append((point.x, point.x,
+                point.segmentType, point.name))
+    return result
+
+def _comps_as_tuples(glyph):
+    result = []
+    for comp in glyph.components:
+        result.append((comp.baseGlyph, comp.transformation))
+    return result
+
+def _get_operator(condition):
+    # Returns the equality operator (==) if condition is True, and the
+    # inequality operator (!=) if condition is False. This allows for dynamic
+    # switching between equality and inequality checks.
+    _operator = operator.eq if condition else operator.ne
+    return _operator
+
+def assert_compared_glyphs_are_same(ref_glyph, other_glyph,
+    width=False, height=False, unicodes=False, note=False, image=False,
+    contours=False, components=False, anchors=False, guidelines=False,
+    lib=False):
+    # Assert that the attributes of ref_glyph are not changed
+    # from other_glyph, except for the specified attributes.
+    assert _get_operator(width)(ref_glyph.width, other_glyph.width)
+    assert _get_operator(height)(ref_glyph.height, other_glyph.height)
+    assert _get_operator(unicodes)(ref_glyph.unicodes, other_glyph.unicodes)
+    assert _get_operator(note)(ref_glyph.note, other_glyph.note)
+    assert _get_operator(image)(ref_glyph.image, other_glyph.image)
+    sourceContours = _contour_points_as_list(other_glyph)
+    targetContours = _contour_points_as_list(ref_glyph)
+    assert _get_operator(contours)(sourceContours, targetContours), (sourceContours, targetContours)
+    assert _get_operator(components)(_comps_as_tuples(ref_glyph), _comps_as_tuples(other_glyph))
+    assert _get_operator(anchors)([g.items() for g in ref_glyph.anchors], [g.items() for g in other_glyph.anchors])
+    assert _get_operator(guidelines)([g.items() for g in ref_glyph.guidelines], [g.items() for g in other_glyph.guidelines])
+    assert _get_operator(lib)(ref_glyph.lib, other_glyph.lib)
+
+@pytest.fixture(scope='function')
+def COPY_GLYPH_KWARGS():
+    return dict(width=True, height=True, unicodes=True, note=True,
+        image=True, contours=True, components=True, anchors=True,
+        guidelines=True, lib=True)
+
+def test_random_glyph(COPY_GLYPH_KWARGS):
+    g1 = sample_random_glyph(10)
+    g2 = sample_random_glyph(10)
+    assert_compared_glyphs_are_same(g1, g2, **COPY_GLYPH_KWARGS)
+    g3 = sample_random_glyph(12)
+    assert_compared_glyphs_are_same(g1, g3)
+
+@pytest.fixture(scope='function')
+def sample_font_with_random_glyph_contents():
+    f = defcon.Font()
+    for i in range(10):
+        g = sample_random_glyph(i+100)
+        name = f'random glyph {i}'
+        f.newGlyph(name).copyDataFromGlyph(g)
+    yield f
