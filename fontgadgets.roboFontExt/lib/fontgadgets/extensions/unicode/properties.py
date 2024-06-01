@@ -1,7 +1,7 @@
 from fontgadgets.decorators import *
 from fontTools.unicodedata import category as getUniCategory
 from fontTools import unicodedata
-from fontTools.unicodedata import script_name
+from fontTools.unicodedata import script_name, script_extension
 
 RTL_BIDI_TYPES = {"R", "AL"}
 LTR_BIDI_TYPES = {"L", "AN", "EN"}
