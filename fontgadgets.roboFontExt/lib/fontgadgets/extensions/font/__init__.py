@@ -61,11 +61,25 @@ def cmap(font):
     """
     return font.unicodeData
 
-
+@font_method
 def renameGlyphs(font, rename_map):
     """
     Rename glyphs using dict of {old_name: new_name}.
     """
+    old_glyphOrder = font.glyphOrder
+    for old_name, new_name in rename_map.items():
+        if old_name not in font:
+            raise FontGadgetsError(
+            f"Glyph `{old_name}` not found in font."
+            )
+        if new_name in font:
+            raise FontGadgetsError(
+            f"Renaming from `{old_name}` to `{new_name}`:\n The new name already exists in font."
+            )
+        if old_name == new_name:
+            raise FontGadgetsError(
+            f"Renaming glyph to the same name:\n`{old_name}`"
+            )
 
     for old_name, new_name in rename_map.items():
         glyph = font[old_name]
@@ -91,7 +105,7 @@ def renameGlyphs(font, rename_map):
             base_glyph = component.baseGlyph
             component.baseGlyph = rename_map.get(base_glyph, base_glyph)
 
-    font.glyphOrder = [rename_map.get(g, g) for g in font.glyphOrder]
+    font.glyphOrder = [rename_map.get(g, g) for g in old_glyphOrder]
 
     for old_name in rename_map.keys():
         del font[old_name]
