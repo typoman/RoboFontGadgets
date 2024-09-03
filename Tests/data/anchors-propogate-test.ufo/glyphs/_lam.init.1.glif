@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="_lam.init.1" format="2">
+	<advance width="279"/>
+	<outline>
+		<contour>
+			<point x="-218" y="-8" type="line"/>
+			<point x="266" y="-8" type="line"/>
+			<point x="266" y="673" type="line"/>
+			<point x="-218" y="673" type="line"/>
+		</contour>
+	</outline>
+	<anchor name="bottom_1" x="175" y="35"/>
+	<anchor name="bottom_2" x="-98" y="14"/>
+	<anchor name="top_1" x="151" y="658"/>
+</glyph>

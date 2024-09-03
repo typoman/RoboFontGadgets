@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sad-ar.fina" format="2">
+	<unicode hex="FEBA"/>
+	<advance width="1101"/>
+	<outline>
+		<component base="OvalComponent" xOffset="1101"/>
+		<component base="_part.connection-ar" xOffset="910"/>
+		<component base="sad-ar"/>
+	</outline>
+</glyph>

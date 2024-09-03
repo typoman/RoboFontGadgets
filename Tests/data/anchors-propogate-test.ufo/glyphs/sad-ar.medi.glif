@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sad-ar.medi" format="2">
+	<unicode hex="FEBC"/>
+	<advance width="810"/>
+	<outline>
+		<component base="OvalComponent" xOffset="810"/>
+		<component base="_part.connection-ar" xOffset="619"/>
+		<component base="sad-ar.init"/>
+	</outline>
+</glyph>

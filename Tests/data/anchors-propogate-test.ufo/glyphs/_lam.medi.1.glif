@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="_lam.medi.1" format="2">
+	<advance width="250"/>
+	<outline>
+		<contour>
+			<point x="-233" y="-5" type="line"/>
+			<point x="304" y="-5" type="line"/>
+			<point x="304" y="673" type="line"/>
+			<point x="-233" y="673" type="line"/>
+		</contour>
+		<component base="OvalComponent" xOffset="250"/>
+	</outline>
+	<anchor name="bottom_1" x="157" y="35"/>
+	<anchor name="bottom_2" x="-116" y="14"/>
+	<anchor name="top_1" x="115" y="655"/>
+</glyph>

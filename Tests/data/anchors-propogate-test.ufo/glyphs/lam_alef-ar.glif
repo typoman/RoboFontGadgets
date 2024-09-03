@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="lam_alef-ar" format="2">
+	<unicode hex="FEFB"/>
+	<advance width="548"/>
+	<outline>
+		<component base="_lam.init.1" xOffset="250"/>
+		<component base="_alef.fina.1.calt" xOffset="3"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>0</integer>
+					<key>name</key>
+					<string>lam.init.1</string>
+				</dict>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>1</integer>
+					<key>name</key>
+					<string>alef.fina.1.calt</string>
+				</dict>
+			</array>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="sad-ar" format="2">
+	<unicode hex="0635"/>
+	<advance width="1083"/>
+	<outline>
+		<contour>
+			<point x="23" y="-201" type="line"/>
+			<point x="1063" y="-201" type="line"/>
+			<point x="1063" y="477" type="line"/>
+			<point x="23" y="477" type="line"/>
+		</contour>
+		<component base="_NoonComp"/>
+	</outline>
+	<anchor name="top" x="887" y="467"/>
+	<anchor name="dotTop" x="876" y="467"/>
+	<anchor name="bottom" x="259" y="-201"/>
+</glyph>

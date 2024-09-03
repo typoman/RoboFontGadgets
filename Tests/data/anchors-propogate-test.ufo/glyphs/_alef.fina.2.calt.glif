@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="_alef.fina.2.calt" format="2">
+	<advance width="255"/>
+	<outline>
+		<contour>
+			<point x="22" y="101" type="line"/>
+			<point x="227" y="101" type="line"/>
+			<point x="227" y="618" type="line"/>
+			<point x="22" y="618" type="line"/>
+		</contour>
+	</outline>
+	<anchor name="top_2" x="118" y="578"/>
+</glyph>

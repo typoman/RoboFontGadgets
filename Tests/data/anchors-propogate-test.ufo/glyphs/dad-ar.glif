@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="dad-ar" format="2">
+	<unicode hex="0636"/>
+	<advance width="1083"/>
+	<outline>
+		<component base="sad-ar"/>
+		<component base="dotabove-ar" xOffset="799" yOffset="-194"/>
+	</outline>
+</glyph>
