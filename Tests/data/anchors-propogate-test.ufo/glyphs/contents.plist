@@ -16,6 +16,10 @@
 		<string>_lam.medi.1.glif</string>
 		<key>_part.connection-ar</key>
 		<string>_part.connection-ar.glif</string>
+		<key>alef-ar.fina</key>
+		<string>alef-ar.fina.glif</string>
+		<key>alefHamzaabove-ar.fina</key>
+		<string>alefH_amzaabove-ar.fina.glif</string>
 		<key>dad-ar</key>
 		<string>dad-ar.glif</string>
 		<key>dad-ar.fina</key>
@@ -28,6 +32,10 @@
 		<string>dotabove-ar.glif</string>
 		<key>hamzaabove-ar</key>
 		<string>hamzaabove-ar.glif</string>
+		<key>lam-ar.init</key>
+		<string>lam-ar.init.glif</string>
+		<key>lam-ar.medi</key>
+		<string>lam-ar.medi.glif</string>
 		<key>lam_alef-ar</key>
 		<string>lam_alef-ar.glif</string>
 		<key>lam_alef-ar.fina</key>

@@ -4,6 +4,8 @@
 	<dict>
 		<key>public.glyphOrder</key>
 		<array>
+			<string>alef-ar.fina</string>
+			<string>alefHamzaabove-ar.fina</string>
 			<string>sad-ar</string>
 			<string>sad-ar.fina</string>
 			<string>sad-ar.medi</string>
@@ -12,6 +14,8 @@
 			<string>dad-ar.fina</string>
 			<string>dad-ar.medi</string>
 			<string>dad-ar.init</string>
+			<string>lam-ar.medi</string>
+			<string>lam-ar.init</string>
 			<string>lam_alef-ar</string>
 			<string>lam_alef-ar.fina</string>
 			<string>lam_alefHamzaabove-ar</string>

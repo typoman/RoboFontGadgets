@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="alef-ar.fina" format="2">
+	<unicode hex="FE8E"/>
+	<advance width="226"/>
+	<outline>
+		<contour>
+			<point x="17" y="0" type="line"/>
+			<point x="280" y="0" type="line"/>
+			<point x="280" y="674" type="line"/>
+			<point x="17" y="674" type="line"/>
+		</contour>
+		<component base="OvalComponent" xOffset="226"/>
+	</outline>
+	<anchor name="bottom" x="113" y="12"/>
+	<anchor name="top" x="101" y="637"/>
+</glyph>

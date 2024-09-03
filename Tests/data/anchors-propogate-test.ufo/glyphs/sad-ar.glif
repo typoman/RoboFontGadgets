@@ -4,10 +4,10 @@
 	<advance width="1083"/>
 	<outline>
 		<contour>
-			<point x="23" y="-201" type="line"/>
+			<point x="22.7182077636" y="-201" type="line"/>
 			<point x="1063" y="-201" type="line"/>
 			<point x="1063" y="477" type="line"/>
-			<point x="23" y="477" type="line"/>
+			<point x="22.7182077636" y="477" type="line"/>
 		</contour>
 		<component base="_NoonComp"/>
 	</outline>
