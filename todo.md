@@ -45,11 +45,15 @@
 
 ## defcon
 - Keep track of changes in the included feature files for posting notifications.
+- this can be done using the mac.fileObserver from fontgoggles. Then whenever the font
+opens, start observing these files and post "Features.IncludedFeaturesChanged"
+when a change is detected.
 
 ## glyph.GlyphTypeInterpreter
-- For glyph types use features to find the glyph type.
+- For glyph types use features to find the glyph type. 
 
 ## Unicode
+take a loot at unicodedata obj and if you can just use everything from there.
 - override the unicode property and change it to a subclass of tuple which provides
   these attributes: script, direction, interpreted (which stands for interpreted
   unicodes from features or glyph name)

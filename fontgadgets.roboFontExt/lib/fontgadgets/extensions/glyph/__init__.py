@@ -1,7 +1,11 @@
 from fontgadgets.decorators import *
+from warnings import warn
 import fontgadgets.extensions.component
+import fontgadgets.extensions.glyph.composite
 import fontgadgets.extensions.font
 from copy import deepcopy
+
+MASK_LAYER = 'public.background'
 
 @font_property
 def isComposite(glyph):
@@ -42,7 +46,7 @@ def hasShape(glyph):
 
 @font_method
 def copyAttributesFromGlyph(glyph: defcon.Glyph,
-    sourceGlyph, width=True, height=True, unicodes=True, note=True, image=True,
+    sourceGlyph, width=True, height=True, unicodes=False, note=True, image=True,
     contours=True, components=True, anchors=True, guidelines=True, lib=True):
     """
     Copies all attributes from another glyph.
@@ -51,7 +55,7 @@ def copyAttributesFromGlyph(glyph: defcon.Glyph,
         sourceGlyph: The glyph to copy attributes from.
         width (bool): Whether to copy the width. Defaults to True.
         height (bool): Whether to copy the height. Defaults to True.
-        unicodes (bool): Whether to copy the unicodes. Defaults to True.
+        unicodes (bool): Whether to copy the unicodes. Defaults to False.
         note (bool): Whether to copy the note. Defaults to True.
         image (bool): Whether to copy the image. Defaults to True.
         contours (bool): Whether to copy the contours. Defaults to True.
@@ -92,7 +96,7 @@ def copyAttributesFromGlyph(glyph: defcon.Glyph,
 
 @font_method
 def copyAttributesFromGlyph(glyph: fontParts.fontshell.RGlyph, sourceGlyph,
-    width=True, height=True, unicodes=True, note=True, image=True, contours=True,
+    width=True, height=True, unicodes=False, note=True, image=True, contours=True,
     components=True, anchors=True, guidelines=True, lib=True):
     """
     Copies all attributes from another glyph.
@@ -119,7 +123,7 @@ def copyAttributesFromGlyph(glyph: fontParts.fontshell.RGlyph, sourceGlyph,
 
 @font_method
 def clearData(glyph: defcon.Glyph,
-    unicodes=True, note=True, image=True, contours=True, components=True,
+    unicodes=False, note=True, image=True, contours=True, components=True,
     anchors=True, guidelines=True, lib=True):
     """
     Clears the data of the glyph.
@@ -154,15 +158,16 @@ def clearData(glyph: defcon.Glyph,
     if lib:
         glyph.lib = {}
 
+# redfined differently for fontParts
 @font_method
 def clearData(glyph: fontParts.fontshell.RGlyph,
-    unicodes=True, note=True, image=True, contours=True, components=True,
+    unicodes=False, note=True, image=True, contours=True, components=True,
     anchors=True, guidelines=True, lib=True):
     """
     Clears the data of the glyph.
 
     Args:
-        unicodes (bool): If True, clears the unicodes. Defaults to True.
+        unicodes (bool): If True, clears the unicodes. Defaults to False.
         note (bool): If True, clears the note. Defaults to True.
         image (bool): If True, clears the image. Defaults to True.
         contours (bool): If True, clears the contours. Defaults to True.
@@ -179,7 +184,7 @@ def clearData(glyph: fontParts.fontshell.RGlyph,
 
 @font_method
 def swapGlyphData(glyph: defcon.Glyph, otherGlyph,
-    width=True, height=True, unicodes=True, note=True, image=True, contours=True,
+    width=True, height=True, unicodes=False, note=True, image=True, contours=True,
     components=True, anchors=True, guidelines=True, lib=True):
     """
     Swaps the contents and all the data of the glyph with the given otherGlyph.
@@ -188,7 +193,7 @@ def swapGlyphData(glyph: defcon.Glyph, otherGlyph,
         otherGlyph: The other glyph object to swap the contents with.
         width (bool, optional): Whether to swap the width. Defaults to True.
         height (bool, optional): Whether to swap the height. Defaults to True.
-        unicodes (bool, optional): Whether to swap the unicodes. Defaults to True.
+        unicodes (bool, optional): Whether to swap the unicodes. Defaults to False.
         note (bool, optional): Whether to swap the note. Defaults to True.
         image (bool, optional): Whether to swap the image. Defaults to True.
         contours (bool, optional): Whether to swap the contours. Defaults to True.
@@ -203,6 +208,8 @@ def swapGlyphData(glyph: defcon.Glyph, otherGlyph,
 
     copy_kwargs = dict(list(locals().items())[2:])
     clear_kwargs = dict(list(copy_kwargs.items())[2:])
+    if copy_kwargs['unicodes'] is True and glyph.font == otherGlyph.font:
+        warn('Swapping unicodes in a same font could create unexpected results!')
     tmp_otherGlyph = glyph.layer.instantiateGlyphObject()
     tmp_otherGlyph.copyAttributesFromGlyph(otherGlyph)
     otherGlyph.clearData(**clear_kwargs)
@@ -210,9 +217,10 @@ def swapGlyphData(glyph: defcon.Glyph, otherGlyph,
     glyph.clearData(**clear_kwargs)
     glyph.copyAttributesFromGlyph(tmp_otherGlyph, **copy_kwargs)
 
+# redfined differently for fontParts
 @font_method
 def swapGlyphData(glyph: fontParts.fontshell.RGlyph, otherGlyph,
-    width=True, height=True, unicodes=True, note=True, image=True, contours=True,
+    width=True, height=True, unicodes=False, note=True, image=True, contours=True,
     components=True, anchors=True, guidelines=True, lib=True):
     """
     Swaps the contents and all the data of the glyph with the given otherGlyph.
@@ -234,6 +242,91 @@ def swapGlyphData(glyph: fontParts.fontshell.RGlyph, otherGlyph,
         None
     """
     kwargs = dict(list(locals().items())[2:])
+    if kwargs['unicodes'] is True and glyph.font == otherGlyph.font:
+        warn('Swapping unicodes in a same font could create unexpected results.')
     glyph = glyph.naked()
     otherGlyph = otherGlyph.naked()
     glyph.swapGlyphData(otherGlyph, **kwargs)
+
+@font_method
+def copy(glyph: defcon.Glyph, decompose=False):
+    if decompose is True:
+        result = sourceGlyph.decomposeCopy()
+    else:
+        result = defcon.Glyph()
+        result.copyAttributesFromGlyph(glyph)
+    result.name = glyph.name
+    return result
+
+@font_method
+def copyToBackground(glyph, sourceGlyph=None, clearBackground=True, decompose=True,
+    updateComponentReferences=False, **copy_kwargs):
+    """
+    Copies a glyph to the background/mask layer of the glyph.
+
+    This function creates a copy of the glyph in the background/mask layer of
+    the font, optionally clearing the existing background layer and decomposing
+    the source glyph before copying.
+
+    Args:
+    sourceGlyph (Glyph, optional): The glyph to be used as the source for the copy.
+        Defaults to the glyph that is running the method as the source if not specified.
+    clearBackground (bool, optional): Whether to clear the existing background layer.
+        Defaults to True.
+    decompose (bool, optional): Whether to decompose the source glyph before copying.
+        Defaults to True.
+    width (bool, optional): Whether to copy the glyph's width. Defaults to True.
+    height (bool, optional): Whether to copy the glyph's height. Defaults to True.
+    image (bool, optional): Whether to copy the glyph's image. Defaults to True.
+    contours (bool, optional): Whether to copy the glyph's contours. Defaults to True.
+    components (bool, optional): Whether to copy the glyph's components. Defaults to True.
+    anchors (bool, optional): Whether to copy the glyph's anchors. Defaults to True.
+    guidelines (bool, optional): Whether to copy the glyph's guidelines. Defaults to True.
+    lib (bool, optional): Whether to copy the glyph's lib. Defaults to True.
+
+    Returns:
+    None
+    """
+    font = glyph.font
+    _copy_kwargs = dict(width=True, height=True, unicodes=False, note=True, image=True, contours=True,
+    components=True, anchors=True, guidelines=True, lib=True)
+    _copy_kwargs.update(copy_kwargs)
+    _copy_kwargs['unicodes'] = False
+    try:
+        targetLayer = font.layers[MASK_LAYER]
+    except KeyError:
+        targetLayer = font.newLayer(MASK_LAYER)
+    if glyph.name not in targetLayer:
+        targetGlyph = targetLayer.newGlyph(glyph.name)
+    else:
+        targetGlyph = targetLayer[glyph.name]
+        if clearBackground:
+            targetGlyph.clear()
+
+    if sourceGlyph is None:
+        sourceGlyph = glyph
+    if decompose:
+        sourceGlyph = sourceGlyph.decomposeCopy()
+        _copy_kwargs['components'] = False
+    else:
+        shouldUpdateComps = _copy_kwargs.get('components', False)
+        if shouldUpdateComps is True and updateComponentReferences is True:
+            for comp in sourceGlyph.components:
+                baseGlyphName = comp.baseGlyph
+                if baseGlyphName in targetLayer:
+                    compGlyph = font[baseGlyphName]
+                else:
+                    compGlyph = targetLayer.newGlyph(baseGlyphName)
+                compGlyph.copyToBackground(clearBackground=clearBackground, decompose=False,
+                        updateComponentReferences=True, **_copy_kwargs)
+    targetGlyph.copyAttributesFromGlyph(sourceGlyph, **_copy_kwargs)
+
+@font_cached_property("Glyph.ContoursChanged", "Glyph.ComponentsChanged")
+def centerOfBounds(glyph: defcon.Glyph):
+    """
+    Returns the center of the glyph bounds.
+    """
+    xMin, yMin, xMax, yMax = glyph.bounds
+    w = xMax - xMin
+    h = yMax - yMin
+    return xMin + w / 2, yMin + h / 2

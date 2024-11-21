@@ -1,5 +1,6 @@
 import logging
 import sys
+from fontgadgets import getEnvironment
 
 logging.addLevelName(logging.ERROR, '| FAILED ')
 logging.addLevelName(logging.WARNING, '| WARNING ')
@@ -7,7 +8,7 @@ logging.addLevelName(logging.INFO, '')
 logging.addLevelName(logging.DEBUG, '')
 
 
-class MergerLogFormatter(logging.Formatter):
+class LogFormatter(logging.Formatter):
 	COLORS = {
 			logging.WARNING: '1;30;44',
 			logging.ERROR: '1;30;41',
@@ -24,9 +25,9 @@ class MergerLogFormatter(logging.Formatter):
 		record.levelname = color + record.levelname + "\x1b[0m "
 		return logging.Formatter.format(self, record)
 
-
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
-formatter = MergerLogFormatter('%(module)s %(levelname) s%(message)s')
-handler.setFormatter(formatter)
+if getEnvironment() == 'Shell': # RF doesn show colors in the output
+	formatter = LogFormatter('%(module)s %(levelname) s%(message)s')
+	handler.setFormatter(formatter)
 logger.addHandler(handler)

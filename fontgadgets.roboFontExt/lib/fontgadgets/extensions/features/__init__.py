@@ -282,13 +282,9 @@ class ParsedFeatureFile:
         # we need to make all the glyph statement consistent because feaLib parser
         # sometimes creates ast objects and sometimes string.
         if isinstance(e, str):
-            return [
-                e,
-            ]
+            return [e, ]
         if isinstance(e, GlyphName):
-            return [
-                e.glyph,
-            ]
+            return [e.glyph, ]
         if isinstance(e, (list, tuple)):
             result = []
             for e2 in e:
@@ -334,7 +330,7 @@ def _renameGlyphNames(e, trasnlateMap):
     return e
 
 
-@font_cached_property("Features.TextChanged")
+@font_cached_property("Features.TextChanged", "Layer.GlyphAdded", " Layer.GlyphDeleted")
 def parsed(features):
     return ParsedFeatureFile(features.font)
 

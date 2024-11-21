@@ -13,6 +13,10 @@ following is using it
 ```
 pos base zero.sansSerifCircled  <anchor 409 350> mark @mark_bottom;
 ```
+- prune the unused classes
+
+for merge:
+    - how to filter duplicate rules?
 """
 
 def _subsetGlyphs(listOfGlyphSets, glyphsToKeep, appendToResult=True):

@@ -1,19 +1,5 @@
 from fontgadgets.tools import *
 
-def getEnvironment():
-    """
-    Depending on the environmet it will return either "RoboFont" or "Shell".
-    """
-    try:
-        import mojo as _mj
-
-        if hasattr(_mj, "RoboFont"):
-            return "RoboFont"
-    except ImportError:
-        pass
-    return "Shell"
-
-
 def decorateAll():
     """
     Decorates all the fontParts and defcon object from this package extensions.

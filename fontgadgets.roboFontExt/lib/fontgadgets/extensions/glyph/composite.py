@@ -23,9 +23,9 @@ class DecomposePointPen(object):
 @font_cached_method(
     "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Component.BaseGlyphChanged"
 )
-def decomposeCopy(glyph, returnNewGlyph=True, layerName=None) -> defcon.Glyph:
+def decomposeCopy(glyph, layerName=None) -> defcon.Glyph:
     """
-    Decomposes the glyph. If 'returnNewGlyph' is True, the glyph will remain intact.
+    Decomposes the glyph and returns a new copy.
     """
     if layerName is not None:
         try:
@@ -36,17 +36,16 @@ def decomposeCopy(glyph, returnNewGlyph=True, layerName=None) -> defcon.Glyph:
         f = glyph.font.layers.defaultLayer
     result = f.instantiateGlyphObject()
     result.name = glyph.name
-    result.width = glyph.width
     dstPen = result.getPointPen()
     decomposePen = DecomposePointPen(f, dstPen)
     glyph.drawPoints(decomposePen)
-    if returnNewGlyph:
-        return result
-    else:
-        glyph.clearContours()
-        for c in result:
-            glyph.appendContour(c)
-    return glyph
+    result.copyAttributesFromGlyph(glyph, width=True, height=True, unicodes=True, note=True, image=True, contours=False,
+        components=False, anchors=True, guidelines=True, lib=True)
+    return result
+
+@font_method
+def decompose(glyph: defcon.Glyph):
+    glyph.decomposeAllComponents()
 
 @font_property
 def relatedComposites(glyph):

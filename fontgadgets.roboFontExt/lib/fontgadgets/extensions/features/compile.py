@@ -17,10 +17,15 @@ class IsolatedFeatureCompiler(FeatureCompiler):
         featureFile = (
             self.ufo.features.defaultScripts
         )  # ufo2ft requires default scripts to function properly
-        lenExtraScripts = len(self.ufo.features.defaultScripts.asFea())
         for writerClass in self.featureWriters:
             writerClass().write(self.ufo, featureFile, compiler=self)
-        self.features = featureFile.asFea()[lenExtraScripts + 1 :]
+        # now remove the script declarations, because now it's a
+        # duplicate.
+        result = FeatureFile()
+        for s in featureFile.statements:
+            if not isinstance(s, LanguageSystemStatement):
+                result.statements.append(s)
+        self.features = result.asFea()
 
 
 @font_method

@@ -11,6 +11,18 @@ import typing
 class FontGadgetsError(Exception):
     pass
 
+def getEnvironment():
+    """
+    Depending on the environmet it will return either "RoboFont" or "Shell".
+    """
+    try:
+        import mojo as _mj
+
+        if hasattr(_mj, "RoboFont"):
+            return "RoboFont"
+    except ImportError:
+        pass
+    return "Shell"
 
 def _destroyRepresentationsForNotification(self, notification):
     notificationName = notification.name
@@ -243,9 +255,9 @@ def registerMethodForFontParts(functInfo, isProperty, defconObj=None):
     fontPartsObj = getFontPartsObject(functInfo.objectName)
     if fontPartsObj is None:
         raise FontGadgetsError(
-            f"'R{functInfo.objectName}' does't exist in 'fontParts'."
+            f"`R{functInfo.objectName}` does't exist in 'fontParts'."
         )
-    methodID = checkIfAttributeAlreadyExist(
+    methodID, exist = checkIfAttributeAlreadyExist(
         fontPartsObj, functInfo.objectName, functInfo.name, "fontParts"
     )
     fontPartsMethod = functInfo.funct
@@ -270,13 +282,13 @@ def registerMethodForFontParts(functInfo, isProperty, defconObj=None):
 def registerMethodForDefcon(functInfo, isProperty, destructiveNotifications=[]):
     defconObj = getDefconObject(functInfo.objectName)
     if defconObj is None:
-        message = f"'{functInfo.objectName}' does't exist in 'defcon'."
+        message = f"`{functInfo.objectName}` does't exist in 'defcon'."
         if functInfo.packageHint == "defcon":
             raise FontGadgetsError(message)
         else:
             warn(message)
             return
-    methodID = checkIfAttributeAlreadyExist(
+    methodID, exist = checkIfAttributeAlreadyExist(
         defconObj, functInfo.objectName, functInfo.name, "defcon"
     )
     defconFunct = functInfo.funct
@@ -284,6 +296,13 @@ def registerMethodForDefcon(functInfo, isProperty, destructiveNotifications=[]):
         functRepresentationKey = (
             f"{functInfo.objectName}.{functInfo.name}.representation"
         )
+        if exist and getEnvironment() == "RoboFont":
+            assert DEBUG is True
+            if functRepresentationKey in defconObj.representationFactories:
+                for font in AllFonts():
+                    for glyph in font.naked():
+                        glyph.destroyAllRepresentations()
+
         defcon.registerRepresentationFactory(
             defconObj,
             functRepresentationKey,
@@ -318,17 +337,19 @@ def checkIfAttributeAlreadyExist(
         if DEBUG is False:
             if methodID not in _registeredMethods:
                 raise FontGadgetsError(
-                    f"Registration of '{funcName}' as a function "
+                    f"Registration of `{funcName}` as a function "
                     f"for {obj} failed, because the object already has an "
                     "attribute/method with this exact name."
                 )
             else:
                 raise FontGadgetsError(
-                    f"Function '{funcName}' is already registered using fontgadgets for '{moduleName}.{objectName}'."
-                    f" Execute 'fontgadgets.tools.DEBUG = True' to overwrite the function."
+                    f"Function `{funcName}` is already registered using fontgadgets for `{moduleName}.{objectName}`."
+                    f"Although you can execute the follwing line to overwrite the function:"
+                    f"import fontgadgets; fontgadgets.tools.DEBUG = True"
                 )
         elif methodID in _registeredMethods:
-            message = f"Overriding an exising '{methodID}' {registerar} method."
+            message = f"Overriding an exising `{methodID}` {registerar} method."
             warn(message, category=Warning)
-    return methodID
+            return methodID, True
+    return methodID, False
     # method is registered successfully

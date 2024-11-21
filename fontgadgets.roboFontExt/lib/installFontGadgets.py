@@ -17,3 +17,8 @@ except NameError:
     from importlib import reload
 
 reload(fontgadgets)
+
+import fontgadgets.extensions.robofont.font
+import fontgadgets.extensions.robofont.tools
+import fontgadgets.extensions.robofont.UI
+

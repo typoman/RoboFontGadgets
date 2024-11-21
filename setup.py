@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 # Use this for installing the package using pip for usage in shell
 
 setup(
-    name="fontGadgets",
-    version="0.1.101",
+    name="fontgadgets",
+    version="0.2.1",
     description="A package to add more functions to fontParts and defcon objects.",
     author="Bahman Eslami",
     author_email="contact@bahman.design",
@@ -14,11 +14,13 @@ setup(
     packages=find_packages('fontgadgets.roboFontExt/lib'),
     install_requires=[
     "fontParts",
+    "defcon",
     "fontTools",
     "ufo2ft",
     "ufoLib2",
     "pytest",
-    "ufonormalizer"
+    "ufonormalizer",
+    "git"
     ],
     tests_require=[
         'pytest>=3.9',

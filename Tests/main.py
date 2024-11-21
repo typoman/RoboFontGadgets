@@ -210,18 +210,18 @@ def assert_compared_glyphs_are_same(ref_glyph, other_glyph,
     lib=False):
     # Assert that the attributes of ref_glyph are not changed
     # from other_glyph, except for the specified attributes.
-    assert _get_operator(width)(ref_glyph.width, other_glyph.width)
-    assert _get_operator(height)(ref_glyph.height, other_glyph.height)
-    assert _get_operator(unicodes)(ref_glyph.unicodes, other_glyph.unicodes)
-    assert _get_operator(note)(ref_glyph.note, other_glyph.note)
-    assert _get_operator(image)(ref_glyph.image, other_glyph.image)
+    assert _get_operator(width)(ref_glyph.width, other_glyph.width), f"Inconsistent width for the argument {width}: {ref_glyph.width} != {other_glyph.width}"
+    assert _get_operator(height)(ref_glyph.height, other_glyph.height), f"Inconsistent height for the argument {height}: {ref_glyph.height} != {other_glyph.height}"
+    assert _get_operator(unicodes)(ref_glyph.unicodes, other_glyph.unicodes), f"Inconsistent unicodes for the argument {unicodes}: {ref_glyph.unicodes} != {other_glyph.unicodes}"
+    assert _get_operator(note)(ref_glyph.note, other_glyph.note), f"Inconsistent note for the argument {note}: {ref_glyph.note} != {other_glyph.note}"
+    assert _get_operator(image)(ref_glyph.image, other_glyph.image), f"Inconsistent image for the argument {image}: {ref_glyph.image} != {other_glyph.image}"
     sourceContours = _contour_points_as_list(other_glyph)
     targetContours = _contour_points_as_list(ref_glyph)
-    assert _get_operator(contours)(sourceContours, targetContours), (sourceContours, targetContours)
-    assert _get_operator(components)(_comps_as_tuples(ref_glyph), _comps_as_tuples(other_glyph))
-    assert _get_operator(anchors)([g.items() for g in ref_glyph.anchors], [g.items() for g in other_glyph.anchors])
-    assert _get_operator(guidelines)([g.items() for g in ref_glyph.guidelines], [g.items() for g in other_glyph.guidelines])
-    assert _get_operator(lib)(ref_glyph.lib, other_glyph.lib)
+    assert _get_operator(contours)(sourceContours, targetContours), f"Inconsistent contours for the argument {contours}: {sourceContours} != {targetContours}"
+    assert _get_operator(components)(_comps_as_tuples(ref_glyph), _comps_as_tuples(other_glyph)), f"Inconsistent components for the argument {components}: {_comps_as_tuples(ref_glyph)} != {_comps_as_tuples(other_glyph)}"
+    assert _get_operator(anchors)([g.items() for g in ref_glyph.anchors], [g.items() for g in other_glyph.anchors]), f"Inconsistent anchors for the argument {anchors}: {[g.items() for g in ref_glyph.anchors]} != {[g.items() for g in other_glyph.anchors]}"
+    assert _get_operator(guidelines)([g.items() for g in ref_glyph.guidelines], [g.items() for g in other_glyph.guidelines]), f"Inconsistent guidelines for the argument {guidelines}: {[g.items() for g in ref_glyph.guidelines]} != {[g.items() for g in other_glyph.guidelines]}"
+    assert _get_operator(lib)(ref_glyph.lib, other_glyph.lib), f"Inconsistent lib for the argument {lib}: {ref_glyph.lib} != {other_glyph.lib}"
 
 @pytest.fixture(scope='function')
 def COPY_GLYPH_KWARGS():

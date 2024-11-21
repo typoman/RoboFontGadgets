@@ -68,3 +68,14 @@ def pseudoUnicodes(glyph):
     """
     return glyph.font.pseudoUnicodesMapping.get(glyph.name, [])
 
+@font_cached_property("UnicodeData.Changed")
+def glyphName2UnicodesMap(font):
+    result = {}
+    for glyph in font:
+        name = glyph.name
+        unis = glyph.unicodes
+        if unis:
+            existing = set(result.get(name, set()))
+            existing.update(unis)
+            result[name] = frozenset(existing)
+    return result
