@@ -1,8 +1,7 @@
 from fontgadgets.decorators import font_cached_method
-from fontgadgets.extensions.anchors import getAnchorClassFromName, MARK_ANCHOR_PREFIXES
+from fontgadgets.extensions.anchors import getAnchorClassFromName, MARK_ANCHOR_PREFIXES, AnchorsDict
 from fontgadgets.log import logger
 from functools import lru_cache
-
 
 """
 todo:
