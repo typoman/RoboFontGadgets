@@ -20,7 +20,6 @@ setup(
     "ufoLib2",
     "pytest",
     "ufonormalizer",
-    "git"
     ],
     tests_require=[
         'pytest>=3.9',
