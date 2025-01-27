@@ -1,4 +1,5 @@
 from fontgadgets.decorators import *
+from fontgadgets.extensions.features import *
 from collections import OrderedDict
 from ufo2ft.featureCompiler import FeatureCompiler
 from ufo2ft.featureWriters import (
