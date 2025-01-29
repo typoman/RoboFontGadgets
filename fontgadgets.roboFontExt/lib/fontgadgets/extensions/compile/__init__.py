@@ -31,6 +31,12 @@ class Compiler:
 
     def __init__(self, font):
         self.font = font
+        self._glyphSet = {g.name: g for g in font}
+        for glyph_name in REQUIRED_GLYPHS:
+            if glyph_name not in self._glyphSet:
+                g = Glyph()
+                g.width = 0
+                self._glyphSet[glyph_name] = g
         self._otf = None
 
     def setupOTF(self):
@@ -81,7 +87,7 @@ class Compiler:
         fb.setupCFF(self.fontName, {"FullName": self.fontName}, charstrings, {})
         self._otf = fb.font
         if features is True:
-            self._otf = self.font.features.getCompiler(ttFont=self._otf, glyphSet=self.font).ttFont
+            self._otf = self.font.features.getCompiler(ttFont=self._otf, glyphSet=self._glyphSet).ttFont
         return self._otf
 
     def getOTFData(self):
