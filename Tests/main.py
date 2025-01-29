@@ -1,11 +1,14 @@
-import defcon
-import fontParts.fontshell
 from unittest.mock import MagicMock
 from pathlib import Path
-import pytest
 from fontgadgets.tools import FontGadgetsError
+from fontTools.ttLib import TTFont
+import defcon
+import fontParts.fontshell
+import pytest
 import random
 import operator
+import tempfile
+import shutil
 
 @pytest.fixture
 def defcon_font_1():
@@ -244,3 +247,50 @@ def sample_font_with_random_glyph_contents():
         name = f'random glyph {i}'
         f.newGlyph(name).copyDataFromGlyph(g)
     yield f
+
+def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
+    if tables is None:
+        tables = set(font.keys())
+    else:
+        tables = set(tables)
+        if not set(font.keys()).issuperset(tables):
+            raise ValueError(f"Not all the tables are in the font: {tables}")
+
+    tables.discard("GlyphOrder")
+    arg_tables = list(sorted(tables))
+
+    with tempfile.NamedTemporaryFile(mode='wb', suffix='.ttx', delete=False) as tmp:
+        try:
+            actual_ttx_path = Path(tmp.name)
+            font.saveXML(tmp.name, tables=arg_tables)
+
+            with open(actual_ttx_path, "r", encoding="utf-8") as actual_file:
+                actual_lines = [line.rstrip() + "\n" for line in actual_file.readlines()]
+
+            ttx_path = Path(__file__).parent.joinpath("data/ttx/" + ttx)
+            with open(ttx_path, "r", encoding="utf-8") as expected_file:
+                expected_lines = [line.rstrip() + "\n" for line in expected_file.readlines()]
+
+            differences = []
+            for line_num, (actual_line, expected_line) in enumerate(zip(actual_lines, expected_lines)):
+                if actual_line != expected_line:
+                    differences.append(
+                        f"Line {line_num + 1}:\n"
+                        f"Expected: {expected_line.strip()}\n"
+                        f"Actual:   {actual_line.strip()}\n"
+                    )
+            if differences:
+                error_message = "TTX output differs from expected:\n\n" + "\n".join(differences)
+                save_path = ttx_path.parent / f"expected_{ttx}"
+                shutil.copy(actual_ttx_path, save_path)
+                raise AssertionError(error_message)
+            return True
+
+        except Exception as e:
+            raise AssertionError(f"Error during TTX comparison: {str(e)}")
+        finally:
+            actual_ttx_path.unlink(missing_ok=True)
+
+    return False
+
+

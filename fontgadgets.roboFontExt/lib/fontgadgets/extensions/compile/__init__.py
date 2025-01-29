@@ -4,6 +4,8 @@ from defcon import Glyph
 from fontTools.fontBuilder import FontBuilder
 from warnings import warn
 import fontgadgets.extensions.glyph.boolean
+import fontgadgets.extensions.features.compile
+import io
 """
 This module contains functions for compiling fonts which are taiken for caching and making
 the font to be compiled faster.
@@ -17,9 +19,9 @@ def t2CharString(glyph):
     glyph.removeOverlapCopy().draw(pen)
     return pen.getCharString()
 
-REQUIRED_GLYPHS = [".notdef", "space"]
-EMPTY_GLYPH = Glyph()
 
+REQUIRED_GLYPHS = [".notdef", "space"]
+_EMPTY_CHAR_STRING = T2CharStringPen(100, None).getCharString()
 
 class Compiler:
 
@@ -29,15 +31,16 @@ class Compiler:
 
     def __init__(self, font):
         self.font = font
-
-    def setupOTF(self, font):
-        self.upm = font.info.unitsPerEm
-        self._glyphSet = {name: EMPTY_GLYPH for name in REQUIRED_GLYPHS}
-        self._glyphSet.update({name: EMPTY_GLYPH for name in font.keys()})
-        self._metrics = {name: (self.upm, 0) for name in self._glyphSet}
         self._otf = None
+
+    def setupOTF(self):
+        font = self.font
+        self.upm = font.info.unitsPerEm
+        self._charstrings = {name: _EMPTY_CHAR_STRING for name in REQUIRED_GLYPHS}
+        self._charstrings.update({name: _EMPTY_CHAR_STRING for name in font.keys()})
+        self._metrics = {name: (self.upm, 0) for name in self._charstrings}
         fb = self.builder = FontBuilder(self.font.info.unitsPerEm, isTTF=False)
-        fb.setupGlyphOrder(sorted(set(self._glyphSet.keys())))
+        fb.setupGlyphOrder(sorted(set(self._charstrings.keys())))
         fb.setupCharacterMap(
             {uni: names[0] for uni, names in self.font.unicodeData.items()}
         )
@@ -60,122 +63,56 @@ class Compiler:
         fb.setupNameTable(nameStrings)
         fb.setupPost()
 
-    @property
-    def glyphSet(self):
-        """
-        By default outlines are empty. Override this method to fill the outlines with
-        the shapes from the source:
+    def _getCharstrings(self):
+        return {glyph.name: glyph.t2CharString for glyph in self.font}
 
-        compiler.glyphSet.update({name: source_ufo[name] for name in source_ufo.keys()})
-        """
-        return self._glyphSet
+    def _getMetrics(self):
+        return {glyph.name: (glyph.width, 0) for glyph in self.font}
 
-    @property
-    def metrics(self):
-        return {name: (glyph.width, 0) for name, glyph in self._glyphSet.items()}
-
-    @property
-    def charStrings(self):
-        return {name: glyph.t2CharString for name, glyph in self._glyphSet.items()}
-
-    @property
-    def otf(self):
+    def getOTF(self, metrics=True, outlines=False, features=False):
         fb = self.builder
-        fb.setupHorizontalMetrics(self.metrics)
-        fb.setupCFF(self.fontName, {"FullName": self.fontName}, self.charStrings, {})
+        metricsMap = self._metrics
+        if metrics is True:
+            metricsMap = self._getMetrics()
+        fb.setupHorizontalMetrics(metricsMap)
+        charstrings = self._charstrings
+        if outlines is True:
+            charstrings = self._getCharstrings()
+        fb.setupCFF(self.fontName, {"FullName": self.fontName}, charstrings, {})
         self._otf = fb.font
+        if features is True:
+            self._otf = self.font.features.getCompiler(ttFont=self._otf, glyphSet=self.font).ttFont
         return self._otf
 
-    def data(self):
+    def getOTFData(self):
         """
         Binary data of the font. This can be used for text layout without having to
         saving it to disk.
         """
-        raise NotImplementedError
+        data = io.BytesIO()
+        self._otf.save(data)
+        return data.getvalue()
 
-    def save(self):
-        raise NotImplementedError
+    def saveOTF(self, path):
+        self._otf.save(path)
 
+    @property
+    def OTF(self):
+        return self._otf
 
-@font_cached_method(
+@font_cached_property(
     "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
 )
 def compiler(font):
     return Compiler(font)
 
-
-@font_cached_method(
-    "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
-)
-def _dummyOTF(font):
-    return font.compiler.otf
-
-
-@font_cached_method(
-    "UnicodeData.Changed",
-    "Layer.GlyphAdded",
-    "Layer.GlyphDeleted",
-    "Info.Changed",
-    "Glyph.AnchorsChanged",
-    "Glyph.KerningChanged",
-    "Features.Changed",
-)
-def dummyOTF(font):
-    """
-    OTF file without outlines and metrics for shaping text.
-    """
-    return font.features.getCompiler(
-        ttFont=font._dummyOTF, glyphSet=font.compiler.glyphSet
-    ).ttFont
-
-
-@font_cached_method(
-    "UnicodeData.Changed",
-    "Layer.GlyphAdded",
-    "Layer.GlyphDeleted",
-    "Info.Changed",
-    "Glyph.ContoursChanged",
-    "Glyph.ComponentsChanged",
-    "Component.BaseGlyphChanged",
-    "Glyph.WidthChanged",
-)
-def previewOTF(font):
-    """
-    OTF file with outlines for previewing.
-    """
-    compiler = font.compiler
-    compiler.glyphSet.update({name: font[name] for name in font.keys()})
-    return compiler.otf
-
-
-@font_cached_method(
-    "UnicodeData.Changed",
-    "Layer.GlyphAdded",
-    "Layer.GlyphDeleted",
-    "Info.Changed",
-    "Glyph.ContoursChanged",
-    "Glyph.ComponentsChanged",
-    "Component.BaseGlyphChanged",
-    "Glyph.WidthChanged",
-    "Glyph.AnchorsChanged",
-    "Glyph.KerningChanged",
-    "Features.Changed",
-)
-def previewOTFWithFeatures(font):
-    """
-    OTF file with outlines and features for previewing.
-    """
-    return font.features.getCompiler(ttFont=font.previewOTF).ttFont
-
-
 @font_method
-def savePreviewOTFWithFeatures(font, path):
+def getOTF(font, metrics=True, outlines=False, features=True):
     """
-    OTF file with outlines and features for previewing.
+    OTF file without outlines for shaping text.
     """
-    otf = font.previewOTFWithFeatures
-    otf.save(path)
-
+    font.compiler.setupOTF()
+    return font.compiler.getOTF(metrics=metrics, outlines=outlines, features=features)
 
 class GlyphProductionNames:
     """
@@ -224,7 +161,6 @@ class GlyphProductionNames:
         warningMessage = f"Can't produce a production name for glyph '{glyph.name}'."
         warn(warningMessage)
         return glyph.name
-
 
 @font_cached_property(
     "UnicodeData.Changed",

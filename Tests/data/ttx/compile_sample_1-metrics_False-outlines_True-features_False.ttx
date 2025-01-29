@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="OTTO" ttLibVersion="4.55">
+
+  <CFF>
+    <major value="1"/>
+    <minor value="0"/>
+    <CFFFont name="sample_1-style_1">
+      <FullName value="sample_1-style_1"/>
+      <isFixedPitch value="0"/>
+      <ItalicAngle value="0"/>
+      <UnderlinePosition value="-100"/>
+      <UnderlineThickness value="50"/>
+      <PaintType value="0"/>
+      <CharstringType value="2"/>
+      <FontMatrix value="0.001 0 0 0.001 0 0"/>
+      <FontBBox value="0 0 0 0"/>
+      <StrokeWidth value="0"/>
+      <!-- charset is dumped separately as the 'GlyphOrder' element -->
+      <Encoding name="StandardEncoding"/>
+      <Private>
+        <BlueScale value="0.039625"/>
+        <BlueShift value="7"/>
+        <BlueFuzz value="1"/>
+        <ForceBold value="0"/>
+        <LanguageGroup value="0"/>
+        <ExpansionFactor value="0.06"/>
+        <initialRandomSeed value="0"/>
+        <defaultWidthX value="0"/>
+        <nominalWidthX value="0"/>
+      </Private>
+      <CharStrings>
+        <CharString name=".notdef">
+          0 endchar
+        </CharString>
+        <CharString name="C">
+          0 endchar
+        </CharString>
+        <CharString name="Ccedilla">
+          0 endchar
+        </CharString>
+        <CharString name="D">
+          0 endchar
+        </CharString>
+        <CharString name="E">
+          0 endchar
+        </CharString>
+        <CharString name="O">
+          0 endchar
+        </CharString>
+        <CharString name="Ograve">
+          0 endchar
+        </CharString>
+        <CharString name="ain.medi">
+          0 endchar
+        </CharString>
+        <CharString name="sad">
+          0 endchar
+        </CharString>
+        <CharString name="seen">
+          0 endchar
+        </CharString>
+        <CharString name="seen.init">
+          0 endchar
+        </CharString>
+        <CharString name="space">
+          0 endchar
+        </CharString>
+        <CharString name="tah">
+          0 endchar
+        </CharString>
+      </CharStrings>
+    </CFFFont>
+
+    <GlobalSubrs>
+      <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+    </GlobalSubrs>
+  </CFF>
+
+</ttFont>
