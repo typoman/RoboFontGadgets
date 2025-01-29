@@ -70,10 +70,10 @@ class Compiler:
         fb.setupPost()
 
     def _getCharstrings(self):
-        return {glyph.name: glyph.t2CharString for glyph in self.font}
+        return {name: glyph.t2CharString for name, glyph in self._glyphSet.items()}
 
     def _getMetrics(self):
-        return {glyph.name: (glyph.width, 0) for glyph in self.font}
+        return {name: (glyph.width, 0) for name, glyph in self._glyphSet.items()}
 
     def getOTF(self, metrics=True, outlines=False, features=False):
         fb = self.builder
