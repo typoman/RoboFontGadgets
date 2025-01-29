@@ -1,6 +1,7 @@
 from fontgadgets.tools import FontGadgetsError
 from main import *
 import fontgadgets.tools
+import fontgadgets.decorators
 import inspect
 import fontParts.fontshell
 
@@ -118,8 +119,8 @@ def test_getFontFunctionProperties():
 	)
 
 def test_checkIfAttributeAlreadyExist():
-	assert fontgadgets.tools.checkIfAttributeAlreadyExist(fontParts.fontshell.RFont, 'Font', 'testIfFunctExist1', 'fontParts') == 'fontgadgets.fontParts.Font.testIfFunctExist1'
-	assert fontgadgets.tools.checkIfAttributeAlreadyExist(defcon.Font, 'Font', 'testIfFunctExist2', 'defcon') == 'fontgadgets.defcon.Font.testIfFunctExist2'
+	assert fontgadgets.tools.checkIfAttributeAlreadyExist(fontParts.fontshell.RFont, 'Font', 'testIfFunctExist1', 'fontParts') == ('fontgadgets.fontParts.Font.testIfFunctExist1', False)
+	assert fontgadgets.tools.checkIfAttributeAlreadyExist(defcon.Font, 'Font', 'testIfFunctExist2', 'defcon') == ('fontgadgets.defcon.Font.testIfFunctExist2', False)
 	with pytest.warns(Warning, match=r"Overriding an exising .+ fontgadgets method."):
 		fontgadgets.tools.DEBUG = True
 
