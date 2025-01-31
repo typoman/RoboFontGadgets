@@ -21,6 +21,7 @@ setup(
     "pytest",
     "ufonormalizer",
     "GitPython",
+    "python-bidi==0.4.2",  # pin for now, 0.5 breaks things
     ],
     tests_require=[
         'pytest>=3.9',
