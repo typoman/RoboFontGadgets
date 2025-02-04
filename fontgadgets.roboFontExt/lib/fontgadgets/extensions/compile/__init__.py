@@ -64,7 +64,7 @@ class Compiler:
             version="Version " + version,
         )
         fb.setupHorizontalHeader(
-            ascent=self.font.info.ascender, descent=self.font.info.descender
+            ascent=round(self.font.info.ascender), descent=round(self.font.info.descender)
         )
         fb.setupNameTable(nameStrings)
         fb.setupPost()
