@@ -10,7 +10,32 @@ import os
 from io import StringIO
 
 
-class GlyphFeautres:
+class GlyphFeatures:
+    """
+    GlyphFeatures is an object that holds the related features in a glyph. You can use
+    it to find out which features are associated with this glyph using two properties:
+
+    sourceGlyphs: Returns a dictionary mapping tuples of source glyph names to 
+      lists of fonttools fealib ast substitution statements. The glyph names are
+      the glyphs that are going to be substituted with this glyph.
+
+        Example:
+        # assuming the glyph.Features belongs to glyph named "f_i"
+            {
+                ('f', 'i'): [LigatureSubstStatement],
+            }
+
+    targetGlyphs: Returns a dictionary mapping tuples of target glyph names to 
+      lists of substitution statements. The target glyphs are the glyphs which replace
+      this glyph when a feature is triggered.
+
+        # assuming the glyph.Features belongs to glyph named "f" or "i"
+        Example:
+            {
+                ('f_i', ): [LigatureSubstStatement],
+            }
+    """
+
     def __init__(self, glyph):
         self._glyph = glyph
         self._font = glyph.font
@@ -36,7 +61,7 @@ class GlyphFeautres:
     def _getLanguages(self):
         pass
 
-    def _getScripts(slef):
+    def _getScripts(self):
         pass
 
     @property
@@ -74,6 +99,10 @@ class GlyphFeautres:
 
 @font_property
 def features(glyph):
+    """
+    Returns:
+        GlyphFeatures: The GlyphFeatures object for this glyph.
+    """
     return glyph.font.features.parsed[glyph.name]
 
 
@@ -214,7 +243,7 @@ class ParsedFeatureFile:
         if glyphName in self._glyphFeatures:
             return self._glyphFeatures[glyphName]
         try:
-            self._glyphFeatures[glyphName] = GlyphFeautres(self._font[glyphName])
+            self._glyphFeatures[glyphName] = GlyphFeatures(self._font[glyphName])
         except KeyError:
             warn(
                 f"Ignoring the missing glyph `{glyphName}` in the features, statement:\n{str(self._currentElement)}"
