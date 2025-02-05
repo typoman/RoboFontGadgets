@@ -75,19 +75,13 @@ class Compiler:
     def _getMetrics(self):
         return {name: (glyph.width, 0) for name, glyph in self._glyphSet.items()}
 
-    def getOTF(self, metrics=True, outlines=False, features=False):
+    def getOTF(self):
         fb = self.builder
         metricsMap = self._metrics
-        if metrics is True:
-            metricsMap = self._getMetrics()
         fb.setupHorizontalMetrics(metricsMap)
         charstrings = self._charstrings
-        if outlines is True:
-            charstrings = self._getCharstrings()
         fb.setupCFF(self.fontName, {"FullName": self.fontName}, charstrings, {})
         self._otf = fb.font
-        if features is True:
-            self._otf = self.font.features.getCompiler(ttFont=self._otf, glyphSet=self._glyphSet).ttFont
         return self._otf
 
     def getOTFData(self):
@@ -112,13 +106,66 @@ class Compiler:
 def compiler(font):
     return Compiler(font)
 
-@font_method
-def getOTF(font, metrics=True, outlines=False, features=True):
+@font_cached_property(
+    "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
+)
+def _emptyOTF(font):
+    compiler = font.compiler
+    compiler.setupOTF()
+    return font.compiler.getOTF()
+
+@font_cached_property(
+    "Glyph.MetricsChanged",
+)
+def _otfWithMetrics(font):
+    # otf cache for metrics without outlines
+    otf = font._emptyOTF
+    fb = font.compiler.builder
+    compiler = font.compiler
+    metricsMap = compiler._getMetrics()
+    fb.setupHorizontalMetrics(metricsMap)
+    compiler._otf = fb.font
+    return compiler._otf
+
+@font_cached_property(
+    "Glyph.ContoursChanged", "Glyph.ComponentsChanged",
+)
+def _otfWithOutlines(font):
     """
-    OTF file without outlines for shaping text.
+    OTF cache for outlines and metrics without features.
     """
-    font.compiler.setupOTF()
-    return font.compiler.getOTF(metrics=metrics, outlines=outlines, features=features)
+    otf = font._otfWithMetrics
+    fb = font.compiler.builder
+    compiler = font.compiler
+    charstrings = compiler._getCharstrings()
+    fb.setupCFF(compiler.fontName, {"FullName": compiler.fontName}, charstrings, {})
+    compiler._otf = fb.font
+    return compiler._otf
+
+@font_cached_property(
+    "Features.TextChanged",
+)
+def otf(font):
+    """
+    OTF file with outlines and features for proofing and previewing.
+    """
+    otf = font._otfWithOutlines
+    compiler = font.compiler
+    compiler._otf = compiler.font.features.getCompiler(ttFont=compiler._otf, glyphSet=compiler._glyphSet).ttFont
+    return compiler._otf
+
+@font_cached_property(
+    "Features.TextChanged",
+)
+def _emptyOTFWithFeatures(font):
+    """
+    OTF file without outlines for shaping text in harfbuzz.
+    """
+    otf = font._otfWithMetrics
+    fb = font.compiler.builder
+    compiler = font.compiler
+    compiler._otf = compiler.font.features.getCompiler(ttFont=compiler._otf, glyphSet=compiler._glyphSet).ttFont
+    return compiler._otf
 
 class GlyphProductionNames:
     """

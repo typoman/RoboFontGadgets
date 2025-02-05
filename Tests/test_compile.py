@@ -17,23 +17,23 @@ def compile_sample_1(defcon_font_1):
     return f
 
 def test_compile_sample_1(compile_sample_1):
-    otf = compile_sample_1.getOTF(metrics=False, outlines=False, features=False)
+    otf = compile_sample_1._emptyOTF
     # for comparing order of tables matter
     tables_to_check = list(sorted(['CFF ', 'hmtx', 'cmap']))
     assert fontIsSameAsTTXForGivenTables(otf, ttx='compile_sample_1-metrics_False-outlines_False-features_False.ttx', tables=tables_to_check)
 
 def test_compile_sample_1_metrics(compile_sample_1):
-    otf = compile_sample_1.getOTF(metrics=True, outlines=False, features=False)
+    otf = compile_sample_1._otfWithMetrics
     tables_to_check = ['hmtx']
     assert fontIsSameAsTTXForGivenTables(otf, ttx='compile_sample_1-metrics_True-outlines_False-features_False.ttx', tables=tables_to_check)
-
+#
 def test_compile_sample_1_outlines(compile_sample_1):
-    otf = compile_sample_1.getOTF(metrics=False, outlines=True, features=False)
+    otf = compile_sample_1._otfWithOutlines
     tables_to_check = ['CFF ']
     assert fontIsSameAsTTXForGivenTables(otf, ttx='compile_sample_1-metrics_False-outlines_True-features_False.ttx', tables=tables_to_check)
-
+#
 def test_compile_sample_1_features(compile_sample_1):
-    otf = compile_sample_1.getOTF(metrics=False, outlines=False, features=True)
+    otf = compile_sample_1._emptyOTFWithFeatures
     tables_to_check = ['GSUB', ]
     assert fontIsSameAsTTXForGivenTables(otf, ttx='compile_sample_1-metrics_False-outlines_False-features_True.ttx', tables=tables_to_check)
 

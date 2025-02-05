@@ -105,7 +105,7 @@ class HBShaper:
 
         self._font = font
         self.fontSize = fontSize
-        self.ttFont = font.getOTF(metrics=True, outlines=False, features=True)
+        self.ttFont = font._emptyOTFWithFeatures
         self._fontData = font.compiler.getOTFData()
         self.face = hb.Face(self._fontData, 0)
         self.hbFont = hb.Font(self.face) # Separate hb.Font instance for shapeShape
@@ -152,6 +152,7 @@ class HBShaper:
                 glyphsInfo.positions += runInfo.positions
                 glyphsInfo.endPos = runInfo.endPos
             startPos = runInfo.endPos
-        glyphsInfo.baseLevel = baseLevel
+        if glyphsInfo is not None:
+            glyphsInfo.baseLevel = baseLevel
         return glyphsInfo
 
