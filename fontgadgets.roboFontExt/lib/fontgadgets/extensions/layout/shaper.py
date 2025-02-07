@@ -4,7 +4,7 @@ from fontgadgets.extensions.layout.segmenting import textSegments, reorderedSegm
 from types import SimpleNamespace
 # based on drawbot-skia
 
-def shapeShape(
+def shapeSegment(
     hbFont,
     text,
     fontSize=None,
@@ -134,7 +134,7 @@ class HBShaper:
         startPos = (0, 0)
         glyphsInfo = None
         for runChars, segmentScript, bidiLevel, index in segments:
-            runInfo = shapeShape(
+            runInfo = shapeSegment(
                 hbFont=self.hbFont,
                 fontSize=self.fontSize,
                 text=runChars,
