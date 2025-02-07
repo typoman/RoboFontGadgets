@@ -34,7 +34,8 @@ class Layout():
     def getGlyphNamesAndPositionsFromText(self, txt, features=None,
               direction=None, language=None, script=None, variations=None, offset=None, align=None):
         """
-        Gets the glyph names and positions from the given text.
+        Gets the glyph names and final positions from the given text for
+        layout on a single line.
 
         Args:
             txt (str): The text to get glyph names and positions from.
