@@ -27,12 +27,9 @@ class Layout():
         Initializes the Layout with the given font.
 
         Args:
-            shaper (str): 'CoreText' or 'Harfbuzz'
+            font (defcon.Font) 
         """
-        if shaper is None or shaper == 'Harfbuzz':
-            self.shaper = HBShaper(font=font, fontSize=fontSize)
-        else:
-            raise NotImplementedError
+        self.shaper = HBShaper(font=font)
 
     def getGlyphNamesAndPositionsFromText(self, txt, features=None,
               direction=None, language=None, script=None, variations=None, offset=None, align=None):
