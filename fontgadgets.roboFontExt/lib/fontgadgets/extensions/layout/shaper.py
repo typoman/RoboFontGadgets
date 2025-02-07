@@ -7,7 +7,6 @@ from types import SimpleNamespace
 def shapeSegment(
     hbFont,
     text,
-    fontSize=None,
     startPos=(0, 0),
     startCluster=0,
     flippedCanvas=False,
@@ -24,10 +23,8 @@ def shapeSegment(
     Args:
         hbFont (hb.Font): The HarfBuzz font to use for shaping.
         text (str): The text to shape.
-        fontSize (float, optional): The font size. Defaults to None.
         startPos (tuple, optional): The starting position. Defaults to (0, 0).
         startCluster (int, optional): The starting cluster. Defaults to 0.
-        flippedCanvas (bool, optional): Whether the canvas is flipped. Defaults to False.
         features (dict, optional): The font features. Defaults to None.
         variations (dict, optional): The font variations. Defaults to None.
         direction (int, optional): The text direction. Defaults to None.
@@ -43,13 +40,6 @@ def shapeSegment(
         variations = {}
 
     face = hbFont.face
-    if fontSize is None:
-        fontScaleX = fontScaleY = 1
-    else:
-        fontScaleX = fontScaleY = fontSize / face.upem
-    if flippedCanvas:
-        fontScaleY = -fontScaleY
-
     hbFont.scale = (face.upem, face.upem)
     hbFont.set_variations(variations)
 
@@ -76,15 +66,12 @@ def shapeSegment(
     x = y = 0
     for pos in buf.glyph_positions:
         dx, dy, ax, ay = pos.position
-        positions.append(
-            (
-                startPosX + (x + dx) * fontScaleX,
-                startPosY + (y + dy) * fontScaleY,
-            )
-        )
+        gx = startPosX + (x + dx)
+        gy = startPosY + (y + dy)
+        positions.append((gx, gy,))
         x += ax
         y += ay
-    endPos = startPosX + x * fontScaleX, startPosY + y * fontScaleY
+    endPos = startPosX + x, startPosY + y
     return SimpleNamespace(
         gids=gids,
         clusters=clusters,
@@ -94,17 +81,15 @@ def shapeSegment(
 
 class HBShaper:
 
-    def __init__(self, font, fontSize=None):
+    def __init__(self, font):
         """
-        Initializes the HBShaper with the given font and font size.
+        Initializes the HBShaper with the given font and.
 
         Args:
             font: The font to use.
-            fontSize (float, optional): The font size. Defaults to None.
         """
 
         self._font = font
-        self.fontSize = fontSize
         self.ttFont = font._emptyOTFWithFeatures
         self._fontData = font.compiler.getOTFData()
         self.face = hb.Face(self._fontData, 0)
@@ -136,11 +121,9 @@ class HBShaper:
         for runChars, segmentScript, bidiLevel, index in segments:
             runInfo = shapeSegment(
                 hbFont=self.hbFont,
-                fontSize=self.fontSize,
                 text=runChars,
                 startPos=startPos,
                 startCluster=index,
-                flippedCanvas=True,
                 features=features,
                 language=language,
             )

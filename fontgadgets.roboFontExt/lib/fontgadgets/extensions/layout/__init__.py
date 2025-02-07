@@ -22,13 +22,11 @@ def alignGlyphPositions(glyphsInfo, align):
 
 class Layout():
 
-    def __init__(self, font, fontSize=None, shaper=None):
+    def __init__(self, font):
         """
-        Initializes the Layout with the given font and font size.
+        Initializes the Layout with the given font.
 
         Args:
-            font: The font to use.
-            fontSize (float, optional): The font size. Defaults to None.
             shaper (str): 'CoreText' or 'Harfbuzz'
         """
         if shaper is None or shaper == 'Harfbuzz':
