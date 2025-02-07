@@ -118,7 +118,7 @@ class HBShaper:
         segments = reorderedSegments(segments, baseLevel % 2, lambda item: item[2] % 2)
         startPos = (0, 0)
         glyphsInfo = None
-        for runChars, segmentScript, bidiLevel, index in segments:
+        for runChars, _, _, index in segments:
             runInfo = shapeSegment(
                 hbFont=self.hbFont,
                 text=runChars,
