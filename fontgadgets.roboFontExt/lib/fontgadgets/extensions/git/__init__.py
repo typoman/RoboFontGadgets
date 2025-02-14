@@ -5,7 +5,12 @@ import fontgadgets.extensions.layer.glifPath
 import os
 import git as gitPython
 from itertools import islice
-
+"""
+todo:
+- caching for the loaded (glyph, layer, etc) data at any commit
+- composites: relevant glyph should be loaded for the given layer in a dummy layer for a specific commit.
+    - maybe adding a dummy layer per commit that its glyphs get populated per request
+"""
 # seperate dict for fontGit and git.Repo since multiple font could exist in the same repo
 FONTPATH_2_GITROOT = {} # {fontPath: gitRoot}
 # caching fontGit using the fontGit._repo.root helps to reduce the number of calls to git
@@ -30,6 +35,7 @@ class FontGit:
                     if current_last_commit_hash == last_hash:
                         return fontGit
             del GITROOT_2_FONTGIT[gitRoot]
+            del FONTPATH_2_GITROOT[font.path]
 
         # check if the git.Repo instance has already been created
         repo = gitPython.Repo(font.path, search_parent_directories=True)
@@ -40,6 +46,8 @@ class FontGit:
             fontGit._repo = repo
             fontGit._root = root
             fontGit._fonts = {}
+            fontGit._commits_cache = {} # filePath: commits
+            fontGit._blob_cache = {} # (rel_path_in_repo, commit_hexsha) : blob data
             GITROOT_2_FONTGIT[root] = {last_hash: fontGit}
         else:
             fontGit = GITROOT_2_FONTGIT[root][last_hash]
@@ -58,7 +66,7 @@ class FontGit:
         """
         Removes the repo root from the given absolute `filePath`.
         """
-        return filePath.replace(self._root + "/", '')
+        return os.path.relpath(filePath, self._root)
 
     def absPathInRepo(self, filePath):
         """
@@ -93,7 +101,9 @@ class FontGit:
         Return a list of commits that contain the given `filePath`. `filePath`
         should be absolute file path.
         """
-        return self._repo.iter_commits(paths=filePath)
+        if filePath not in self._commits_cache:
+            self._commits_cache[filePath] = list(self._repo.iter_commits(paths=filePath))
+        return iter(self._commits_cache[filePath])
 
     def getCommitForFilePathByIndex(self, filePath, index):
         """
@@ -108,13 +118,21 @@ class FontGit:
         """
         `filePath` should be absolute file path.
         """
-        filePath = self.pathInRepo(filePath)
+        rel_path = self.pathInRepo(filePath)
+        resolved_commit = self._repo.commit(commit)
+        commit_hexsha = resolved_commit.hexsha
+        key = (rel_path, commit_hexsha)
+        if key in self._blob_cache:
+            return self._blob_cache.get(key)
         try:
-            blob = self._repo.commit(commit).tree[filePath]
+            blob = resolved_commit.tree[rel_path]
         except KeyError:
-            logger.error(f"File `{filePath}` not found at the given commit `{commit}`.")
-            return
-        return blob.data_stream.read()
+            logger.error(f"File `{rel_path}` not found at commit `{commit_hexsha}`.")
+            self._blob_cache[key] = None  # Cache misses
+            return None
+        blob_data = blob.data_stream.read()
+        self._blob_cache[key] = blob_data
+        return blob_data
 
         # ---------------------  Font Related Methods --------------------- #
 
@@ -160,10 +178,10 @@ class FontGit:
         # file list is a list of absolute paths files that is glif files
         glyphNames = []
         file2glyphName = layer.glifPaths._fileName2GlyphName # glifFileName doesn't containt dir paths
-        layerDirPath = layer.dirPath + "/"
+        layerDirPath = layer.dirPath
         for filePath in filesList:
             if os.path.splitext(filePath)[-1] == '.glif' and filePath.startswith(layerDirPath):
-                glifName = filePath.replace(layerDirPath, '')
+                glifName = os.path.relpath(filePath, start=layerDirPath)
                 glyphNames.append(file2glyphName[glifName.lower()])
         return glyphNames
 
