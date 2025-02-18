@@ -1,18 +1,33 @@
-from fontgadgets.decorators import font_method
+from fontgadgets.decorators import *
+from fontTools.misc.roundTools import otRound
 
 @font_method
-def _scaleGlyph(glyph: fontParts.fontshell.RGlyph, factor):
-    # scale the glyph for font.scale function
-    if len(glyph.contours) > 0:
-        for contour in glyph.contours:
-            contour.scaleBy(factor)
+def scale(glyph: defcon.Glyph, factor, round_values=True):
+    """
+    Scale the contours, anchors, guidelines, components and width
+    of the glyph by factor.
+
+    Args:
+    factor (float): The scaling factor.
+    """
+    def scale_and_round(value):
+        v = value * factor
+        return otRound(v) if round_values else v
+
+    if len(glyph) > 0:
+        for contour in glyph:
+            for point in contour:
+                point.x = scale_and_round(point.x)
+                point.y = scale_and_round(point.y)
     for anchor in glyph.anchors:
-        anchor.scaleBy(factor)
+        anchor.x = scale_and_round(anchor.x)
+        anchor.y = scale_and_round(anchor.y)
     for guideline in glyph.guidelines:
-        guideline.scaleBy(factor)
+        guideline.x = scale_and_round(guideline.x)
+        guideline.y = scale_and_round(guideline.y)
     for c in glyph.components:
         xScale, xyScale, yxScale, yScale, xOffset, yOffset = c.transformation
-        xOffset *= factor
-        yOffset *= factor
+        xOffset = scale_and_round(xOffset)
+        yOffset = scale_and_round(yOffset)
         c.transformation = xScale, xyScale, yxScale, yScale, xOffset, yOffset
-    glyph.width *= factor
+    glyph.width = scale_and_round(glyph.width)
