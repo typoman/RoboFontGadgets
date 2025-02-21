@@ -115,7 +115,7 @@ def _emptyOTF(font):
     return font.compiler.getOTF()
 
 @font_cached_property(
-    "Glyph.MetricsChanged",
+    "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
 )
 def _otfWithMetrics(font):
     # otf cache for metrics without outlines
@@ -128,7 +128,7 @@ def _otfWithMetrics(font):
     return compiler._otf
 
 @font_cached_property(
-    "Glyph.ContoursChanged", "Glyph.ComponentsChanged",
+    "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
 )
 def _otfWithOutlines(font):
     """
@@ -143,7 +143,7 @@ def _otfWithOutlines(font):
     return compiler._otf
 
 @font_cached_property(
-    "Features.TextChanged",
+    "Features.TextChanged", "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
 )
 def otf(font):
     """
@@ -155,7 +155,7 @@ def otf(font):
     return compiler._otf
 
 @font_cached_property(
-    "Features.TextChanged",
+    "Features.TextChanged", "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
 )
 def _emptyOTFWithFeatures(font):
     """
