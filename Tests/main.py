@@ -169,10 +169,14 @@ def sample_random_glyph(seed: int) -> defcon.Glyph:
         color=','.join(f"{random.random():.1f}" for _ in range(4))
     )
     source.anchors = [{"x": random.randint(-100, 100), "y": random.randint(-100, 100), "name": f"anchor {i}"} for i in range(random.randint(1, 5))]
-    source.guidelines = [{"x": random.randint(-100, 100), "y": random.randint(-100, 100), "name": f"guideline {i}"} for i in range(random.randint(1, 5))]
+    for i in range(random.randint(1, 5)):
+        guideline = defcon.Guideline()
+        guideline.x = random.randint(-100, 100)
+        guideline.name = f"guideline {i}"
+        source.appendGuideline(guideline)
     source.lib = {f"key {i}": f"value {i}" for i in range(random.randint(1, 5))}
     pen = source.getPointPen()
-    segment_types = ["move", "line", "curve"]
+    segment_types = ["line", "curve"]
     pen.beginPath()
     for _ in range(random.randint(2, 10)):
         segment_type = random.choice(segment_types)
@@ -180,7 +184,7 @@ def sample_random_glyph(seed: int) -> defcon.Glyph:
     pen.endPath()
     for _ in range(random.randint(1, 5)):
         component = defcon.Component()
-        component.base = f"base {random.randint(1, 100)}"
+        component.baseGlyph = f"base {random.randint(1, 100)}"
         component.transformation = (random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1), random.randint(-100, 100), random.randint(-100, 100))
         source.appendComponent(component)
     return source

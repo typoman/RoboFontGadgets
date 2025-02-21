@@ -23,8 +23,10 @@ def scale(glyph: defcon.Glyph, factor, round_values=True):
         anchor.x = scale_and_round(anchor.x)
         anchor.y = scale_and_round(anchor.y)
     for guideline in glyph.guidelines:
-        guideline.x = scale_and_round(guideline.x)
-        guideline.y = scale_and_round(guideline.y)
+        if guideline.x is not None:
+            guideline.x = scale_and_round(guideline.x)
+        if guideline.y is not None:
+            guideline.y = scale_and_round(guideline.y)
     for c in glyph.components:
         xScale, xyScale, yxScale, yScale, xOffset, yOffset = c.transformation
         xOffset = scale_and_round(xOffset)
