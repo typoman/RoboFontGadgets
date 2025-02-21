@@ -6,7 +6,10 @@ from functools import wraps
 from warnings import warn
 from collections import namedtuple
 import typing
-
+"""
+todo:
+- add ufolib2, it's faster for reading and compiling, but also needs serialized 
+"""
 
 class FontGadgetsError(Exception):
     pass
