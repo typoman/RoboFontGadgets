@@ -71,6 +71,18 @@ take a loot at unicodedata obj and if you can just use everything from there.
   in the included feature files too.
 - Add "IncludeStatement.subset".
 - Editing features inside the GlyphFeatures object and saving them back to disk
+- Possibility of caching GPOS, GSUB tables and destroying them with defcon notfications
+  on glyphs being removed/added.
+- Possibility of changing GPOS table attributes when a glyph anchors or kerning is changed.
+```
+this for the compiler object
+def _compileFeatures(self, kern=True, mark=True, gdef=True, curs=True):
+    # how to cache features? Is it possible to have some cached tables on the font level
+    # that get destroyed if a certain feature changed? 
+    # Maybe we can parse the base features, have a base parsed/compliled bare feature cache,
+    # then add GPOS, GDEF, GSUB, based on the changes which will be caught by defcon cache.
+    pass
+```
 
 ### subsetter
 KNOWN BUGS:
