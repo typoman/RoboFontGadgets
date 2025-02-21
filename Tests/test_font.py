@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 import fontgadgets.extensions.font.scale as _scale
 
 def test_swapGlyphNames_normal(kerning_with_missing_glyphs):

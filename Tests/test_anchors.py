@@ -1,5 +1,4 @@
-import pytest
-from main import *
+from utils import *
 from fontgadgets.extensions.anchors import AnchorsDict
 from fontTools.misc.transform import Transform
 

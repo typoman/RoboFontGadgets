@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 import fontgadgets.extensions.compile
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 

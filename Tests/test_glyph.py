@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 import fontgadgets.extensions.glyph
 
 def test_isComposite(defcon_ar_font_1):

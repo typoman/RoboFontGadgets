@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 from fontgadgets.extensions.layout import Layout
 
 def test_layout_postions(defcon_ar_font_1):

@@ -1,5 +1,5 @@
 from fontgadgets.tools import FontGadgetsError
-from main import *
+from utils import *
 import fontgadgets.tools
 import fontgadgets.decorators
 import inspect

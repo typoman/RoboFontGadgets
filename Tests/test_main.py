@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 
 def test_random_glyph(COPY_GLYPH_KWARGS):
     g1 = sample_random_glyph(10)

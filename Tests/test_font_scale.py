@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 from fontTools.misc.roundTools import otRound
 import fontgadgets.extensions.font.scale
 

@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 import fontgadgets.extensions.unicode.properties
 
 def test_unicodeDirectionForGlyphNames(defcon_font_1):

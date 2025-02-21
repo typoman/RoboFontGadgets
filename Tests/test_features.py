@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 import fontgadgets.extensions.features
 
 @pytest.mark.parametrize(

@@ -1,6 +1,5 @@
 import fontgadgets.decorators
-
-from main import *
+from utils import *
 
 FUNCT_EXECUTED_NUM = {}
 

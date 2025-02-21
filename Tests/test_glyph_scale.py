@@ -1,4 +1,4 @@
-from main import *
+from utils import *
 import fontgadgets.extensions.glyph.scale
 from fontTools.misc.roundTools import otRound
 

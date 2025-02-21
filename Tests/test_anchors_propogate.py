@@ -1,5 +1,4 @@
-import pytest
-from main import *
+from utils import *
 import fontgadgets.extensions.anchors.propogate
 
 @pytest.fixture(scope="module", autouse=True)

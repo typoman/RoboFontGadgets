@@ -1,5 +1,5 @@
 import fontgadgets.extensions.groups.kerning_groups as kgroups
-from main import *
+from utils import *
 """
 todo:
 - setKerningGroups: where there is a glyph with two groups for the same side.

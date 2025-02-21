@@ -1,6 +1,4 @@
-from fontgadgets.tools import FontGadgetsError
-from main import *
-from unittest.mock import patch
+from utils import *
 import fontgadgets.extensions.git as fontGit
 
 @pytest.fixture
