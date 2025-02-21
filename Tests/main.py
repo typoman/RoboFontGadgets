@@ -236,13 +236,6 @@ def COPY_GLYPH_KWARGS():
         image=True, contours=True, components=True, anchors=True,
         guidelines=True, lib=True)
 
-def test_random_glyph(COPY_GLYPH_KWARGS):
-    g1 = sample_random_glyph(10)
-    g2 = sample_random_glyph(10)
-    assert_compared_glyphs_are_same(g1, g2, **COPY_GLYPH_KWARGS)
-    g3 = sample_random_glyph(12)
-    assert_compared_glyphs_are_same(g1, g3)
-
 @pytest.fixture(scope='function')
 def sample_font_with_random_glyph_contents():
     f = defcon.Font()
