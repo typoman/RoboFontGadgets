@@ -258,6 +258,19 @@ def copy(glyph: defcon.Glyph, decompose=False):
     result.name = glyph.name
     return result
 
+@font_property
+def background(glyph):
+    font = glyph.font
+    try:
+        backgroundLayer = font.layers[MASK_LAYER]
+    except KeyError:
+        backgroundLayer = font.newLayer(MASK_LAYER)
+    if glyph.name not in backgroundLayer:
+        backgroundGlyph = backgroundLayer.newGlyph(glyph.name)
+    else:
+        backgroundGlyph = backgroundLayer[glyph.name]
+    return backgroundGlyph
+
 @font_method
 def copyToBackground(glyph, sourceGlyph=None, clearBackground=True, decompose=True,
     updateComponentReferences=False, **copy_kwargs):
@@ -292,16 +305,7 @@ def copyToBackground(glyph, sourceGlyph=None, clearBackground=True, decompose=Tr
     components=True, anchors=True, guidelines=True, lib=True)
     _copy_kwargs.update(copy_kwargs)
     _copy_kwargs['unicodes'] = False
-    try:
-        targetLayer = font.layers[MASK_LAYER]
-    except KeyError:
-        targetLayer = font.newLayer(MASK_LAYER)
-    if glyph.name not in targetLayer:
-        targetGlyph = targetLayer.newGlyph(glyph.name)
-    else:
-        targetGlyph = targetLayer[glyph.name]
-        if clearBackground:
-            targetGlyph.clear()
+    targetGlyph = glyph.background
 
     if sourceGlyph is None:
         sourceGlyph = glyph
