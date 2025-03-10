@@ -19,6 +19,7 @@ for merge:
     - how to filter duplicate rules?
 """
 
+
 def _subsetGlyphs(listOfGlyphSets, glyphsToKeep, appendToResult=True):
     result = []
     for glyphs in listOfGlyphSets:
@@ -129,7 +130,12 @@ def glyphClassDefStatementSubset(self, glyphsToKeep):
         glyphsToKeep,
         appendToResult=True,
     )
-    if (self.baseGlyphs or self.markGlyphs or self.ligatureGlyphs or self.componentGlyphs):
+    if (
+        self.baseGlyphs
+        or self.markGlyphs
+        or self.ligatureGlyphs
+        or self.componentGlyphs
+    ):
         return self
 
 
@@ -263,7 +269,8 @@ def singleSubstStatementSubset(self, glyphsToKeep):
         if len(self.glyphs[0].glyphSet()) == len(self.replacements[0].glyphSet()):
             return self
         elif (
-            len(self.replacements[0].glyphSet()) == 1 and len(self.glyphs[0].glyphSet()) != 0
+            len(self.replacements[0].glyphSet()) == 1
+            and len(self.glyphs[0].glyphSet()) != 0
         ):
             return self
 
@@ -276,7 +283,8 @@ def reverseSingleSubstStatementSubset(self, glyphsToKeep):
         if len(self.glyphs[0].glyphSet()) == len(self.replacements[0].glyphSet()):
             return self
         elif (
-            len(self.replacements[0].glyphSet()) == 1 and len(self.glyphs[0].glyphSet()) != 0
+            len(self.replacements[0].glyphSet()) == 1
+            and len(self.glyphs[0].glyphSet()) != 0
         ):
             return self
 
