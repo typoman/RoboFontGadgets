@@ -6,7 +6,7 @@ from functools import wraps
 from warnings import warn
 from collections import namedtuple
 import typing
-
+from typing import Type, List, Tuple, Union
 
 class FontGadgetsError(Exception):
     pass
@@ -353,3 +353,85 @@ def checkIfAttributeAlreadyExist(
             return methodID, True
     return methodID, False
     # method is registered successfully
+
+def inject(target_classes: Union[Type, List[Type], Tuple[Type, ...]]):
+    """
+    Decorator factory that injects a decorated function as a method to one or
+    more target classes, tracking the module of injection and handling conflicts.
+
+    Args:
+        target_classes:  A single class or an iterable (list, tuple) of classes
+                         to which the decorated function will be added as a method.
+
+    Returns:
+        A decorator that, when applied to a function, adds that function as a method
+        to the specified target class(es).
+
+    Raises:
+        TypeError: If target_classes is not a class or an iterable of classes, or if no class is passed.
+        ValueError: If a method with the same name already exists in any of the target classes
+                    and was not injected by this decorator from the same module (and DEBUG is False).
+    """
+    def decorator(func):
+        """
+        Decorator that adds the decorated function to the target class(es).
+
+        Args:
+            func: The function to be added as a method to the target class(es).
+
+        Returns:
+            The original function (unmodified). The side effect is adding it to the class(es).
+
+        Raises:
+            ValueError: If a method with the same name already exists in any of the target classes
+                        and was not injected by this decorator from the same module (and DEBUG is False).
+        """
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        if target_classes is None:
+            raise TypeError("No target class(es) provided to the inject decorator.")
+
+        module_name = func.__module__
+        method_name = func.__name__
+
+        if isinstance(target_classes, type): # Single class case
+            target_classes_list = [target_classes]
+        elif isinstance(target_classes, (list, tuple)): # Multiple classes case
+            if not target_classes: # Check if the list or tuple is empty
+                raise TypeError("No target class(es) provided in the list/tuple to the inject decorator.")
+            target_classes_list = target_classes
+        else:
+            raise TypeError(f"Expected a class or a list/tuple of classes in the decorator, but got: {type(target_classes)}")
+
+        for target_class in target_classes_list:
+            if not isinstance(target_class, type):
+                raise TypeError(f"Expected a class in the decorator, but got: {type(target_class)}")
+
+            if not hasattr(target_class, '__injected_methods__'):
+                setattr(target_class, '__injected_methods__', {})
+
+            if hasattr(target_class, method_name):
+                injected_methods_dict = target_class.__injected_methods__
+                if method_name in injected_methods_dict:
+                    if injected_methods_dict[method_name] == module_name:
+                        warn(f"Method '{method_name}' already injected into class '{target_class.__name__}' from the same module '{module_name}'. Re-injecting.")
+                    else:
+                        if not DEBUG:
+                            raise ValueError(f"Method '{method_name}' already exists in class '{target_class.__name__}' and was injected from module '{injected_methods_dict[method_name]}', not from the current module '{module_name}'. Conflict.")
+                        else:
+                            warn(f"Overriding existing method '{method_name}' in class '{target_class.__name__}' that was injected from module '{injected_methods_dict[method_name]}', not from the current module '{module_name}'. Overwriting due to DEBUG mode.")
+                else:
+                    if not DEBUG:
+                        raise ValueError(f"Method '{method_name}' already exists in class '{target_class.__name__}' and was not injected by this decorator. Conflict.")
+                    else:
+                        warn(f"Method '{method_name}' already exists in class '{target_class.__name__}' and was not injected by this decorator. Overwriting due to DEBUG mode.")
+            else:
+                warn(f"Injecting method '{method_name}' into class '{target_class.__name__}' from module '{module_name}'.")
+
+            setattr(target_class, method_name, wrapper)
+            target_class.__injected_methods__[method_name] = module_name # Track injection source
+
+        return func
+    return decorator
