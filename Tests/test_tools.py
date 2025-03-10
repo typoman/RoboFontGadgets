@@ -156,7 +156,7 @@ def test_multiple_class_injection():
    class MyClass3:
        pass
 
-   @inject([MyClass2, MyClass3])
+   @inject(MyClass2, MyClass3)
    def injected_method_2(self, y):
        return y + 10
 
@@ -246,7 +246,7 @@ def test_error_messages():
     class MyClass7:
         pass
 
-    with pytest.raises(TypeError, match="Expected a class or a list/tuple of classes.*"):
+    with pytest.raises(TypeError, match="Expected a class in the decorator, but got:"):
         @inject("not_a_class")  # Invalid type
         def some_method(self):
             pass

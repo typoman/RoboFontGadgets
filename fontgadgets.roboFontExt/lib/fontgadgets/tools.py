@@ -354,21 +354,24 @@ def checkIfAttributeAlreadyExist(
     return methodID, False
     # method is registered successfully
 
-def inject(target_classes: Union[Type, List[Type], Tuple[Type, ...]]):
+def inject(*target_classes: Type):
     """
     Decorator factory that injects a decorated function as a method to one or
     more target classes, tracking the module of injection and handling conflicts.
 
+    Accepts target classes as positional arguments using *.
+
     Args:
-        target_classes:  A single class or an iterable (list, tuple) of classes
-                         to which the decorated function will be added as a method.
+        *target_classes: One or more classes to which the decorated function
+                          will be added as a method.  Pass each target class as a
+                          separate argument to the decorator.
 
     Returns:
         A decorator that, when applied to a function, adds that function as a method
         to the specified target class(es).
 
     Raises:
-        TypeError: If target_classes is not a class or an iterable of classes, or if no class is passed.
+        TypeError: If no target classes are passed, or if any argument is not a class.
         ValueError: If a method with the same name already exists in any of the target classes
                     and was not injected by this decorator from the same module (and DEBUG is False).
     """
@@ -390,20 +393,13 @@ def inject(target_classes: Union[Type, List[Type], Tuple[Type, ...]]):
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 
-        if target_classes is None:
+        if not target_classes: # Check if no target classes are provided using *args
             raise TypeError("No target class(es) provided to the inject decorator.")
 
         module_name = func.__module__
         method_name = func.__name__
 
-        if isinstance(target_classes, type): # Single class case
-            target_classes_list = [target_classes]
-        elif isinstance(target_classes, (list, tuple)): # Multiple classes case
-            if not target_classes: # Check if the list or tuple is empty
-                raise TypeError("No target class(es) provided in the list/tuple to the inject decorator.")
-            target_classes_list = target_classes
-        else:
-            raise TypeError(f"Expected a class or a list/tuple of classes in the decorator, but got: {type(target_classes)}")
+        target_classes_list = target_classes # target_classes is already a tuple due to *args
 
         for target_class in target_classes_list:
             if not isinstance(target_class, type):
@@ -435,3 +431,4 @@ def inject(target_classes: Union[Type, List[Type], Tuple[Type, ...]]):
 
         return func
     return decorator
+
