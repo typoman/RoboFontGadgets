@@ -354,6 +354,7 @@ def checkIfAttributeAlreadyExist(
     return methodID, False
     # method is registered successfully
 
+
 def inject(*target_classes: Type):
     """
     Decorator factory that injects a decorated function as a method to one or
@@ -375,6 +376,7 @@ def inject(*target_classes: Type):
         ValueError: If a method with the same name already exists in any of the target classes
                     and was not injected by this decorator from the same module (and DEBUG is False).
     """
+
     def decorator(func):
         """
         Decorator that adds the decorated function to the target class(es).
@@ -389,46 +391,63 @@ def inject(*target_classes: Type):
             ValueError: If a method with the same name already exists in any of the target classes
                         and was not injected by this decorator from the same module (and DEBUG is False).
         """
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 
-        if not target_classes: # Check if no target classes are provided using *args
+        if not target_classes:  # Check if no target classes are provided using *args
             raise TypeError("No target class(es) provided to the inject decorator.")
 
         module_name = func.__module__
         method_name = func.__name__
 
-        target_classes_list = target_classes # target_classes is already a tuple due to *args
+        target_classes_list = (
+            target_classes  # target_classes is already a tuple due to *args
+        )
 
         for target_class in target_classes_list:
             if not isinstance(target_class, type):
-                raise TypeError(f"Expected a class in the decorator, but got: {type(target_class)}")
+                raise TypeError(
+                    f"Expected a class in the decorator, but got: {type(target_class)}"
+                )
 
-            if not hasattr(target_class, '__injected_methods__'):
-                setattr(target_class, '__injected_methods__', {})
+            if not hasattr(target_class, "__injected_methods__"):
+                setattr(target_class, "__injected_methods__", {})
 
             if hasattr(target_class, method_name):
                 injected_methods_dict = target_class.__injected_methods__
                 if method_name in injected_methods_dict:
                     if injected_methods_dict[method_name] == module_name:
-                        warn(f"Method '{method_name}' already injected into class '{target_class.__name__}' from the same module '{module_name}'. Re-injecting.")
+                        warn(
+                            f"Overriding already injected method '{method_name}'.",
+                            category=Warning,
+                        )
                     else:
                         if not DEBUG:
-                            raise ValueError(f"Method '{method_name}' already exists in class '{target_class.__name__}' and was injected from module '{injected_methods_dict[method_name]}', not from the current module '{module_name}'. Conflict.")
+                            raise ValueError(
+                                f"Method '{method_name}' already exists in class '{target_class.__name__}' which was injected from module '{injected_methods_dict[method_name]}'."
+                            )
                         else:
-                            warn(f"Overriding existing method '{method_name}' in class '{target_class.__name__}' that was injected from module '{injected_methods_dict[method_name]}', not from the current module '{module_name}'. Overwriting due to DEBUG mode.")
+                            warn(
+                                f"DEBUG mode: Overriding method '{method_name}' in class '{target_class.__name__}' which was injected from module '{injected_methods_dict[method_name]}'.",
+                                category=Warning,
+                            )
                 else:
                     if not DEBUG:
-                        raise ValueError(f"Method '{method_name}' already exists in class '{target_class.__name__}' and was not injected by this decorator. Conflict.")
+                        raise ValueError(
+                            f"Method '{method_name}' already exists in class '{target_class.__name__}' which was not injected by this decorator. Conflict."
+                        )
                     else:
-                        warn(f"Method '{method_name}' already exists in class '{target_class.__name__}' and was not injected by this decorator. Overwriting due to DEBUG mode.")
-            else:
-                warn(f"Injecting method '{method_name}' into class '{target_class.__name__}' from module '{module_name}'.")
-
+                        warn(
+                            f"DEBUG mode: Overriding method '{method_name}' in class '{target_class.__name__}' which was not injected by this decorator.",
+                            category=Warning,
+                        )
             setattr(target_class, method_name, wrapper)
-            target_class.__injected_methods__[method_name] = module_name # Track injection source
+            target_class.__injected_methods__[
+                method_name
+            ] = module_name  # Track injection source
 
         return func
-    return decorator
 
+    return decorator
