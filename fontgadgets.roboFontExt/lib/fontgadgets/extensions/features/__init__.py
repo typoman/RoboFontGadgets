@@ -273,7 +273,6 @@ class ParsedFeatureFile:
             if isinstance(
                 statement,
                 (
-                    AlternateSubstStatement,
                     SingleSubstStatement,
                     ReverseChainSingleSubstStatement,
                 ),
@@ -281,7 +280,12 @@ class ParsedFeatureFile:
                 for sg, tg in zip(source, target):
                     self._addGsubAttributesToGlyph([sg], [tg])
             elif isinstance(
-                statement, (LigatureSubstStatement, MultipleSubstStatement)
+                statement,
+                (
+                    LigatureSubstStatement,
+                    MultipleSubstStatement,
+                    AlternateSubstStatement,
+                ),
             ):
                 self._addGsubAttributesToGlyph(source, target)
 
