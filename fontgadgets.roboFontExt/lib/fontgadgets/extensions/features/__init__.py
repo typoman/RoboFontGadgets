@@ -15,7 +15,7 @@ class GlyphFeatures:
     GlyphFeatures is an object that holds the related features in a glyph. You can use
     it to find out which features are associated with this glyph using two properties:
 
-    sourceGlyphs: Returns a dictionary mapping tuples of source glyph names to 
+    sourceGlyphs: Returns a dictionary mapping tuples of source glyph names to
       lists of fonttools fealib ast substitution statements. The glyph names are
       the glyphs that are going to be substituted with this glyph.
 
@@ -25,7 +25,7 @@ class GlyphFeatures:
                 ('f', 'i'): [LigatureSubstStatement],
             }
 
-    targetGlyphs: Returns a dictionary mapping tuples of target glyph names to 
+    targetGlyphs: Returns a dictionary mapping tuples of target glyph names to
       lists of substitution statements. The target glyphs are the glyphs which replace
       this glyph when a feature is triggered.
 
@@ -41,7 +41,7 @@ class GlyphFeatures:
         self._font = glyph.font
         self.sourceGlyphs = {}  # g.name: AlternateSubstStatement...
         self.targetGlyphs = {}  # g.name: AlternateSubstStatement...
-        self._checked_for_num_source_glyphs = {} # to avoid infinite recursion
+        self._checked_for_num_source_glyphs = {}  # to avoid infinite recursion
 
     @property
     def featureTags(self):
@@ -96,6 +96,7 @@ class GlyphFeatures:
                 self._checked_for_num_source_glyphs[gname] = num_comp
                 return num_comp
         return 0
+
 
 @font_property
 def features(glyph):
@@ -311,9 +312,13 @@ class ParsedFeatureFile:
         # we need to make all the glyph statement consistent because feaLib parser
         # sometimes creates ast objects and sometimes string.
         if isinstance(e, str):
-            return [e, ]
+            return [
+                e,
+            ]
         if isinstance(e, GlyphName):
-            return [e.glyph, ]
+            return [
+                e.glyph,
+            ]
         if isinstance(e, (list, tuple)):
             result = []
             for e2 in e:
@@ -345,6 +350,7 @@ class ParsedFeatureFile:
         else:
             return set(featureTags)
 
+
 def _renameGlyphNames(e, trasnlateMap):
     if isinstance(e, str):
         return trasnlateMap.get(e, e)
@@ -368,12 +374,14 @@ def parsed(features):
 def path(features):
     return os.path.join(features.font.path, "features.fea")
 
+
 def getIncludedFilesPathsFromParseFeatureFile(parsedFeatureFile):
     includeFiles = {}
     for thisStatement in parsedFeatureFile.statements:
         if isinstance(thisStatement, IncludeStatement):
             includeFiles[thisStatement.filename] = thisStatement
     return includeFiles
+
 
 @font_method
 def getIncludedFilesPaths(features, absolutePaths=True):
@@ -388,7 +396,9 @@ def getIncludedFilesPaths(features, absolutePaths=True):
     ufoRoot = font.folderPath
     parsedFeatureFile = getParsedFontToolsFeatureFile(font, followIncludes=False)
     includeFiles = {}
-    for inclFilePath, inclStatement in getIncludedFilesPathsFromParseFeatureFile(parsedFeatureFile).items():
+    for inclFilePath, inclStatement in getIncludedFilesPathsFromParseFeatureFile(
+        parsedFeatureFile
+    ).items():
         absPath = os.path.join(ufoRoot, inclFilePath)
         normalPath = os.path.normpath(absPath)
         if os.path.exists(normalPath):
@@ -399,6 +409,7 @@ def getIncludedFilesPaths(features, absolutePaths=True):
         else:
             warn(f"{ufoName} | Feature file doesn't exist in:\n{normalPath}")
     return includeFiles
+
 
 @font_method
 def normalize(features, includeFiles=True):
@@ -426,6 +437,7 @@ def defaultScripts(features):
             if s.language == "dflt" and s.script != "DFLT":
                 doc.statements.append(s)
     return doc
+
 
 @font_method
 def getLigatures(font, ligatureFeatureTags=("dlig", "liga", "rlig")):
