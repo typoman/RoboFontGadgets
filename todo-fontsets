@@ -1,0 +1,23 @@
+## Main
+- Font sets, such as fonts with similar attribute inside the current folder or just
+  arbitrary number of fonts that are added to the object.
+- Make groups compatible inside a fontset and also change the kerning for the new groups
+- Sort fonts based on os2/weight class or shared glyph widths or shared glyph bounds
+
+## Subset
+- Subsetting classes can cause the statement `sub @init_src by @init_des;` to drop. This
+  could be because the subsetter doesn't subset the classes by making sure the matching
+  items between src and des inside these type of clasess also gets subset.
+- If these objects are not referenced, they should be removed:
+    Classes, LanguageSystemStatement, FeatureReferenceStatement
+- If a class doesn't exist it shouldn't be referenced inside another class
+    definition.
+
+## Kerning
+- merge (add kerning from another font without overriding the current)
+- copy/override (add kerning from another font by overriding the current)
+- Copy kerning from another font per glyph basis, and same for groups
+- copyKerning method on the glyph obj
+
+## Groups
+- merge (add kerning from another font without overriding the current)
