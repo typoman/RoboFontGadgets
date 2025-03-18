@@ -107,7 +107,7 @@ def features(glyph):
     return glyph.font.features.parsed[glyph.name]
 
 
-def getParsedFontToolsFeatureFile(font, featureFilePath=None, followIncludes=True):
+def getParsedFontToolsFeatureFile(font, featureFilePath=None, followIncludes=True, ignoreMissingGlyphs=True):
     if featureFilePath is None:
         featxt = font.features.text or ""
     else:
@@ -124,9 +124,11 @@ def getParsedFontToolsFeatureFile(font, featureFilePath=None, followIncludes=Tru
         ufoPath = os.path.normpath(ufoPath)
         buf.name = os.path.join(ufoPath, "features.fea")
         includeDir = os.path.dirname(ufoPath)
-    glyphNames = set(font.keys())
+    glyphNames = ()
+    if not ignoreMissingGlyphs:
+        glyphNames = tuple(font.keys())
     return Parser(
-        buf, glyphNames, includeDir=includeDir, followIncludes=followIncludes
+        buf, glyphNames=glyphNames, includeDir=includeDir, followIncludes=followIncludes
     ).parse()
 
 
@@ -160,10 +162,10 @@ class ParsedFeatureFile:
     rules.extend(gposGlyphsAttrs)
     rules = tuple(rules)
 
-    def __init__(self, font, featureFilePath=None, followIncludes=True):
+    def __init__(self, font, featureFilePath=None, followIncludes=True, ignoreMissingGlyphs=True):
         self._font = font
         self.featureFile = getParsedFontToolsFeatureFile(
-            font, featureFilePath=featureFilePath, followIncludes=followIncludes
+            font, featureFilePath=featureFilePath, followIncludes=followIncludes, ignoreMissingGlyphs=ignoreMissingGlyphs
         )
         self.lookups = {}  # lookupName: astLookupBlock
         self.classes = {}  # className: astGlyphClassDefinition
