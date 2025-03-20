@@ -1,5 +1,6 @@
 from fontTools.feaLib.parser import Parser
 from fontTools.feaLib.ast import *
+from fontTools.feaLib.error import FeatureLibError
 from fontgadgets.tools import FontGadgetsError
 import fontgadgets.extensions.font
 import fontgadgets.extensions.glyph.type
@@ -9,13 +10,14 @@ from fontgadgets.decorators import *
 import os
 from io import StringIO
 
+SHIFT = " " * 4
 
 class GlyphFeatures:
     """
     GlyphFeatures is an object that holds the related features in a glyph. You can use
     it to find out which features are associated with this glyph using two properties:
 
-    sourceGlyphs: Returns a dictionary mapping tuples of source glyph names to 
+    sourceGlyphs: Returns a dictionary mapping tuples of source glyph names to
       lists of fonttools fealib ast substitution statements. The glyph names are
       the glyphs that are going to be substituted with this glyph.
 
@@ -25,7 +27,7 @@ class GlyphFeatures:
                 ('f', 'i'): [LigatureSubstStatement],
             }
 
-    targetGlyphs: Returns a dictionary mapping tuples of target glyph names to 
+    targetGlyphs: Returns a dictionary mapping tuples of target glyph names to
       lists of substitution statements. The target glyphs are the glyphs which replace
       this glyph when a feature is triggered.
 
@@ -41,7 +43,7 @@ class GlyphFeatures:
         self._font = glyph.font
         self.sourceGlyphs = {}  # g.name: AlternateSubstStatement...
         self.targetGlyphs = {}  # g.name: AlternateSubstStatement...
-        self._checked_for_num_source_glyphs = {} # to avoid infinite recursion
+        self._checked_for_num_source_glyphs = {}  # to avoid infinite recursion
 
     @property
     def featureTags(self):
@@ -97,6 +99,7 @@ class GlyphFeatures:
                 return num_comp
         return 0
 
+
 @font_property
 def features(glyph):
     """
@@ -106,7 +109,9 @@ def features(glyph):
     return glyph.font.features.parsed[glyph.name]
 
 
-def getParsedFontToolsFeatureFile(font, featureFilePath=None, followIncludes=True):
+def getParsedFontToolsFeatureFile(
+    font, featureFilePath=None, followIncludes=True, ignoreMissingGlyphs=True
+):
     if featureFilePath is None:
         featxt = font.features.text or ""
     else:
@@ -123,10 +128,37 @@ def getParsedFontToolsFeatureFile(font, featureFilePath=None, followIncludes=Tru
         ufoPath = os.path.normpath(ufoPath)
         buf.name = os.path.join(ufoPath, "features.fea")
         includeDir = os.path.dirname(ufoPath)
-    glyphNames = set(font.keys())
+    glyphNames = ()
+    if not ignoreMissingGlyphs:
+        glyphNames = tuple(font.keys())
     return Parser(
-        buf, glyphNames, includeDir=includeDir, followIncludes=followIncludes
+        buf, glyphNames=glyphNames, includeDir=includeDir, followIncludes=followIncludes
     ).parse()
+
+
+class NamelessLookup(LookupBlock):
+    """A lookup that doesn't exist in feature file source, but it will be
+    build at compile.
+    """
+
+    def __init__(self, location=None):
+        self.name = None
+        self.flag = None
+        self.location = location
+        self.rules = []
+
+    def asFea(self, indent=""):
+        indent += SHIFT
+        return (
+            indent
+            + ("\n" + indent).join([s.asFea(indent=indent) for s in self.rules])
+            + "\n"
+        )
+
+
+DFLT_LANGUAGE = LanguageStatement("dflt")
+DFLT_SCRIPT = ScriptStatement("DFLT")
+DFLT_LANGSYS = LanguageSystemStatement("DFLT", "dflt")
 
 
 class ParsedFeatureFile:
@@ -143,6 +175,10 @@ class ParsedFeatureFile:
         ReverseChainSingleSubstStatement: ("glyphs", "replacements"),
     }
 
+    gsubChainGlyphAttrs = {
+        ChainContextSubstStatement: ("prefix", "glyphs", "suffix"),
+    }
+
     gposGlyphsAttrs = {
         CursivePosStatement: ("glyphs",),
         MarkBasePosStatement: ("base",),
@@ -155,89 +191,253 @@ class ParsedFeatureFile:
         SinglePosStatement: ("pos",),
     }
 
-    rules = list(gsubGlyphsAttrs.keys())
-    rules.extend(gposGlyphsAttrs)
-    rules = tuple(rules)
+    gposChainGlyphAttrs = {
+        ChainContextPosStatement: ("prefix", "glyphs", "suffix"),
+    }
 
-    def __init__(self, font, featureFilePath=None, followIncludes=True):
+    rules = tuple(
+        statement_type
+        for rule_dict in [
+            gsubGlyphsAttrs,
+            gsubChainGlyphAttrs,
+            gposGlyphsAttrs,
+            gposChainGlyphAttrs,
+        ]
+        for statement_type in rule_dict.keys()
+    )
+
+
+    def __init__(
+        self, font, featureFilePath=None, followIncludes=True, ignoreMissingGlyphs=True
+    ):
         self._font = font
         self.featureFile = getParsedFontToolsFeatureFile(
-            font, featureFilePath=featureFilePath, followIncludes=followIncludes
+            font,
+            featureFilePath=featureFilePath,
+            followIncludes=followIncludes,
+            ignoreMissingGlyphs=ignoreMissingGlyphs,
         )
-        self.lookups = {}  # lookupName: astLookupBlock
-        self.classes = {}  # className: astGlyphClassDefinition
-        self.features = {}  # featureTag: [astFeatureBlock, ]
-        self.languagesReferences = {}  # languageTag: ast
-        self.scriptReferences = {}  # scriptTag: ast
-        self.classReferences = {}  # className: ast
-        self.featureReferences = {}  # featureTag: ast
+        self.namedLookups = {}  # lookupName: [ast.LookupBlock, ...]
+        self.classes = {}  # className: ast.GlyphClassDefinition
+        self.features = {}  # featureName: [ast.FeatureBlock, ...]
+        self.languageStatements = {}  # (script, language): ast.LanguageSystemStatement
+        self._lookups = {}  # (fea, scr, lan): [lookup, ...]
+        self._featureReferences = {}  # featureName: [ast.FeatureBlock, ...]
         self._rules = {}  # statementType: [astObject,...]
         self._currentFeature = None
-        self._currentLanguage = None
-        self._currentScript = None
+        self._currentLanguage = DFLT_LANGUAGE
+        self._currentScript = DFLT_SCRIPT
         self._currentBlock = None
+        self._seenNonDFLTScript = False
+        self._currentLookup = None
+        self._currentlanguageSystems = {}
         self._glyphFeatures = {}
         self._currentElement = self.featureFile
         self._parseStatements(self.featureFile)
-        for feaTag, feaRefList in self.featureReferences.items():
+        for feaTag, feaRefList in self._featureReferences.items():
             for feaRef in feaRefList:
                 feaRef.featureBlocks = self.features[feaTag]
+            for featureBlock in self.features[feaTag]:
+                self._appendToListAttribute(featureBlock, "references", feaRefList)
         self._currentElement = None
 
     def _parseElement(self, e):
         self._currentElement = e
         e.block = self._currentBlock
-        if isinstance(e, FeatureBlock):
-            self._currentFeature = e
-            self.features.setdefault(self._currentFeature.name, []).append(e)
-            self._parseStatements(e)
-            self._currentFeature = None
-            self._currentLanguage = None
-            self._currentScript = None
-        elif isinstance(e, NestedBlock):
-            self._parseStatements(e)
-        elif isinstance(e, LookupBlock):
-            self.lookups[e.name] = e
-            self._parseStatements(e)
-            self._assignTagReferences(e)
-        elif isinstance(e, LookupReferenceStatement):
-            self._assignTagReferences(e.lookup)
-        elif isinstance(e, GlyphClassDefinition):
-            self.classes[e.name] = e
-        elif isinstance(e, self.rules):
-            self._rules.setdefault(type(e), []).append(e)
-            self._assignTagReferences(e)
-            self._parseStatementAttributes()
-        elif isinstance(e, LanguageStatement):
-            self.languagesReferences.setdefault(e.language, []).append(e)
-            self._currentLanguage = e
-        elif isinstance(e, ScriptStatement):
-            self.scriptReferences.setdefault(e.script, []).append(e)
-            self._currentScript = e
-        elif isinstance(e, GlyphClassName):
-            self._assignClassReferences(e.glyphclass)
-        elif isinstance(e, FeatureReferenceStatement):
-            self.featureReferences.setdefault(e.featureName, []).append(e)
+        match e:
+            case LanguageSystemStatement():
+                self.addLanguageSystem(e)
+            case FeatureBlock():
+                self.setFeature(e)
+            case NestedBlock():
+                self._parseStatements(e)
+            case LookupBlock():
+                self.startNamedLookup(e)
+                self._parseStatements(e)
+                self.endNamedLookupBlock()
+            case LookupFlagStatement():
+                self._currentLookupFlag = e
+            case LookupReferenceStatement(lookup=lookup):
+                self.addLookupCall(lookup.name)
+            case GlyphClassDefinition(name=name):
+                self.classes[name] = e
+            case _ if isinstance(e, self.rules):
+                self._rules.setdefault(type(e), []).append(e)
+                self.setLookupForRule(e)
+                self._parseStatementAttributes()
+            case LanguageStatement():
+                self.setLanguage(e)
+            case ScriptStatement():
+                self.setScript(e)
+            case GlyphClassName(glyphclass=glyphclass):
+                self._appendToListAttribute(glyphclass, "references", e)
+            case FeatureReferenceStatement(featureName=featureName):
+                self._featureReferences.setdefault(featureName, []).append(e)
 
-    def _assignTagReferences(self, e):
-        for attr in ("features", "languages", "scripts"):
-            if not hasattr(e, attr):
-                setattr(e, attr, {})
+    def addLanguageSystem(self, languageSystemStatement):
+        location = languageSystemStatement.location
+        scriptLang = (languageSystemStatement.script, languageSystemStatement.language)
+
+        if scriptLang == ("DFLT", "dflt") and self.languageStatements:
+            raise FeatureLibError(
+                'If "languagesystem DFLT dflt" is present, it must be '
+                "the first of the languagesystem statements",
+                location,
+            )
+
+        if languageSystemStatement.script == "DFLT":
+            if self._seenNonDFLTScript:
+                raise FeatureLibError(
+                    'languagesystems using the "DFLT" script tag must '
+                    "precede all other languagesystems",
+                    location,
+                )
+        else:
+            self._seenNonDFLTScript = True
+
+        if scriptLang in self.languageStatements:
+            raise FeatureLibError(
+                '"languagesystem %s %s" has already been specified'
+                % scriptLang,
+                location,
+            )
+        self.languageStatements[scriptLang] = languageSystemStatement
+
+    def getDefaultLanguageSystems(self):
+        if self.languageStatements:
+            return self.languageStatements
+        else:
+            return {("DFLT", "dflt"): DFLT_LANGSYS}
+
+    def setScript(self, script=None):
+        self._currentLookup = None
+        if script is None:
+            self._currentScript = DFLT_SCRIPT
+            self._currentlanguageSystems = self.getDefaultLanguageSystems()
+        else:
+            self._currentScript = script
+            scriptName = self._currentScript.script
+        self._currentLanguage = DFLT_LANGUAGE
+
+    def setLanguage(self, language=None):
+        self._currentLookup = None
+        if language is None:
+            self._currentLanguage = DFLT_LANGUAGE
+        else:
+            self._currentLanguage = language
+            languageName = self._currentLanguage.language
+            includeDefault = self._currentLanguage.include_default
+            scriptName = self._currentScript.script
+            scriptLang = (scriptName, languageName)
+            feature = self._currentFeature
+            defLangLookups = feature.lookups.get((scriptName, "dflt"))
+            langSys = (self._currentScript, self._currentLanguage)
+            if (languageName == "dflt" or includeDefault) and defLangLookups:
+                newLookups = defLangLookups[:]
+            else:
+                newLookups = feature.lookups.get(scriptLang, [])
+            self._currentlanguageSystems = {(scriptName, languageName): langSys}
+            for lookup in newLookups:
+                self.addCurrentLangSysToLookup(lookup)
+
+    def setFeature(self, feature):
+        self._currentFeature = feature
+        self._currentLookupFlag = None
+        self._currentlanguageSystems = self.getDefaultLanguageSystems()
+        self._currentFeature.lookups = {}
+        self.features.setdefault(feature.name, []).append(feature)
+        self.setScript()
+        self._parseStatements(feature)
+        self._currentlanguageSystems = {}
+        self._currentLookup = None
+        self._currentLookupFlag = None
+
+    def startNamedLookup(self, lookup):
+        name, location = lookup.name, lookup.location
+        if name in self.namedLookups:
+            raise FeatureLibError(
+                'Lookup "%s" has already been defined' % name, location
+            )
+        if self._currentFeature.name == "aalt":
+            raise FeatureLibError(
+                "Lookup blocks cannot be placed inside 'aalt' features; "
+                "move it out, and then refer to it with a lookup statement",
+                location,
+            )
+        self.namedLookups[name] = lookup
+        self._currentLookup = lookup
+        if self._currentFeature is None:
+            self._currentLookupFlag = None
+        lookup.flag = self._currentLookupFlag
+        lookup.rules =[]
+
+    def endNamedLookupBlock(self):
+        self._currentLookup = None
+        if self._currentFeature is None:
+            self._currentLookupFlag = None
+
+    def addLookupCall(self, lookupName):
+        self._currentLookup = None
+        lookup = self.namedLookups[lookupName]
+        self.addCurrentLangSysToLookup(lookup)
+
+    def addCurrentLangSysToLookup(self, lookup):
+        for scriptLang, langSys in self._currentlanguageSystems.items():
+            self._appendToDictAttribute(
+                self._currentFeature, "lookups", lookup, scriptLang
+            )
+            self._appendToDictAttribute(lookup, "languageSystems", langSys, scriptLang)
+
+    def _appendToDictAttribute(self, element, attributeNameInElement, astObject, key):
+        if astObject is not None:
+            existing = getattr(element, attributeNameInElement, {})
+            for existingTags, existingReferences in existing.items():
+                for r in existingReferences:
+                    if r == astObject:
+                        # this element is already referenced
+                        return
+            existing.setdefault(key, []).append(astObject)
+            setattr(element, attributeNameInElement, existing)
+
+    def _appendToListAttribute(self, element, attributeNameInElement, astObject):
+        if element is None:
+            return
+        existing = getattr(element, attributeNameInElement, [])
+        existing.append(astObject)
+        setattr(element, attributeNameInElement, existing)
+
+    def setLookupForRule(self, rule):
+        if (
+            self._currentLookup
+            and self._currentLookup.rules
+            and type(rule) is type(self._currentLookup.rules[0])
+            and self._currentLookup.flag == self._currentLookupFlag
+        ):
+            # lookup type is same
+            rule.lookup = self._currentLookup
+            self._currentLookup.rules.append(rule)
+            return
+
+        # if self._currentLookup and self._currentLookup.name is not None:
+        #     # lookup type has changed
+        #     print(self._currentLookup)
+        #     print(self._currentLookup.rules)
+        #     print(type(rule) is type(self._currentLookup.rules[0]))
+        #     print(self._currentLookup.flag == self._currentLookupFlag)
+        #     raise FeatureLibError(
+        #         "Within a named lookup block, all rules must be of "
+        #         "the same lookup type and flag",
+        #         rule.location,
+        #     )
+
+        if self._currentLookup is None:
+            self._currentLookup = NamelessLookup()
+            self._currentLookup.flag = self._currentLookupFlag
+            self._currentLookup.location = rule.location
+
+        rule.lookup = self._currentLookup
         if self._currentFeature is not None:
-            key = (self._currentFeature.name, self._currentFeature.location)
-            e.features[key] = self._currentFeature
-        if self._currentScript is not None:
-            key = (self._currentScript.script, self._currentScript.location)
-            e.scripts[key] = self._currentScript
-        if self._currentLanguage is not None:
-            key = (self._currentLanguage.language, self._currentLanguage.location)
-            e.languages[key] = self._currentLanguage
-
-    def _assignClassReferences(self, e):
-        # this helps for subsetting when a class is not referenced anymore
-        if not hasattr(e, "references"):
-            e.references = []
-        e.references.append(self._currentElement)
+            self.addCurrentLangSysToLookup(self._currentLookup)
 
     def __getitem__(self, glyphName):
         if glyphName in self._glyphFeatures:
@@ -246,7 +446,8 @@ class ParsedFeatureFile:
             self._glyphFeatures[glyphName] = GlyphFeatures(self._font[glyphName])
         except KeyError:
             warn(
-                f"Ignoring the missing glyph `{glyphName}` in the features, statement:\n{str(self._currentElement)}"
+                f"Ignoring the missing glyph `{glyphName}` in the features,"
+                f"statement:\n{str(self._currentElement)}"
             )
             return
         return self._glyphFeatures[glyphName]
@@ -272,7 +473,6 @@ class ParsedFeatureFile:
             if isinstance(
                 statement,
                 (
-                    AlternateSubstStatement,
                     SingleSubstStatement,
                     ReverseChainSingleSubstStatement,
                 ),
@@ -280,7 +480,12 @@ class ParsedFeatureFile:
                 for sg, tg in zip(source, target):
                     self._addGsubAttributesToGlyph([sg], [tg])
             elif isinstance(
-                statement, (LigatureSubstStatement, MultipleSubstStatement)
+                statement,
+                (
+                    LigatureSubstStatement,
+                    MultipleSubstStatement,
+                    AlternateSubstStatement,
+                ),
             ):
                 self._addGsubAttributesToGlyph(source, target)
 
@@ -311,16 +516,22 @@ class ParsedFeatureFile:
         # we need to make all the glyph statement consistent because feaLib parser
         # sometimes creates ast objects and sometimes string.
         if isinstance(e, str):
-            return [e, ]
+            return [
+                e,
+            ]
         if isinstance(e, GlyphName):
-            return [e.glyph, ]
+            return [
+                e.glyph,
+            ]
         if isinstance(e, (list, tuple)):
             result = []
             for e2 in e:
                 result.extend(self._convertToListOfGlyphNames(e2))
             return result
         if isinstance(e, GlyphClassName):
-            self._assignClassReferences(e.glyphclass)
+            self._appendToListAttribute(
+                e.glyphclass, "references", self._currentElement
+            )
             return self._convertToListOfGlyphNames(e.glyphclass.glyphs)
         if isinstance(e, GlyphClass):
             e.parent = self._currentElement
@@ -388,7 +599,9 @@ def getIncludedFilesPaths(features, absolutePaths=True):
     ufoRoot = font.folderPath
     parsedFeatureFile = getParsedFontToolsFeatureFile(font, followIncludes=False)
     includeFiles = {}
-    for inclFilePath, inclStatement in getIncludedFilesPathsFromParseFeatureFile(parsedFeatureFile).items():
+    for inclFilePath, inclStatement in getIncludedFilesPathsFromParseFeatureFile(
+        parsedFeatureFile
+    ).items():
         absPath = os.path.join(ufoRoot, inclFilePath)
         normalPath = os.path.normpath(absPath)
         if os.path.exists(normalPath):
@@ -399,6 +612,7 @@ def getIncludedFilesPaths(features, absolutePaths=True):
         else:
             warn(f"{ufoName} | Feature file doesn't exist in:\n{normalPath}")
     return includeFiles
+
 
 @font_method
 def normalize(features, includeFiles=True):
