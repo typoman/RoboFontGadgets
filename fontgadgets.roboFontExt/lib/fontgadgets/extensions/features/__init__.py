@@ -54,7 +54,6 @@ class GlyphFeatures:
     def rules(self):
         if self._rules != []:
             return self._rules
-        self._rules = []
         for glyphToRulesMap in (self.sourceGlyphs, self.targetGlyphs):
             for rules in glyphToRulesMap.values():
                 self._rules.extend(rules)
@@ -64,7 +63,6 @@ class GlyphFeatures:
     def lookups(self):
         if self._lookups != []:
             return self._lookups
-        self._lookups = []
         for r in self.rules:
             if r.lookup not in self._lookups:
                 self._lookups.append(r.lookup)
@@ -94,11 +92,11 @@ class GlyphFeatures:
         return self._getFeatures()[key]
 
     @property
-    def languageSystmes(self):
+    def languageSystems(self):
         if self._languageSystems != {}:
             return self._languageSystems
         for r in self.rules:
-            for scriptLang in r.lookup.languageSystmes:
+            for scriptLang in r.lookup.languageSystems:
                 self._languageSystems.setdefault(scriptLang, []).append(r)
         return self._languageSystems
 
