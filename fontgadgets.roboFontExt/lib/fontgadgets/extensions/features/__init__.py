@@ -12,6 +12,7 @@ from io import StringIO
 
 SHIFT = " " * 4
 
+
 class GlyphFeatures:
     """
     GlyphFeatures is an object that holds the related features in a glyph. You can use
@@ -41,30 +42,65 @@ class GlyphFeatures:
     def __init__(self, glyph):
         self._glyph = glyph
         self._font = glyph.font
-        self.sourceGlyphs = {}  # g.name: AlternateSubstStatement...
-        self.targetGlyphs = {}  # g.name: AlternateSubstStatement...
+        self._features = {}  # feature.name: [rule, ...]
+        self._languageSystems = {}  # (script, lang): [rule, ...]
+        self._lookups = []
+        self._rules = []
+        self.sourceGlyphs = {}  # g.name: [subRule, ...]
+        self.targetGlyphs = {}  # g.name: [subRule, ...]
         self._checked_for_num_source_glyphs = {}  # to avoid infinite recursion
 
     @property
-    def featureTags(self):
-        """
-        returns a set of tags
-        """
-        tags = set()
-        for gs, sublist in self._glyph.features.sourceGlyphs.items():
-            for sub in sublist:
-                tags.update([f[0] for f in sub.features])
-        return tags
+    def rules(self):
+        if self._rules != []:
+            return self._rules
+        self._rules = []
+        for glyphToRulesMap in (self.sourceGlyphs, self.targetGlyphs):
+            for rules in glyphToRulesMap.values():
+                self._rules.extend(rules)
+        return self._rules
 
-    def _getLookups(self):
-        # fetch lookups objects from the statements
-        pass
+    @property
+    def lookups(self):
+        if self._lookups != []:
+            return self._lookups
+        self._lookups = []
+        for r in self.rules:
+            if r.lookup not in self._lookups:
+                self._lookups.append(r.lookup)
+        return self._lookups
 
-    def _getLanguages(self):
-        pass
+    def _getFeatures(self):
+        if self._features != {}:
+            return self._features
+        for r in self.rules:
+            for fea in r.lookup.features:
+                self._features.setdefault(fea, []).append(r)
+        return self._features
 
-    def _getScripts(self):
-        pass
+    def __iter__(self):
+        return iter(self._getFeatures())
+
+    def keys(self):
+        return self._getFeatures().keys()
+
+    def values(self):
+        return self._getFeatures().values()
+
+    def items(self):
+        return self._getFeatures().items()
+
+    def __getitem__(self, key):
+        return self._getFeatures()[key]
+
+    @property
+    def languageSystmes(self):
+        if self._languageSystems != {}:
+            return self._languageSystems
+        for r in self.rules:
+            for scriptLang in r.lookup.languageSystmes:
+                self._languageSystems.setdefault(scriptLang, []).append(r)
+        return self._languageSystems
 
     @property
     def glyph(self):
@@ -206,7 +242,6 @@ class ParsedFeatureFile:
         for statement_type in rule_dict.keys()
     )
 
-
     def __init__(
         self, font, featureFilePath=None, followIncludes=True, ignoreMissingGlyphs=True
     ):
@@ -297,8 +332,7 @@ class ParsedFeatureFile:
 
         if scriptLang in self.languageStatements:
             raise FeatureLibError(
-                '"languagesystem %s %s" has already been specified'
-                % scriptLang,
+                '"languagesystem %s %s" has already been specified' % scriptLang,
                 location,
             )
         self.languageStatements[scriptLang] = languageSystemStatement
@@ -369,7 +403,7 @@ class ParsedFeatureFile:
         if self._currentFeature is None:
             self._currentLookupFlag = None
         lookup.flag = self._currentLookupFlag
-        lookup.rules =[]
+        lookup.rules = []
 
     def endNamedLookupBlock(self):
         self._currentLookup = None
@@ -387,6 +421,9 @@ class ParsedFeatureFile:
                 self._currentFeature, "lookups", lookup, scriptLang
             )
             self._appendToDictAttribute(lookup, "languageSystems", langSys, scriptLang)
+            self._appendToDictAttribute(
+                lookup, "features", self._currentFeature, self._currentFeature.name
+            )
 
     def _appendToDictAttribute(self, element, attributeNameInElement, astObject, key):
         if astObject is not None:
@@ -407,28 +444,25 @@ class ParsedFeatureFile:
         setattr(element, attributeNameInElement, existing)
 
     def setLookupForRule(self, rule):
-        if (
-            self._currentLookup
-            and self._currentLookup.rules
-            and type(rule) is type(self._currentLookup.rules[0])
-            and self._currentLookup.flag == self._currentLookupFlag
-        ):
-            # lookup type is same
-            rule.lookup = self._currentLookup
-            self._currentLookup.rules.append(rule)
-            return
+        if self._currentLookup and self._currentLookup.rules:
+            if (
+                type(rule) is type(self._currentLookup.rules[0])
+                and self._currentLookup.flag == self._currentLookupFlag
+            ):
+                # lookup type is same
+                rule.lookup = self._currentLookup
+                self._currentLookup.rules.append(rule)
+                return
 
-        # if self._currentLookup and self._currentLookup.name is not None:
-        #     # lookup type has changed
-        #     print(self._currentLookup)
-        #     print(self._currentLookup.rules)
-        #     print(type(rule) is type(self._currentLookup.rules[0]))
-        #     print(self._currentLookup.flag == self._currentLookupFlag)
-        #     raise FeatureLibError(
-        #         "Within a named lookup block, all rules must be of "
-        #         "the same lookup type and flag",
-        #         rule.location,
-        #     )
+            if (
+                type(rule) is not type(self._currentLookup.rules[0])
+                and self._currentLookup.name is not None
+            ):
+                raise FeatureLibError(
+                    "Within a named lookup block, all rules must be of "
+                    "the same lookup type and flag",
+                    rule.location,
+                )
 
         if self._currentLookup is None:
             self._currentLookup = NamelessLookup()
@@ -436,6 +470,7 @@ class ParsedFeatureFile:
             self._currentLookup.location = rule.location
 
         rule.lookup = self._currentLookup
+        self._currentLookup.rules.append(rule)
         if self._currentFeature is not None:
             self.addCurrentLangSysToLookup(self._currentLookup)
 
@@ -498,12 +533,14 @@ class ParsedFeatureFile:
                 glyphFeatures.sourceGlyphs.setdefault(sourceGlyphs, []).append(
                     statement
                 )
+                glyphFeatures.featureFile = self
         for gn in sourceGlyphs:
             glyphFeatures = self[gn]
             if glyphFeatures is not None:
                 glyphFeatures.targetGlyphs.setdefault(targetGlyphs, []).append(
                     statement
                 )
+                glyphFeatures.featureFile = self
 
     def _getGsubStatementGlyphs(self):
         statement = self._currentElement
@@ -556,6 +593,7 @@ class ParsedFeatureFile:
         else:
             return set(featureTags)
 
+
 def _renameGlyphNames(e, trasnlateMap):
     if isinstance(e, str):
         return trasnlateMap.get(e, e)
@@ -579,12 +617,14 @@ def parsed(features):
 def path(features):
     return os.path.join(features.font.path, "features.fea")
 
+
 def getIncludedFilesPathsFromParseFeatureFile(parsedFeatureFile):
     includeFiles = {}
     for thisStatement in parsedFeatureFile.statements:
         if isinstance(thisStatement, IncludeStatement):
             includeFiles[thisStatement.filename] = thisStatement
     return includeFiles
+
 
 @font_method
 def getIncludedFilesPaths(features, absolutePaths=True):
@@ -640,6 +680,7 @@ def defaultScripts(features):
             if s.language == "dflt" and s.script != "DFLT":
                 doc.statements.append(s)
     return doc
+
 
 @font_method
 def getLigatures(font, ligatureFeatureTags=("dlig", "liga", "rlig")):
