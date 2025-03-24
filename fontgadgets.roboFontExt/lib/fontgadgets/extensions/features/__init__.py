@@ -212,6 +212,9 @@ class GlyphFeatures:
                     ).append(rule.asFea())
         return features
 
+    def __str__(self):
+        return f"<GlyphFeatures: {str(self.rulesDict)}>"
+
 
 @font_property
 def features(glyph):
