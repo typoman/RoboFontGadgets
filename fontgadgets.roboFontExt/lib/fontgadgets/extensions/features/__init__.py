@@ -7,6 +7,7 @@ import fontgadgets.extensions.glyph.type
 from warnings import warn
 from copy import deepcopy
 from fontgadgets.decorators import *
+from fontgadgets import patch
 import os
 from io import StringIO
 
@@ -174,6 +175,43 @@ class GlyphFeatures:
                 return num_comp
         return 0
 
+    @property
+    def rulesDict(self):
+        """
+        Returns:
+            dict: A dictionary representation of the rules associated with the
+            glyph, organized by feature and language system. The keys of the
+            dictionary are feature names (e.g., "liga", "smcp"). Each feature
+            name maps to another dictionary where keys are language system
+            tuples (script, lang) and values are lists of rule strings in
+            Feature File syntax (e.g., "sub f i by f_i;").
+
+            For example, for the glyph "lam_alef-ar" in an Arabic font, the
+            `rulesDict` might look like this:
+
+            ```python
+            {
+                "rlig": {
+                    ("DFLT", "dflt"): ["sub lam-ar.init alef-ar.fina by lam_alef-ar;"]
+                },
+            }
+            ```
+
+            This indicates that for the "rlig" feature in the default language
+            system, the sequence "lam-ar.init alef-ar.fina" is substituted by
+            "lam_alef-ar".
+        """
+
+        features = {}
+        for rule in self.rules:
+            lookup = rule.lookup
+            for scriptLang, featuresList in lookup.langsysFeatureMap.items():
+                for fea in featuresList:
+                    features.setdefault(fea.name, {}).setdefault(
+                        scriptLang, []
+                    ).append(rule.asFea())
+        return features
+
 
 @font_property
 def features(glyph):
@@ -234,6 +272,12 @@ class NamelessLookup(LookupBlock):
 DFLT_LANGUAGE = LanguageStatement("dflt")
 DFLT_SCRIPT = ScriptStatement("DFLT")
 DFLT_LANGSYS = LanguageSystemStatement("DFLT", "dflt")
+
+
+@patch.method(LanguageSystemStatement)
+def __iter__(self):
+    # for unpacking
+    return iter((ScriptStatement(self.script), LanguageStatement(self.language)))
 
 
 class ParsedFeatureFile:
@@ -462,6 +506,9 @@ class ParsedFeatureFile:
             self._appendToDictAttribute(lookup, "languageSystems", langSys, scriptLang)
             self._appendToDictAttribute(
                 lookup, "features", self._currentFeature, self._currentFeature.name
+            )
+            self._appendToDictAttribute(
+                lookup, "langsysFeatureMap", self._currentFeature, scriptLang
             )
 
     def _appendToDictAttribute(self, element, attributeNameInElement, astObject, key):

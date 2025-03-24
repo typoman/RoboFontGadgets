@@ -40,7 +40,13 @@ def test_lookups(defcon_ar_font_1, glyphName, expectedNumLookups, expectedfeatur
     "glyphName, expected_source_glyphs",
     [
         ("lam_alef-ar", ("lam-ar.init", "alef-ar.fina")),
-        ("lam_alefMadda-ar", ("lam-ar.init", "alefMadda-ar.fina",)),
+        (
+            "lam_alefMadda-ar",
+            (
+                "lam-ar.init",
+                "alefMadda-ar.fina",
+            ),
+        ),
         ("allah-ar", ("alef-ar", "lam-ar.init", "lam-ar.medi", "heh-ar.fina")),
     ],
 )
@@ -48,3 +54,47 @@ def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_source_glyphs):
     glyph = defcon_ar_font_1[glyphName]
     source_glyphs = glyph.features.sourceGlyphs
     assert tuple(source_glyphs.keys())[0] == expected_source_glyphs
+
+
+@pytest.mark.parametrize(
+    "glyphName, expected_features",
+    [
+        (
+            "lam_alef-ar",
+            {
+                "fina": {("DFLT", "dflt"): ["sub lam_alef-ar by lam_alef-ar.fina;"]},
+                "rlig": {
+                    ("DFLT", "dflt"): ["sub lam-ar.init alef-ar.fina by lam_alef-ar;"]
+                },
+            },
+        ),
+        (
+            "lam_alefMadda-ar",
+            {
+                "fina": {
+                    ("DFLT", "dflt"): ["sub lam_alefMadda-ar by lam_alefMadda-ar.fina;"]
+                },
+                "rlig": {
+                    ("DFLT", "dflt"): [
+                        "sub lam-ar.init alefMadda-ar.fina by lam_alefMadda-ar;"
+                    ]
+                },
+            },
+        ),
+        (
+            "allah-ar",
+            {
+                "rlig": {
+                    ("DFLT", "dflt"): [
+                        "sub alef-ar lam-ar.init lam-ar.medi heh-ar.fina "
+                        "by allah-ar;"
+                    ]
+                }
+            },
+        ),
+    ],
+)
+def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_features):
+    glyph = defcon_ar_font_1[glyphName]
+    actual_features = glyph.features.rulesDict
+    assert actual_features == expected_features
