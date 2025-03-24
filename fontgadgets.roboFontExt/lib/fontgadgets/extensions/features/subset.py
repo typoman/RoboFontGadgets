@@ -1,4 +1,4 @@
-from fontgadgets.decorators import font_cached_method, inject
+from fontgadgets import patch
 from fontgadgets.extensions.features import *
 
 """
@@ -49,18 +49,18 @@ def _subsetStatements(statementList, glyphsToKeep):
     return result
 
 
-@inject(Element)
+@patch.method(Element)
 def subset(self, glyphsToKeep):
     return self
 
 
-@inject(GlyphName)
+@patch.method(GlyphName)
 def subset(self, glyphsToKeep):
     if self.glyph in glyphsToKeep:
         return self
 
 
-@inject(
+@patch.method(
     GlyphClass,
     AttachStatement,
     LigatureCaretByIndexStatement,
@@ -85,14 +85,14 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(GlyphClassName, CursivePosStatement)
+@patch.method(GlyphClassName, CursivePosStatement)
 def subset(self, glyphsToKeep):
     self.glyphclass = self.glyphclass.subset(glyphsToKeep)
     if self.glyphclass:
         return self
 
 
-@inject(GlyphClassDefinition)
+@patch.method(GlyphClassDefinition)
 def subset(self, glyphsToKeep):
     if self.glyphs:
         self.glyphs = self.glyphs.subset(glyphsToKeep)
@@ -100,7 +100,7 @@ def subset(self, glyphsToKeep):
             return self
 
 
-@inject(MarkClass)
+@patch.method(MarkClass)
 def subset(self, glyphsToKeep):
     remainedGlyphs = {}
     for glyph, mark in self.glyphs.items():
@@ -112,14 +112,14 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(MarkClassName)
+@patch.method(MarkClassName)
 def subset(self, glyphsToKeep):
     self.markClass = self.markClass.subset(glyphsToKeep)
     if self.markClass:
         return self
 
 
-@inject(MarkClassDefinition)
+@patch.method(MarkClassDefinition)
 def subset(self, glyphsToKeep):
     self.glyphs, self.markClass = _subsetGlyphs(
         [self.glyphs, self.markClass], glyphsToKeep
@@ -128,14 +128,14 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(Block)
+@patch.method(Block)
 def subset(self, glyphsToKeep):
     self.statements = _subsetStatements(self.statements, glyphsToKeep)
     if not self.isEmpty():
         return self
 
 
-@inject(GlyphClassDefStatement)
+@patch.method(GlyphClassDefStatement)
 def subset(self, glyphsToKeep):
     (
         self.baseGlyphs,
@@ -156,7 +156,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(AlternateSubstStatement)
+@patch.method(AlternateSubstStatement)
 def subset(self, glyphsToKeep):
     self.prefix, self.glyph, self.suffix, self.replacement = _subsetGlyphs(
         [self.prefix, self.glyph, self.suffix, self.replacement], glyphsToKeep
@@ -165,7 +165,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(
+@patch.method(
     AlternateSubstStatement,
     LigatureSubstStatement,
     CursivePosStatement,
@@ -183,7 +183,7 @@ def numInputGlyphs(self):
     return len(self.glyph)
 
 
-@inject(ChainContextPosStatement, ChainContextSubstStatement)
+@patch.method(ChainContextPosStatement, ChainContextSubstStatement)
 def subset(self, glyphsToKeep):
     self.prefix, self.glyphs, self.suffix = _subsetGlyphs(
         [self.prefix, self.glyphs, self.suffix], glyphsToKeep
@@ -206,7 +206,7 @@ def subset(self, glyphsToKeep):
             return self
 
 
-@inject(IgnoreSubstStatement, IgnorePosStatement)
+@patch.method(IgnoreSubstStatement, IgnorePosStatement)
 def subset(self, glyphsToKeep):
     self.chainContexts = _subsetGlyphs(self.chainContexts, glyphsToKeep)
     prefix, glyphs, suffix = self.chainContexts[0]
@@ -214,7 +214,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(LigatureSubstStatement)
+@patch.method(LigatureSubstStatement)
 def subset(self, glyphsToKeep):
     numComponents = self.numInputGlyphs()
     self.prefix, self.glyphs, self.suffix, self.replacement = _subsetGlyphs(
@@ -224,7 +224,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(LookupFlagStatement)
+@patch.method(LookupFlagStatement)
 def subset(self, glyphsToKeep):
     if self.markAttachment is not None:
         self.markAttachment = self.markAttachment.subset(glyphsToKeep)
@@ -234,7 +234,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(LookupReferenceStatement)
+@patch.method(LookupReferenceStatement)
 def subset(self, glyphsToKeep):
     if self.lookup:
         self.lookup = self.lookup.subset(glyphsToKeep)
@@ -242,7 +242,7 @@ def subset(self, glyphsToKeep):
             return self
 
 
-@inject(MarkBasePosStatement, MarkLigPosStatement, MarkMarkPosStatement)
+@patch.method(MarkBasePosStatement, MarkLigPosStatement, MarkMarkPosStatement)
 def subsetMarks(self, glyphsToKeep):
     remainedMarks = {}
     for anchor, mark in dict(self.marks).items():
@@ -256,28 +256,28 @@ def subsetMarks(self, glyphsToKeep):
         return self
 
 
-@inject(MarkBasePosStatement)
+@patch.method(MarkBasePosStatement)
 def subset(self, glyphsToKeep):
     self.base = self.base.subset(glyphsToKeep)
     if self.base:
         return self.subsetMarks(glyphsToKeep)
 
 
-@inject(MarkLigPosStatement)
+@patch.method(MarkLigPosStatement)
 def subset(self, glyphsToKeep):
     self.ligatures = self.ligatures.subset(glyphsToKeep)
     if self.ligatures:
         return self.subsetMarks(glyphsToKeep)
 
 
-@inject(MarkMarkPosStatement)
+@patch.method(MarkMarkPosStatement)
 def subset(self, glyphsToKeep):
     self.baseMarks = self.baseMarks.subset(glyphsToKeep)
     if self.baseMarks:
         return self.subsetMarks(glyphsToKeep)
 
 
-@inject(MultipleSubstStatement)
+@patch.method(MultipleSubstStatement)
 def subset(self, glyphsToKeep):
     if hasattr(self.glyph, "glyphSet"):
         if self.glyph.subset(glyphsToKeep):
@@ -293,7 +293,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(PairPosStatement)
+@patch.method(PairPosStatement)
 def subset(self, glyphsToKeep):
     self.glyphs1, self.glyphs2 = _subsetGlyphs(
         [self.glyphs1, self.glyphs2], glyphsToKeep
@@ -302,7 +302,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(SingleSubstStatement)
+@patch.method(SingleSubstStatement)
 def subset(self, glyphsToKeep):
     self.prefix, self.suffix, self.glyphs, self.replacements = _subsetGlyphs(
         [self.prefix, self.suffix, self.glyphs, self.replacements], glyphsToKeep
@@ -317,7 +317,7 @@ def subset(self, glyphsToKeep):
             return self
 
 
-@inject(ReverseChainSingleSubstStatement)
+@patch.method(ReverseChainSingleSubstStatement)
 def subset(self, glyphsToKeep):
     self.old_prefix, self.old_suffix, self.glyphs, self.replacements = _subsetGlyphs(
         [self.old_prefix, self.old_suffix, self.glyphs, self.replacements], glyphsToKeep
@@ -332,7 +332,7 @@ def subset(self, glyphsToKeep):
             return self
 
 
-@inject(SinglePosStatement)
+@patch.method(SinglePosStatement)
 def subset(self, glyphsToKeep):
     inputGlyphSubset = self.pos[0][0].subset(glyphsToKeep)
     self.pos = [(inputGlyphSubset, self.pos[0][-1])]
@@ -340,19 +340,19 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(SubtableStatement)
+@patch.method(SubtableStatement)
 def subset(self, glyphsToKeep):
     return
 
 
-@inject(LookupBlock, FeatureBlock)
+@patch.method(LookupBlock, FeatureBlock)
 def subset(self, glyphsToKeep):
     self.statements = _subsetStatements(self.statements, glyphsToKeep)
     if not self.isEmpty():
         return self
 
 
-@inject(LookupBlock, FeatureBlock, TableBlock)
+@patch.method(LookupBlock, FeatureBlock, TableBlock)
 def isEmpty(self):
     # should be used only after _subsetStatements
     if any(
@@ -389,7 +389,7 @@ def isEmpty(self):
     return True
 
 
-@inject(FeatureReferenceStatement)
+@patch.method(FeatureReferenceStatement)
 def subset(self, glyphsToKeep):
     if any(
         [feaBlock.subset(glyphsToKeep) is not None for feaBlock in self.featureBlocks]
@@ -397,7 +397,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(NestedBlock)
+@patch.method(NestedBlock)
 def subset(self, glyphsToKeep):
     result = []
     for statement in self.block.statements:
@@ -409,7 +409,7 @@ def subset(self, glyphsToKeep):
         return self
 
 
-@inject(FeatureFile)
+@patch.method(FeatureFile)
 def isEmpty(self):
     if any(
         [
