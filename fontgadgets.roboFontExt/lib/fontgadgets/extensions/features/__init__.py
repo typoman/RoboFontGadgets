@@ -15,28 +15,55 @@ SHIFT = " " * 4
 
 class GlyphFeatures:
     """
-    GlyphFeatures is an object that holds the related features in a glyph. You can use
-    it to find out which features are associated with this glyph using two properties:
+    Holds open type feature information for a glyph.
 
-    sourceGlyphs: Returns a dictionary mapping tuples of source glyph names to
-      lists of fonttools fealib ast substitution statements. The glyph names are
-      the glyphs that are going to be substituted with this glyph.
+    The GlyphFeatures class makes it possible to fetch substitution rules,
+    lookups, and language system related to this specific glyph. It helps in
+    understanding how a glyph participates in font features, particularly in
+    substitutions. The `sourceGlyphs` and `targetGlyphs` properties are key
+    for identifying glyph substitutions.
 
-        Example:
-        # assuming the glyph.Features belongs to glyph named "f_i"
-            {
-                ('f', 'i'): [LigatureSubstStatement],
-            }
+    Args:
+        glyph: The glyph object to analyze features for.
 
-    targetGlyphs: Returns a dictionary mapping tuples of target glyph names to
-      lists of substitution statements. The target glyphs are the glyphs which replace
-      this glyph when a feature is triggered.
+    Properties:
+        glyph: The glyph object associated with the features.
 
-        # assuming the glyph.Features belongs to glyph named "f" or "i"
-        Example:
-            {
-                ('f_i', ): [LigatureSubstStatement],
-            }
+        sourceGlyphs: Returns a dictionary mapping tuples of glyph name(s) to a
+        list of substitution statements. Each key represents glyph name(s) are
+        the glyphs that this glyph is substituted from.
+
+            Example assuming the glyph.Features belongs to the ligature glyph
+            "f_i" which is substitued from other glyphs (source).
+                {
+                    ('f', 'i'): [LigatureSubstStatement],
+                }
+
+        targetGlyphs:
+        Returns a dictionary mapping tuples of glyph name(s) to lists of
+        substitution statements. The target glyphs are the glyphs which
+        replace this glyph when a feature is triggered.
+
+            Example assuming the glyph.Features belongs to glyph "f" or "i"
+            which are substitued by a ligature (target).
+                {
+                    ('f_i', ): [LigatureSubstStatement],
+                }
+        rules: A list of all substitution rules associated with the
+            glyph.
+        lookups: A list of lookups associated with the glyph's rules.
+        languageSystems: A dictionary mapping language system tags
+            (script, lang) to lists of rules associated with this glyph.
+        numberOfSourceGlyphs: The number of source glyphs involved in
+            substitutions that result in this glyph.
+
+    Methods:
+        keys(): Returns feature names.
+        values(): Returns lists of rules for each feature.
+        items(): Returns a dict of {feature name : rule lists}.
+        __getitem__(key): Returns the list of rules for a given
+            feature name.
+        __iter__(): Iterates through feature names.
     """
 
     def __init__(self, glyph):
@@ -46,21 +73,31 @@ class GlyphFeatures:
         self._languageSystems = {}  # (script, lang): [rule, ...]
         self._lookups = []
         self._rules = []
-        self.sourceGlyphs = {}  # g.name: [subRule, ...]
-        self.targetGlyphs = {}  # g.name: [subRule, ...]
+        self._sourceGlyphs = {}  # g.name: [subRule, ...]
+        self._targetGlyphs = {}  # g.name: [subRule, ...]
         self._checked_for_num_source_glyphs = {}  # to avoid infinite recursion
+        self._featureFile = None
 
     @property
     def rules(self):
-        if self._rules != []:
-            return self._rules
-        for glyphToRulesMap in (self.sourceGlyphs, self.targetGlyphs):
-            for rules in glyphToRulesMap.values():
-                self._rules.extend(rules)
+        """
+        Returns: A list of all substitution rules for this glyph.
+        """
         return self._rules
 
     @property
+    def sourceGlyphs(self):
+        return self._sourceGlyphs
+
+    def targetGlyphs(self):
+        return self._targetGlyphs
+
+    @property
     def lookups(self):
+        """
+        Returns: A list of all lookups associated with the substitution rules
+            related to this glyph.
+        """
         if self._lookups != []:
             return self._lookups
         for r in self.rules:
@@ -93,6 +130,11 @@ class GlyphFeatures:
 
     @property
     def languageSystems(self):
+        """
+        Returns: A dictionary where keys are language system tags
+            (script, lang) and values are lists of open type substitusion
+            rules which are used in those systems.
+        """
         if self._languageSystems != {}:
             return self._languageSystems
         for r in self.rules:
@@ -112,11 +154,10 @@ class GlyphFeatures:
         # this can be more complicated than just returning length of any item
         # from features.sourceGlyphs since a ligature could just be a stylistic
         # set of a another ligature or just a base glyph for ligatures
-
         g = self._font[gname]
         if gname in self._checked_for_num_source_glyphs:
             return self._checked_for_num_source_glyphs[gname]
-        for sgnames, rules in g.features.sourceGlyphs.items():
+        for sgnames in g.features._sourceGlyphs:
             num_comp = len(sgnames)
             if not g.isLigature:
                 self._checked_for_num_source_glyphs[gname] = num_comp
@@ -528,17 +569,19 @@ class ParsedFeatureFile:
         for gn in targetGlyphs:
             glyphFeatures = self[gn]
             if glyphFeatures is not None:
-                glyphFeatures.sourceGlyphs.setdefault(sourceGlyphs, []).append(
+                glyphFeatures._rules.append(statement)
+                glyphFeatures._sourceGlyphs.setdefault(sourceGlyphs, []).append(
                     statement
                 )
-                glyphFeatures.featureFile = self
+                glyphFeatures._featureFile = self
         for gn in sourceGlyphs:
             glyphFeatures = self[gn]
             if glyphFeatures is not None:
-                glyphFeatures.targetGlyphs.setdefault(targetGlyphs, []).append(
+                glyphFeatures._rules.append(statement)
+                glyphFeatures._targetGlyphs.setdefault(targetGlyphs, []).append(
                     statement
                 )
-                glyphFeatures.featureFile = self
+                glyphFeatures._featureFile = self
 
     def _getGsubStatementGlyphs(self):
         statement = self._currentElement
