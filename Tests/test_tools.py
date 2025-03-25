@@ -1,4 +1,4 @@
-from fontgadgets.tools import FontGadgetsError, inject
+from fontgadgets.tools import FontGadgetsError
 from utils import *
 import fontgadgets.tools
 import fontgadgets.decorators
