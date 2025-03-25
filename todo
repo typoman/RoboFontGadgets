@@ -56,7 +56,7 @@ take a look at unicodedata obj and if you can just use everything from there.
 - Sort fonts based on os2/weight class or shared glyph widths or shared glyph bounds
 
 ## features
-- Add sctipt, language, lookups to the rules and glyphs to GlyphFeatures object
+- add test for https://github.com/fonttools/fonttools/issues/501
 - Add glyph.features.definitions from GDEF (glyphdefs or gdef or GDEF as the name?)
 - Add "IncludedFeatures.Changed" notification to defcon by keep tracking of the changes
   in the included feature files too.
