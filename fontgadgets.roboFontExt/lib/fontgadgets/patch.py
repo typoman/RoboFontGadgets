@@ -6,7 +6,7 @@ DEBUG = False  # Global flag for debug mode
 
 def method(*target_classes, override=True):
     """
-    A decorator that can either add a new method or replace an existing one to the given
+    A decorator that can either add a new method or replace an existing one on the given
     classes.
 
     When `override` is True (default), replaces the existing method in the target classes,
