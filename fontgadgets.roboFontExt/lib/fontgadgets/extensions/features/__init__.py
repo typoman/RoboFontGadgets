@@ -83,6 +83,7 @@ class GlyphFeatures:
         self._checked_for_num_source_glyphs = {}  # to avoid infinite recursion
         self._featureFile = None
 
+
     @property
     def rules(self):
         """

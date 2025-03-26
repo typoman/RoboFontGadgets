@@ -426,7 +426,7 @@ def isEmpty(self):
         return self
 
 
-@font_cached_method("Features.TextChanged")
+@font_method
 def subset(features, glyphsToKeep=None, subsetIncludedFiles=True):
     """
     Returns a dictionary of {path: features} of subset feature files in which the key

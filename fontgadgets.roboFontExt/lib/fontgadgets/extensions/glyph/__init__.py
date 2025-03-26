@@ -5,8 +5,6 @@ import fontgadgets.extensions.glyph.composite
 import fontgadgets.extensions.font
 from copy import deepcopy
 
-MASK_LAYER = 'public.background'
-
 @font_property
 def isComposite(glyph):
     """
@@ -261,10 +259,7 @@ def copy(glyph: defcon.Glyph, decompose=False):
 @font_property
 def background(glyph):
     font = glyph.font
-    try:
-        backgroundLayer = font.layers[MASK_LAYER]
-    except KeyError:
-        backgroundLayer = font.newLayer(MASK_LAYER)
+    backgroundLayer = font.background
     if glyph.name not in backgroundLayer:
         backgroundGlyph = backgroundLayer.newGlyph(glyph.name)
     else:

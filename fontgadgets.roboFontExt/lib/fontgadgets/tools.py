@@ -20,7 +20,7 @@ def getEnvironment():
     try:
         import mojo as _mj
 
-        if hasattr(_mj, "RoboFont"):
+        if hasattr(_mj, "roboFont"):
             return "RoboFont"
     except ImportError:
         pass
