@@ -39,11 +39,11 @@ def method(*target_classes, override=True):
             def wrapper(self, *args, **kwargs):
                 # Bind the original method to the instance
                 bound_original = orig_method.__get__(self, target_cls)
-                module = sys.modules[module_name]
-                original_in_module = module.__dict__.get('original', None)
+                module_globals = func.__globals__
+                original_in_module = module_globals.get('original', None)
 
-                # Temporarily set original() in the module
-                module.__dict__['original'] = lambda: type(
+                # Temporarily set original() in the module's globals
+                module_globals['original'] = lambda: type(
                     '_OriginalWrapper', (), {method_name: bound_original}
                 )()
                 try:
@@ -51,9 +51,9 @@ def method(*target_classes, override=True):
                 finally:
                     # Restore the original state
                     if original_in_module is not None:
-                        module.__dict__['original'] = original_in_module
+                        module_globals['original'] = original_in_module
                     else:
-                        del module.__dict__['original']
+                        del module_globals['original']
                 return result
             return wrapper
 
