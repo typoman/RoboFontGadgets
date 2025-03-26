@@ -10,8 +10,12 @@ from fontgadgets.decorators import *
 from fontgadgets import patch
 import os
 from io import StringIO
+import logging
 
 SHIFT = " " * 4
+
+# Supresses feaLib parser warnings for ambigious glyph range
+logging.getLogger('fontTools.feaLib.parser').setLevel(logging.ERROR)
 
 
 class GlyphFeatures:
@@ -207,9 +211,9 @@ class GlyphFeatures:
             lookup = rule.lookup
             for scriptLang, featuresList in lookup.langsysFeatureMap.items():
                 for fea in featuresList:
-                    features.setdefault(fea.name, {}).setdefault(
-                        scriptLang, []
-                    ).append(rule.asFea())
+                    features.setdefault(fea.name, {}).setdefault(scriptLang, []).append(
+                        rule.asFea()
+                    )
         return features
 
     def __str__(self):
@@ -342,7 +346,7 @@ class ParsedFeatureFile:
         self.classes = {}  # className: ast.GlyphClassDefinition
         self.features = {}  # featureName: [ast.FeatureBlock, ...]
         self.languageStatements = {}  # (script, language): ast.LanguageSystemStatement
-        self._lookups = {}  # (fea, scr, lan): [lookup, ...]
+        self._lookups = []  # [ast.LookupBlock, ...]
         self._featureReferences = {}  # featureName: [ast.FeatureBlock, ...]
         self._rules = {}  # statementType: [astObject,...]
         self._currentFeature = None
@@ -351,7 +355,7 @@ class ParsedFeatureFile:
         self._currentBlock = None
         self._seenNonDFLTScript = False
         self._currentLookup = None
-        self._currentlanguageSystems = {}
+        self._currentLanguageSystems = {}
         self._glyphFeatures = {}
         self._currentElement = self.featureFile
         self._parseStatements(self.featureFile)
@@ -377,7 +381,7 @@ class ParsedFeatureFile:
                 self._parseStatements(e)
                 self.endNamedLookupBlock()
             case LookupFlagStatement():
-                self._currentLookupFlag = e
+                self.setLookupFlag(e)
             case LookupReferenceStatement(lookup=lookup):
                 self.addLookupCall(lookup.name)
             case GlyphClassDefinition(name=name):
@@ -430,17 +434,17 @@ class ParsedFeatureFile:
             return {("DFLT", "dflt"): DFLT_LANGSYS}
 
     def setScript(self, script=None):
-        self._currentLookup = None
         if script is None:
             self._currentScript = DFLT_SCRIPT
-            self._currentlanguageSystems = self.getDefaultLanguageSystems()
+            self._currentLanguageSystems = self.getDefaultLanguageSystems()
         else:
             self._currentScript = script
             scriptName = self._currentScript.script
         self._currentLanguage = DFLT_LANGUAGE
+        if self._currentFeature is None:
+            self._currentLookupFlag = None
 
     def setLanguage(self, language=None):
-        self._currentLookup = None
         if language is None:
             self._currentLanguage = DFLT_LANGUAGE
         else:
@@ -456,21 +460,26 @@ class ParsedFeatureFile:
                 newLookups = defLangLookups[:]
             else:
                 newLookups = feature.lookups.get(scriptLang, [])
-            self._currentlanguageSystems = {(scriptName, languageName): langSys}
+            self._currentLanguageSystems = {(scriptName, languageName): langSys}
             for lookup in newLookups:
-                self.addCurrentLangSysToLookup(lookup)
+                self.addLookupToCurrentFeature(lookup)
 
     def setFeature(self, feature):
         self._currentFeature = feature
         self._currentLookupFlag = None
-        self._currentlanguageSystems = self.getDefaultLanguageSystems()
+        self._currentLanguageSystems = self.getDefaultLanguageSystems()
         self._currentFeature.lookups = {}
         self.features.setdefault(feature.name, []).append(feature)
         self.setScript()
         self._parseStatements(feature)
-        self._currentlanguageSystems = {}
+        self._currentLanguageSystems = {}
         self._currentLookup = None
         self._currentLookupFlag = None
+
+    def setLookupFlag(self, lookupFlag):
+        self._currentLookupFlag = lookupFlag
+        if self._currentLookup and self._currentLookup.name:
+            self._currentLookup.flag = lookupFlag
 
     def startNamedLookup(self, lookup):
         name, location = lookup.name, lookup.location
@@ -486,8 +495,6 @@ class ParsedFeatureFile:
             )
         self.namedLookups[name] = lookup
         self._currentLookup = lookup
-        if self._currentFeature is None:
-            self._currentLookupFlag = None
         lookup.flag = self._currentLookupFlag
         lookup.rules = []
 
@@ -499,22 +506,23 @@ class ParsedFeatureFile:
     def addLookupCall(self, lookupName):
         self._currentLookup = None
         lookup = self.namedLookups[lookupName]
-        self.addCurrentLangSysToLookup(lookup)
+        self.addLookupToCurrentFeature(lookup)
 
-    def addCurrentLangSysToLookup(self, lookup):
-        for scriptLang, langSys in self._currentlanguageSystems.items():
+    def addLookupToCurrentFeature(self, lookup):
+        for scriptLang, langSys in self._currentLanguageSystems.items():
+            # used in setLanguage to get default langsys lookups
             self._appendToDictAttribute(
-                self._currentFeature, "lookups", lookup, scriptLang
+                self._currentFeature, "lookups", scriptLang, lookup
             )
-            self._appendToDictAttribute(lookup, "languageSystems", langSys, scriptLang)
+            # if lookup is subset, script or language statements are needed as
+            # actual ast references on the lookup
+            self._appendToDictAttribute(lookup, "languageSystems", scriptLang, langSys)
+            # for getting the (fea > script, lang > lookup) relations
             self._appendToDictAttribute(
-                lookup, "features", self._currentFeature, self._currentFeature.name
-            )
-            self._appendToDictAttribute(
-                lookup, "langsysFeatureMap", self._currentFeature, scriptLang
+                lookup, "langsysFeatureMap", scriptLang, self._currentFeature
             )
 
-    def _appendToDictAttribute(self, element, attributeNameInElement, astObject, key):
+    def _appendToDictAttribute(self, element, attributeNameInElement, dictKey, astObject):
         if astObject is not None:
             existing = getattr(element, attributeNameInElement, {})
             for existingTags, existingReferences in existing.items():
@@ -522,7 +530,7 @@ class ParsedFeatureFile:
                     if r == astObject:
                         # this element is already referenced
                         return
-            existing.setdefault(key, []).append(astObject)
+            existing.setdefault(dictKey, []).append(astObject)
             setattr(element, attributeNameInElement, existing)
 
     def _appendToListAttribute(self, element, attributeNameInElement, astObject):
@@ -533,35 +541,40 @@ class ParsedFeatureFile:
         setattr(element, attributeNameInElement, existing)
 
     def setLookupForRule(self, rule):
-        if self._currentLookup and self._currentLookup.rules:
-            if (
-                type(rule) is type(self._currentLookup.rules[0])
-                and self._currentLookup.flag == self._currentLookupFlag
-            ):
-                # lookup type is same
-                rule.lookup = self._currentLookup
-                self._currentLookup.rules.append(rule)
-                return
+        # Inside any lookup, the lookup flag and type of rules should not
+        # change. If we don't have a lookup or rule type or flag has changed,
+        # make a nameless one and add the current rule to it.
 
-            if (
-                type(rule) is not type(self._currentLookup.rules[0])
-                and self._currentLookup.name is not None
-            ):
-                raise FeatureLibError(
-                    "Within a named lookup block, all rules must be of "
-                    "the same lookup type and flag",
-                    rule.location,
-                )
+        if self._currentLookup and self._currentLookup.rules:
+                if (
+                    type(rule) is type(self._currentLookup.rules[0])
+                    and self._currentLookup.flag == self._currentLookupFlag
+                ):
+                    rule.lookup = self._currentLookup
+                    self._currentLookup.rules.append(rule)
+                    return
+
+                if (
+                    type(rule) is not type(self._currentLookup.rules[0])
+                    and self._currentLookup.name is not None
+                ):
+                    raise FeatureLibError(
+                        "Within a named lookup block, all rules must be of "
+                        "the same lookup type and flag",
+                        rule.location,
+                    )
 
         if self._currentLookup is None:
             self._currentLookup = NamelessLookup()
             self._currentLookup.flag = self._currentLookupFlag
             self._currentLookup.location = rule.location
 
+        self._currentLookup.id = len(self._lookups)
+        self._lookups.append(self._currentLookup)
         rule.lookup = self._currentLookup
         self._currentLookup.rules.append(rule)
         if self._currentFeature is not None:
-            self.addCurrentLangSysToLookup(self._currentLookup)
+            self.addLookupToCurrentFeature(self._currentLookup)
 
     def __getitem__(self, glyphName):
         if glyphName in self._glyphFeatures:
