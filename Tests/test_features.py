@@ -62,9 +62,15 @@ def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_source_glyphs):
         (
             "lam_alef-ar",
             {
-                "fina": {("DFLT", "dflt"): ["sub lam_alef-ar by lam_alef-ar.fina;"]},
+                "fina": {
+                    ("DFLT", "dflt"): {
+                        5: ["sub lam_alef-ar by lam_alef-ar.fina;"]
+                    }
+                },
                 "rlig": {
-                    ("DFLT", "dflt"): ["sub lam-ar.init alef-ar.fina by lam_alef-ar;"]
+                    ("DFLT", "dflt"): {
+                        6: ["sub lam-ar.init alef-ar.fina by lam_alef-ar;"]
+                    }
                 },
             },
         ),
@@ -72,12 +78,14 @@ def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_source_glyphs):
             "lam_alefMadda-ar",
             {
                 "fina": {
-                    ("DFLT", "dflt"): ["sub lam_alefMadda-ar by lam_alefMadda-ar.fina;"]
+                    ("DFLT", "dflt"): {
+                        5: ["sub lam_alefMadda-ar by lam_alefMadda-ar.fina;"]
+                    }
                 },
                 "rlig": {
-                    ("DFLT", "dflt"): [
-                        "sub lam-ar.init alefMadda-ar.fina by lam_alefMadda-ar;"
-                    ]
+                    ("DFLT", "dflt"): {
+                        6: ["sub lam-ar.init alefMadda-ar.fina by lam_alefMadda-ar;"]
+                    }
                 },
             },
         ),
@@ -85,10 +93,12 @@ def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_source_glyphs):
             "allah-ar",
             {
                 "rlig": {
-                    ("DFLT", "dflt"): [
-                        "sub alef-ar lam-ar.init lam-ar.medi heh-ar.fina "
-                        "by allah-ar;"
-                    ]
+                    ("DFLT", "dflt"): {
+                        6: [
+                            "sub alef-ar lam-ar.init lam-ar.medi heh-ar.fina "
+                            "by allah-ar;"
+                        ]
+                    }
                 }
             },
         ),
@@ -96,5 +106,5 @@ def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_source_glyphs):
 )
 def test_sourceGlyphs(defcon_ar_font_1, glyphName, expected_features):
     glyph = defcon_ar_font_1[glyphName]
-    actual_features = glyph.features.rulesDict
+    actual_features = glyph.features.toDict()
     assert actual_features == expected_features

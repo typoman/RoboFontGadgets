@@ -8,6 +8,7 @@ from warnings import warn
 from copy import deepcopy
 from fontgadgets.decorators import *
 from fontgadgets import patch
+from collections import defaultdict
 import os
 from io import StringIO
 import logging
@@ -15,7 +16,7 @@ import logging
 SHIFT = " " * 4
 
 # Supresses feaLib parser warnings for ambigious glyph range
-logging.getLogger('fontTools.feaLib.parser').setLevel(logging.ERROR)
+logging.getLogger("fontTools.feaLib.parser").setLevel(logging.ERROR)
 
 
 class GlyphFeatures:
@@ -83,7 +84,6 @@ class GlyphFeatures:
         self._checked_for_num_source_glyphs = {}  # to avoid infinite recursion
         self._featureFile = None
 
-
     @property
     def rules(self):
         """
@@ -111,28 +111,65 @@ class GlyphFeatures:
                 self._lookups.append(r.lookup)
         return self._lookups
 
-    def _getFeatures(self):
+    def toDict(self):
+        """
+        Returns:
+            dict: A dictionary representation of the rules associated with the
+            glyph, organized by feature, language system, and lookup. The keys
+            of the top-level dictionary are feature names (e.g., "liga",
+            "smcp"). Each feature name maps to another dictionary where keys
+            are language system tuples (script, lang). These language system
+            keys map to a further dictionary where keys are lookup IDs. Finally,
+            each lookup ID maps to a list of rule objects associated with that
+            feature, language system, and lookup.
+
+            For example, for the glyph "lam_alef-ar" in an Arabic font, the
+            `rulesDict` might look like this:
+
+            ```python
+            {
+                "rlig": {
+                    ("DFLT", "dflt"): {
+                        3: [LigatureSubstStatement]
+                    }
+                },
+            }
+            ```
+
+            This indicates that for the "rlig" feature, within the default
+            language system, and specifically within the third lookup, there
+            is a `LigatureSubstStatement` rule involving the "lam_alef-ar"
+            glyph (e.g., substituting "lam-ar.init alef-ar.fina" with
+            "lam_alef-ar").
+        """
         if self._features != {}:
             return self._features
-        for r in self.rules:
-            for fea in r.lookup.features:
-                self._features.setdefault(fea, []).append(r)
+        self._features = {}
+
+        for rule in self.rules:
+            lookup = rule.lookup
+            for scriptLang, featuresList in lookup.langsysFeatureMap.items():
+                for fea in featuresList:
+                    feature_dict = self._features.setdefault(fea.name, {})
+                    langsys_dict = feature_dict.setdefault(scriptLang, {})
+                    rules_list = langsys_dict.setdefault(lookup.id, [])
+                    rules_list.append(rule.asFea())
         return self._features
 
     def __iter__(self):
-        return iter(self._getFeatures())
+        return iter(self.toDict())
 
     def keys(self):
-        return self._getFeatures().keys()
+        return self.toDict().keys()
 
     def values(self):
-        return self._getFeatures().values()
+        return self.toDict().values()
 
     def items(self):
-        return self._getFeatures().items()
+        return self.toDict().items()
 
     def __getitem__(self, key):
-        return self._getFeatures()[key]
+        return self.toDict()[key]
 
     @property
     def languageSystems(self):
@@ -179,43 +216,6 @@ class GlyphFeatures:
                 self._checked_for_num_source_glyphs[gname] = num_comp
                 return num_comp
         return 0
-
-    @property
-    def rulesDict(self):
-        """
-        Returns:
-            dict: A dictionary representation of the rules associated with the
-            glyph, organized by feature and language system. The keys of the
-            dictionary are feature names (e.g., "liga", "smcp"). Each feature
-            name maps to another dictionary where keys are language system
-            tuples (script, lang) and values are lists of rule strings in
-            Feature File syntax (e.g., "sub f i by f_i;").
-
-            For example, for the glyph "lam_alef-ar" in an Arabic font, the
-            `rulesDict` might look like this:
-
-            ```python
-            {
-                "rlig": {
-                    ("DFLT", "dflt"): ["sub lam-ar.init alef-ar.fina by lam_alef-ar;"]
-                },
-            }
-            ```
-
-            This indicates that for the "rlig" feature in the default language
-            system, the sequence "lam-ar.init alef-ar.fina" is substituted by
-            "lam_alef-ar".
-        """
-
-        features = {}
-        for rule in self.rules:
-            lookup = rule.lookup
-            for scriptLang, featuresList in lookup.langsysFeatureMap.items():
-                for fea in featuresList:
-                    features.setdefault(fea.name, {}).setdefault(scriptLang, []).append(
-                        rule.asFea()
-                    )
-        return features
 
     def __str__(self):
         return f"<GlyphFeatures: {str(self.rulesDict)}>"
@@ -523,7 +523,9 @@ class ParsedFeatureFile:
                 lookup, "langsysFeatureMap", scriptLang, self._currentFeature
             )
 
-    def _appendToDictAttribute(self, element, attributeNameInElement, dictKey, astObject):
+    def _appendToDictAttribute(
+        self, element, attributeNameInElement, dictKey, astObject
+    ):
         if astObject is not None:
             existing = getattr(element, attributeNameInElement, {})
             for existingTags, existingReferences in existing.items():
@@ -547,23 +549,23 @@ class ParsedFeatureFile:
         # make a nameless one and add the current rule to it.
 
         if self._currentLookup and self._currentLookup.rules:
-                if (
-                    type(rule) is type(self._currentLookup.rules[0])
-                    and self._currentLookup.flag == self._currentLookupFlag
-                ):
-                    rule.lookup = self._currentLookup
-                    self._currentLookup.rules.append(rule)
-                    return
+            if (
+                type(rule) is type(self._currentLookup.rules[0])
+                and self._currentLookup.flag == self._currentLookupFlag
+            ):
+                rule.lookup = self._currentLookup
+                self._currentLookup.rules.append(rule)
+                return
 
-                if (
-                    type(rule) is not type(self._currentLookup.rules[0])
-                    and self._currentLookup.name is not None
-                ):
-                    raise FeatureLibError(
-                        "Within a named lookup block, all rules must be of "
-                        "the same lookup type and flag",
-                        rule.location,
-                    )
+            if (
+                type(rule) is not type(self._currentLookup.rules[0])
+                and self._currentLookup.name is not None
+            ):
+                raise FeatureLibError(
+                    "Within a named lookup block, all rules must be of "
+                    "the same lookup type and flag",
+                    rule.location,
+                )
 
         if self._currentLookup is None:
             self._currentLookup = NamelessLookup()
