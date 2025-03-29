@@ -65,7 +65,9 @@ class AstToDictTest(unittest.TestCase):
         gc_def = doc.statements[0]
         glyph_class = gc_def.glyphs
         self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {"GlyphClass": [{"GlyphRange": ({"Glyph": "A"}, {"Glyph": "C"})}]}
+        expected_dict = {
+            "GlyphClass": [{"GlyphRange": ({"Glyph": "A"}, {"Glyph": "C"})}]
+        }
         self.assertEqual(glyph_class.toDict(), expected_dict)
 
     def test_glyphClass_toDict_mixed(self):
@@ -243,7 +245,6 @@ class AstToDictTest(unittest.TestCase):
                                     "LigatureSubstitution": {
                                         "In": [{"Glyph": "f"}, {"Glyph": "i"}],
                                         "Out": {"Glyph": "f_i"},
-                                        "Chained": False,
                                     }
                                 }
                             ],
@@ -267,7 +268,6 @@ class AstToDictTest(unittest.TestCase):
                         "LigatureSubstitution": {
                             "In": [{"Glyph": "f"}, {"Glyph": "i"}],
                             "Out": {"Glyph": "f_i"},
-                            "Chained": False,
                         }
                     }
                 ],
@@ -345,7 +345,9 @@ class AstToDictTest(unittest.TestCase):
         expected_dict = {
             "GlyphDefinitionClass": {
                 "Name": "myClass",
-                "Glyphs": {"GlyphClass": [{"Glyph": "A"}, {"Glyph": "B"}, {"Glyph": "C"}]},
+                "Glyphs": {
+                    "GlyphClass": [{"Glyph": "A"}, {"Glyph": "B"}, {"Glyph": "C"}]
+                },
             }
         }
         self.assertEqual(gc_def.toDict(), expected_dict)
@@ -557,7 +559,6 @@ class AstToDictTest(unittest.TestCase):
             "LigatureSubstitution": {
                 "In": [{"Glyph": "f"}, {"Glyph": "f"}, {"Glyph": "i"}],
                 "Out": {"Glyph": "f_f_i"},
-                "Chained": False,
             }
         }
         self.assertEqual(lig_sub.toDict(), expected_dict)
@@ -1176,7 +1177,9 @@ class AstToDictTest(unittest.TestCase):
         self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
         expected_dict = {
             "LookupFlag": {
-                "MarkAttachment": {"GlyphClass": [{"Glyph": "acute"}, {"Glyph": "grave"}]}
+                "MarkAttachment": {
+                    "GlyphClass": [{"Glyph": "acute"}, {"Glyph": "grave"}]
+                }
             }
         }
         self.assertEqual(lookup_flag.toDict(), expected_dict)
@@ -1468,7 +1471,9 @@ class AstToDictTest(unittest.TestCase):
         expected_dict = {
             "ReverseChainSingleSubstitution": {
                 "Prefix": [{"Glyph": "A"}],
-                "In": [{"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}],
+                "In": [
+                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}
+                ],
                 "Suffix": [{"Glyph": "D"}],
                 "Out": [{"Glyph": "X"}],
             }
@@ -1554,9 +1559,15 @@ class AstToDictTest(unittest.TestCase):
         self.assertIsInstance(single_sub, ast.SingleSubstStatement)
         expected_dict = {
             "SingleSubstitution": {
-                "In": [{"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}],
+                "In": [
+                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}
+                ],
                 "Out": [
-                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}]}
+                    {
+                        "GlyphClass": [
+                            {"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}
+                        ]
+                    }
                 ],
             }
         }
@@ -1569,10 +1580,16 @@ class AstToDictTest(unittest.TestCase):
         expected_dict = {
             "SingleSubstitution": {
                 "Prefix": [{"Glyph": "X"}],
-                "In": [{"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}],
+                "In": [
+                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}
+                ],
                 "Suffix": [{"Glyph": "Y"}],
                 "Out": [
-                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}]}
+                    {
+                        "GlyphClass": [
+                            {"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}
+                        ]
+                    }
                 ],
                 "Chained": True,
             }

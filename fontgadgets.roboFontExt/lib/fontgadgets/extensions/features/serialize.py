@@ -39,13 +39,14 @@ def _attrToDict(value, key=None):
 
 
 def _attr_is_not_set(attribute):
-  if attribute is None:
-    return True
-  if isinstance(attribute, (list, dict, set, tuple)):
-    return not bool(attribute)
-  if attribute is False:
-    return True
-  return False
+    if attribute is None:
+        return True
+    if isinstance(attribute, (list, dict, set, tuple)):
+        return not bool(attribute)
+    if attribute is False:
+        return True
+    return False
+
 
 @patch.method(ast.Element)
 def toDict(self):
@@ -75,7 +76,6 @@ def toDict(self):
                 result.update(_attrToDict(nested_value, nested_target))
 
     return {class_name: result}
-
 
 
 ast.Element._serialize_attrs = None
@@ -313,6 +313,7 @@ ast.IncludeStatement._serialize_attrs = "filename"
 ast.ScriptStatement._serialize_name = "Script"
 ast.ScriptStatement._serialize_attrs = "script"
 
+
 @patch.method(ast.LanguageStatement)
 def toDict(self):
     result = {"Language": self.language.strip()}
@@ -322,8 +323,13 @@ def toDict(self):
         result["Required"] = True
     return {"LanguageStatement": result}
 
+
 ast.LanguageSystemStatement._serialize_name = "LanguageSystem"
-ast.LanguageSystemStatement._serialize_attrs = {"script": "Script", "language": "Language"}
+ast.LanguageSystemStatement._serialize_attrs = {
+    "script": "Script",
+    "language": "Language",
+}
+
 
 @patch.method(ast.FontRevisionStatement)
 def toDict(self):
@@ -349,8 +355,10 @@ def toDict(self):
     result = {
         "In": [g.toDict() for g in self.glyphs],
         "Out": _glyphsToDict(self.replacement),
-        "Chained": self.forceChain,
     }
+
+    if self.forceChain:
+        result["Chained"] = True
 
     if len(self.prefix):
         result["Prefix"] = [p.toDict() for p in self.prefix]
@@ -503,6 +511,7 @@ def toDict(self):
 
 ast.SubtableStatement._serialize_name = "Subtable"
 
+
 @patch.method(ast.ValueRecordDefinition)
 def toDict(self):
     value_dict = self.value.toDict()
@@ -588,7 +597,6 @@ def toDict(self):
     }
 
 
-
 @patch.method(ast.OS2Field)
 def toDict(self):
     key_map = {
@@ -648,6 +656,7 @@ def toDict(self):
     fields = ("VertTypoAscender", "VertTypoDescender", "VertTypoLineGap")
     canonical_key = next((f for f in fields if f.lower() == self.key), self.key)
     return {"VheaField": {canonical_key: self.value}}
+
 
 @patch.method(ast.STATDesignAxisStatement)
 def toDict(self):
