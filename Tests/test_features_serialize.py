@@ -396,18 +396,14 @@ class AstToDictTest(unittest.TestCase):
         attach_stmt = doc.statements[0].statements[0]
         self.assertIsInstance(attach_stmt, ast.AttachStatement)
         expected_dict = {
-            "AttachStatement": {
+            "Attach": {
                 "Glyphs": {"Glyph": "a"},
                 "ContourPoints": [
                     1
                 ],  # Note: parser makes this a set, but spec shows list
             }
         }
-        actual = attach_stmt.toDict()
-        actual["AttachStatement"]["ContourPoints"] = list(
-            actual["AttachStatement"]["ContourPoints"]
-        )
-        self.assertEqual(actual, expected_dict)
+        self.assertEqual(attach_stmt.toDict(), expected_dict)
 
     def test_chainContextPosStatement_toDict(self):
         doc = self.parse(
@@ -997,7 +993,7 @@ class AstToDictTest(unittest.TestCase):
         attach_stmt = doc.statements[1].statements[0]
         self.assertIsInstance(attach_stmt, ast.AttachStatement)
         expected_dict = {
-            "AttachStatement": {
+            "Attach": {
                 "Glyphs": {"ClassName": "C"},
                 "ContourPoints": [2],
             }

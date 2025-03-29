@@ -241,6 +241,7 @@ ast.AttachStatement._serialize_attrs = {
     "glyphs": "Glyphs",
     "contourPoints": "ContourPoints",
 }
+ast.AttachStatement._serialize_name =  "Attach"
 
 
 def _chain_context_to_dict(self, key):
