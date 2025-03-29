@@ -322,7 +322,7 @@ def toDict(self):
         result["ExcludeDefault"] = True
     if self.required:
         result["Required"] = True
-    return {"LanguageStatement": result}
+    return result
 
 
 ast.LanguageSystemStatement._serialize_name = "LanguageSystem"

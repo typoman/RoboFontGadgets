@@ -506,7 +506,7 @@ class AstToDictTest(unittest.TestCase):
         doc = self.parse("feature test { language DEU required; } test;")
         lang_stmt = doc.statements[0].statements[0]
         self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {"LanguageStatement": {"Language": "DEU", "Required": True}}
+        expected_dict = {"Language": "DEU", "Required": True}
         self.assertEqual(lang_stmt.toDict(), expected_dict)
 
     def test_languageSystemStatement_toDict(self):
@@ -1078,16 +1078,14 @@ class AstToDictTest(unittest.TestCase):
         doc = self.parse("feature test { language NLD; } test;")
         lang_stmt = doc.statements[0].statements[0]
         self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {"LanguageStatement": {"Language": "NLD"}}
+        expected_dict = {"Language": "NLD"}
         self.assertEqual(lang_stmt.toDict(), expected_dict)
 
     def test_languageStatement_toDict_exclude(self):
         doc = self.parse("feature test { language NLD exclude_dflt; } test;")
         lang_stmt = doc.statements[0].statements[0]
         self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {
-            "LanguageStatement": {"Language": "NLD", "ExcludeDefault": True}
-        }
+        expected_dict = {"Language": "NLD", "ExcludeDefault": True}
         self.assertEqual(lang_stmt.toDict(), expected_dict)
 
     def test_languageStatement_toDict_exclude_required(self):
@@ -1095,11 +1093,9 @@ class AstToDictTest(unittest.TestCase):
         lang_stmt = doc.statements[0].statements[0]
         self.assertIsInstance(lang_stmt, ast.LanguageStatement)
         expected_dict = {
-            "LanguageStatement": {
                 "Language": "NLD",
                 "ExcludeDefault": True,
                 "Required": True,
-            }
         }
         self.assertEqual(lang_stmt.toDict(), expected_dict)
 
