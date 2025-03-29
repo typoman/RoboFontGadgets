@@ -241,7 +241,7 @@ ast.AttachStatement._serialize_attrs = {
     "glyphs": "Glyphs",
     "contourPoints": "ContourPoints",
 }
-ast.AttachStatement._serialize_name =  "Attach"
+ast.AttachStatement._serialize_name = "Attach"
 
 
 def _chain_context_to_dict(self, key):
@@ -351,20 +351,28 @@ def toDict(self):
     return _ligature_caret_to_dict(self, "LigatureCaretByPosition")
 
 
+def _optional_context_to_dict(self):
+    result = {}
+    has_context = False
+    if len(self.prefix):
+        result["Prefix"] = [p.toDict() for p in self.prefix]
+        has_context = True
+    if len(self.suffix):
+        result["Suffix"] = [s.toDict() for s in self.suffix]
+        has_context = True
+
+    if not has_context and self.forceChain:
+        result["Chained"] = True
+    return result
+
+
 @patch.method(ast.LigatureSubstStatement)
 def toDict(self):
     result = {
         "In": [g.toDict() for g in self.glyphs],
         "Out": _glyphsToDict(self.replacement),
     }
-
-    if self.forceChain:
-        result["Chained"] = True
-
-    if len(self.prefix):
-        result["Prefix"] = [p.toDict() for p in self.prefix]
-    if len(self.suffix):
-        result["Suffix"] = [s.toDict() for s in self.suffix]
+    result.update(_optional_context_to_dict(self))
     return {"LigatureSubstitution": result}
 
 
@@ -430,14 +438,15 @@ def toDict(self):
     }
 
 
-ast.MultipleSubstStatement._serialize_name = "MultipleSubstitution"
-ast.MultipleSubstStatement._serialize_attrs = {
-    "prefix": "Prefix",
-    "glyph": "In",
-    "suffix": "Suffix",
-    "forceChain": "Chained",
-    "replacement": "Out",
-}
+@patch.method(ast.MultipleSubstStatement)
+def toDict(self):
+    result = {
+        "In": self.glyph.toDict(),
+        "Out": [_glyphsToDict(r) for r in self.replacement],
+    }
+
+    result.update(_optional_context_to_dict(self))
+    return {"MultipleSubstitution": result}
 
 
 @patch.method(ast.PairPosStatement)
@@ -480,14 +489,14 @@ ast.ReverseChainSingleSubstStatement._serialize_attrs = {
 }
 
 
-ast.SingleSubstStatement._serialize_name = "SingleSubstitution"
-ast.SingleSubstStatement._serialize_attrs = {
-    "glyphs": "In",
-    "replacements": "Out",
-    "prefix": "Prefix",
-    "suffix": "Suffix",
-    "forceChain": "Chained",
-}
+@patch.method(ast.SingleSubstStatement)
+def toDict(self):
+    result = {
+        "In": [_glyphsToDict(g) for g in self.glyphs],
+        "Out": [_glyphsToDict(r) for r in self.replacements],
+    }
+    result.update(_optional_context_to_dict(self))
+    return {"SingleSubstitution": result}
 
 
 @patch.method(ast.SinglePosStatement)
@@ -497,16 +506,8 @@ def toDict(self):
         positions_list.append(
             {"Glyph": _glyphsToDict(g), "Value": v.toDict() if v else None}
         )
-
     result = {"Positions": positions_list}
-
-    if len(self.prefix) or len(self.suffix) or self.forceChain:
-        if len(self.prefix):
-            result["Prefix"] = [p.toDict() for p in self.prefix]
-        if len(self.suffix):
-            result["Suffix"] = [s.toDict() for s in self.suffix]
-        if self.forceChain:
-            result["Chained"] = True
+    result.update(_optional_context_to_dict(self))
     return {"SinglePositioning": result}
 
 

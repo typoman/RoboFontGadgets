@@ -1234,7 +1234,6 @@ class AstToDictTest(unittest.TestCase):
                     }
                 ],
                 "Suffix": [{"Glyph": "B"}],
-                "Chained": True,
             }
         }
         self.assertEqual(single_pos.toDict(), expected_dict)
@@ -1511,7 +1510,6 @@ class AstToDictTest(unittest.TestCase):
                 "In": [{"Glyph": "A"}],
                 "Out": [{"Glyph": "C"}],
                 "Suffix": [{"Glyph": "B"}],
-                "Chained": True,
             }
         }
         self.assertEqual(single_sub.toDict(), expected_dict)
@@ -1540,7 +1538,6 @@ class AstToDictTest(unittest.TestCase):
                 "In": [{"ClassName": "lower"}],
                 "Suffix": [{"Glyph": "D"}],
                 "Out": [{"Glyph": "a.sc"}],
-                "Chained": True,
             }
         }
         self.assertEqual(single_sub.toDict(), expected_dict)
@@ -1583,7 +1580,6 @@ class AstToDictTest(unittest.TestCase):
                         ]
                     }
                 ],
-                "Chained": True,
             }
         }
         self.assertEqual(single_sub.toDict(), expected_dict)
@@ -1597,7 +1593,6 @@ class AstToDictTest(unittest.TestCase):
                 "Prefix": [{"Glyph": "A"}],
                 "In": {"Glyph": "f_i"},
                 "Suffix": [{"Glyph": "B"}],
-                "Chained": True,
                 "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
             }
         }
@@ -1696,7 +1691,6 @@ class AstToDictTest(unittest.TestCase):
                 "In": [{"Glyph": "f"}, {"Glyph": "f"}, {"Glyph": "i"}],
                 "Suffix": [{"Glyph": "Y"}],
                 "Out": {"Glyph": "f_f_i"},
-                "Chained": True,
             }
         }
         self.assertEqual(lig_sub.toDict(), expected_dict)
