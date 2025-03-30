@@ -293,9 +293,6 @@ class AstToDictTest(unittest.TestCase):
                             "FeatureName": {
                                 "Type": "Name",
                                 "String": "Alternate",
-                                "PlatformID": 3,
-                                "PlatformEncodingID": 1,
-                                "LanguageID": 1033,
                             }
                         }
                     ],
@@ -727,9 +724,6 @@ class AstToDictTest(unittest.TestCase):
             {
                 "NameRecord": {
                     "String": "Family Name",
-                    "PlatformID": 3,
-                    "PlatformEncodingID": 1,
-                    "LanguageID": 1033,
                 }
             },
             "statements.0.statements.0",
@@ -742,9 +736,6 @@ class AstToDictTest(unittest.TestCase):
                 "FeatureName": {
                     "Type": "Name",
                     "String": "Alternate 1",
-                    "PlatformID": 3,
-                    "PlatformEncodingID": 1,
-                    "LanguageID": 1033,
                 }
             },
             "statements.0.statements.0.statements.0",
@@ -756,9 +747,6 @@ class AstToDictTest(unittest.TestCase):
             {
                 "STATName": {
                     "String": "Weight",
-                    "PlatformID": 3,
-                    "PlatformEncodingID": 1,
-                    "LanguageID": 1033,
                 }
             },
             "statements.0.statements.0.names.0",
@@ -770,9 +758,6 @@ class AstToDictTest(unittest.TestCase):
             {
                 "CVParametersName": {
                     "String": "Cv Param Name",
-                    "PlatformID": 3,
-                    "PlatformEncodingID": 1,
-                    "LanguageID": 1033,
                 }
             },
             "statements.0.statements.0.statements.0.statements.0",
@@ -831,9 +816,6 @@ class AstToDictTest(unittest.TestCase):
                         {
                             "STATName": {
                                 "String": "Weight",
-                                "PlatformID": 3,
-                                "PlatformEncodingID": 1,
-                                "LanguageID": 1033,
                             }
                         }
                     ],
@@ -851,9 +833,6 @@ class AstToDictTest(unittest.TestCase):
                         {
                             "STATName": {
                                 "String": "Regular",
-                                "PlatformID": 3,
-                                "PlatformEncodingID": 1,
-                                "LanguageID": 1033,
                             }
                         }
                     ]
@@ -881,9 +860,6 @@ class AstToDictTest(unittest.TestCase):
                         {
                             "STATName": {
                                 "String": "Regular",
-                                "PlatformID": 3,
-                                "PlatformEncodingID": 1,
-                                "LanguageID": 1033,
                             }
                         }
                     ],
@@ -1399,9 +1375,6 @@ class AstToDictTest(unittest.TestCase):
                         {
                             "STATName": {
                                 "String": "Reg",
-                                "PlatformID": 3,
-                                "PlatformEncodingID": 1,
-                                "LanguageID": 1033,
                             }
                         },
                         {

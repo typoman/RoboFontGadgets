@@ -466,7 +466,7 @@ def toDict(self):
     }
 
     if self.enumerated:
-       result["Enumerated"] = self.enumerated
+        result["Enumerated"] = self.enumerated
 
     if hasattr(self, "valuerecord2") and self.valuerecord2 is not None:
         result["Value2"] = value_record_to_dict(self.valuerecord2)
@@ -531,6 +531,19 @@ def _platform_record_to_dict(self, string):
     if self.platEncID is not None:
         result["PlatformEncodingID"] = self.platEncID
     if self.langID is not None:
+        result["LanguageID"] = self.langID
+    return result
+
+
+def _platform_record_to_dict(self, string):
+    result = {"String": string}
+    if self.platformID == 3 and self.platEncID == 1 and self.langID == 1033:
+        return result
+    elif self.platformID == 1 and self.platEncID == 0 and self.langID == 0:
+        result["PlatformID"] = 1
+    else:
+        result["PlatformID"] = self.platformID
+        result["PlatformEncodingID"] = self.platEncID
         result["LanguageID"] = self.langID
     return result
 
