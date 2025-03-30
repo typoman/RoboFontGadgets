@@ -746,13 +746,8 @@ class AstToDictTest(unittest.TestCase):
                 "LanguageID": 1033,
             }
         }
-        # Simplify check for default name record attributes
         actual_dict = name_record.toDict()
-        self.assertEqual(actual_dict["NameRecord"]["String"], "Family Name")
-        # Check if default attributes are present (adjust if parser defaults change)
-        self.assertIn("PlatformID", actual_dict["NameRecord"])
-        self.assertIn("PlatformEncodingID", actual_dict["NameRecord"])
-        self.assertIn("LanguageID", actual_dict["NameRecord"])
+        self.assertEqual(name_record.toDict(), expected_dict)
 
     def test_featureNameStatement_toDict(self):
         doc = self.parse('feature ss01 { featureNames { name "Alternate 1"; }; } ss01;')
@@ -899,12 +894,7 @@ class AstToDictTest(unittest.TestCase):
                 ]
             }
         }
-        actual_dict = elided_name.toDict()
-        self.assertEqual(len(actual_dict["ElidedFallbackName"]["Names"]), 1)
-        self.assertEqual(
-            actual_dict["ElidedFallbackName"]["Names"][0]["STATName"]["String"],
-            "Regular",
-        )
+        self.assertEqual(elided_name.toDict(), expected_dict)
 
     def test_elidedFallbackNameID_toDict(self):
         doc = self.parse("table STAT { ElidedFallbackNameID 256; } STAT;")
