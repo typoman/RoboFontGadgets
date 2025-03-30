@@ -37,1749 +37,1658 @@ class AstToDictTest(unittest.TestCase):
         p = Parser(featurefile, glyphNames, followIncludes=followIncludes)
         return p.parse()
 
-    def test_comment_toDict(self):
-        doc = self.parse("# Initial comment")
-        comment_node = doc.statements[0]
-        self.assertIsInstance(comment_node, ast.Comment)
-        expected_dict = {"Comment": "# Initial comment"}
-        self.assertEqual(comment_node.toDict(), expected_dict)
+    def _select_node(self, doc, selector):
+        """Select a node from the AST using a dot-notation selector string."""
+        node = doc
+        for part in selector.split("."):
+            if part.isdigit():
+                node = node[int(part)]
+            elif part == "glyphs":
+                # Special case for glyph classes
+                node = node.glyphs
+            elif hasattr(node, part):
+                node = getattr(node, part)
+            elif hasattr(node, "statements"):
+                # Try to find in statements if direct attribute doesn't exist
+                found = False
+                for stmt in node.statements:
+                    if hasattr(stmt, part):
+                        node = getattr(stmt, part)
+                        found = True
+                        break
+                if not found:
+                    raise ValueError(f"Couldn't find node part '{part}'")
+            else:
+                raise ValueError(f"Couldn't find node part '{part}'")
+        return node
 
-    def test_glyphName_toDict(self):
-        doc = self.parse("feature test { sub A by B; } test;")
-        sub_statement = doc.statements[0].statements[0]
-        glyph_a = sub_statement.glyphs[0]
-        self.assertIsInstance(glyph_a, ast.GlyphName)
-        expected_dict = {"Glyph": "A"}
-        self.assertEqual(glyph_a.toDict(), expected_dict)
+    def assertAstToDictEqual(self, feature_text, expected_dict, node_selector=None):
+        doc = self.parse(feature_text)
+        if isinstance(node_selector, str):
+            node = self._select_node(doc, node_selector)
+        elif callable(node_selector):
+            node = node_selector(doc)
+        else:
+            node = doc.statements[0]
+        self.assertEqual(node.toDict(), expected_dict)
 
-    def test_glyphClass_toDict_simple(self):
-        doc = self.parse("@myClass = [A B C];")
-        gc_def = doc.statements[0]
-        glyph_class = gc_def.glyphs
-        self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {"GlyphClass": [{"Glyph": "A"}, {"Glyph": "B"}, {"Glyph": "C"}]}
-        self.assertEqual(glyph_class.toDict(), expected_dict)
+    def test_comment(self):
+        self.assertAstToDictEqual("# Initial comment", {"Comment": "# Initial comment"})
 
-    def test_glyphClass_toDict_range(self):
-        doc = self.parse("@myRange = [A-C];")
-        gc_def = doc.statements[0]
-        glyph_class = gc_def.glyphs
-        self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {
-            "GlyphClass": [{"GlyphRange": ({"Glyph": "A"}, {"Glyph": "C"})}]
-        }
-        self.assertEqual(glyph_class.toDict(), expected_dict)
-
-    def test_glyphClass_toDict_mixed(self):
-        doc = self.parse("@myMixed = [X A-C Y];")
-        gc_def = doc.statements[0]
-        glyph_class = gc_def.glyphs
-        self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {
-            "GlyphClass": [
-                {"Glyph": "X"},
-                {"GlyphRange": ({"Glyph": "A"}, {"Glyph": "C"})},
-                {"Glyph": "Y"},
-            ]
-        }
-        self.assertEqual(glyph_class.toDict(), expected_dict)
-
-    def test_glyphClassName_toDict(self):
-        doc = self.parse("@myClass = [A B]; feature test { sub @myClass by C; } test;")
-        sub_statement = doc.statements[1].statements[0]
-        glyph_class_name = sub_statement.glyphs[0]
-        self.assertIsInstance(glyph_class_name, ast.GlyphClassName)
-        expected_dict = {"ClassName": "myClass"}
-        self.assertEqual(glyph_class_name.toDict(), expected_dict)
-
-    def test_anchor_toDict_simple(self):
-        doc = self.parse(
-            "feature test { pos cursive A <anchor 120 -20> <anchor NULL>; } test;"
+    def test_glyphName(self):
+        self.assertAstToDictEqual(
+            "feature test { sub A by B; } test;",
+            {"Glyph": "A"},
+            "statements.0.statements.0.glyphs.0",
         )
-        cursive_pos = doc.statements[0].statements[0]
-        anchor = cursive_pos.entryAnchor
-        self.assertIsInstance(anchor, ast.Anchor)
-        expected_dict = {"Anchor": {"X": 120, "Y": -20}}
-        self.assertEqual(anchor.toDict(), expected_dict)
 
-    def test_anchor_toDict_contourpoint(self):
-        doc = self.parse(
-            "feature test { pos cursive A <anchor 120 -20 contourpoint 5> <anchor NULL>; } test;"
+    def test_glyphClass_simple(self):
+        self.assertAstToDictEqual(
+            "@myClass = [A B C];",
+            {"GlyphClass": [{"Glyph": "A"}, {"Glyph": "B"}, {"Glyph": "C"}]},
+            "statements.0.glyphs",
         )
-        cursive_pos = doc.statements[0].statements[0]
-        anchor = cursive_pos.entryAnchor
-        self.assertIsInstance(anchor, ast.Anchor)
-        expected_dict = {"Anchor": {"X": 120, "Y": -20, "ContourPoint": 5}}
-        self.assertEqual(anchor.toDict(), expected_dict)
 
-    def test_anchor_toDict_device(self):
-        doc = self.parse(
-            "feature test { pos cursive A <anchor 120 -20 <device 11 111> <device NULL>> <anchor NULL>; } test;"
+    def test_glyphClass_range(self):
+        self.assertAstToDictEqual(
+            "@myRange = [A-C];",
+            {"GlyphClass": [{"GlyphRange": ({"Glyph": "A"}, {"Glyph": "C"})}]},
+            "statements.0.glyphs",
         )
-        cursive_pos = doc.statements[0].statements[0]
-        anchor = cursive_pos.entryAnchor
-        self.assertIsInstance(anchor, ast.Anchor)
-        expected_dict = {
-            "Anchor": {
-                "X": 120,
-                "Y": -20,
-                "XDevice": [{"Size": 11, "Value": 111}],
-            }
-        }
-        self.assertEqual(anchor.toDict(), expected_dict)
 
-    def test_anchor_toDict_named(self):
-        doc = self.parse(
-            "feature test { anchorDef 123 456 foo; pos cursive A <anchor foo> <anchor NULL>; } test;"
+    def test_glyphClass_mixed(self):
+        self.assertAstToDictEqual(
+            "@myMixed = [X A-C Y];",
+            {
+                "GlyphClass": [
+                    {"Glyph": "X"},
+                    {"GlyphRange": ({"Glyph": "A"}, {"Glyph": "C"})},
+                    {"Glyph": "Y"},
+                ]
+            },
+            "statements.0.glyphs",
         )
-        cursive_pos = doc.statements[0].statements[1]
-        anchor = cursive_pos.entryAnchor
-        self.assertIsInstance(anchor, ast.Anchor)
-        expected_dict = {"Anchor": {"Name": "foo"}}
-        self.assertEqual(anchor.toDict(), expected_dict)
 
-    def test_anchorDefinition_toDict(self):
-        doc = self.parse("anchorDef 123 456 foo;")
-        anchor_def = doc.statements[0]
-        self.assertIsInstance(anchor_def, ast.AnchorDefinition)
-        expected_dict = {"AnchorDefinition": {"Name": "foo", "X": 123, "Y": 456}}
-        self.assertEqual(anchor_def.toDict(), expected_dict)
-
-    def test_anchorDefinition_toDict_contourpoint(self):
-        doc = self.parse("anchorDef 123 456 contourpoint 5 foo;")
-        anchor_def = doc.statements[0]
-        self.assertIsInstance(anchor_def, ast.AnchorDefinition)
-        expected_dict = {
-            "AnchorDefinition": {"Name": "foo", "X": 123, "Y": 456, "ContourPoint": 5}
-        }
-        self.assertEqual(anchor_def.toDict(), expected_dict)
-
-    def test_valueRecord_toDict_simple_horiz(self):
-        doc = self.parse("feature kern { pos A B -50; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        value_rec = pair_pos.valuerecord1
-        self.assertIsInstance(value_rec, ast.ValueRecord)
-        expected_dict = {"ValueRecord": {"XAdvance": -50}}
-        self.assertEqual(value_rec.toDict(), expected_dict)
-
-    def test_valueRecord_toDict_simple_vert(self):
-        doc = self.parse("feature vkrn { pos A B -50; } vkrn;")
-        pair_pos = doc.statements[0].statements[0]
-        value_rec = pair_pos.valuerecord1
-        self.assertIsInstance(value_rec, ast.ValueRecord)
-        expected_dict = {"ValueRecord": {"YAdvance": -50, "Vertical": True}}
-        self.assertEqual(value_rec.toDict(), expected_dict)
-
-    def test_valueRecord_toDict_full(self):
-        doc = self.parse("feature kern { pos A <1 2 3 4> B; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        value_rec = pair_pos.valuerecord1
-        self.assertIsInstance(value_rec, ast.ValueRecord)
-        expected_dict = {
-            "ValueRecord": {
-                "XPlacement": 1,
-                "YPlacement": 2,
-                "XAdvance": 3,
-                "YAdvance": 4,
-            }
-        }
-        self.assertEqual(value_rec.toDict(), expected_dict)
-
-    def test_valueRecord_toDict_device(self):
-        doc = self.parse(
-            "feature kern { pos A <1 2 3 4 <device 10 100> <device NULL> <device NULL> <device NULL>> B; } kern;"
+    def test_glyphClassName(self):
+        self.assertAstToDictEqual(
+            "@myClass = [A B]; feature test { sub @myClass by C; } test;",
+            {"ClassName": "myClass"},
+            "statements.1.statements.0.glyphs.0",
         )
-        pair_pos = doc.statements[0].statements[0]
-        value_rec = pair_pos.valuerecord1
-        self.assertIsInstance(value_rec, ast.ValueRecord)
-        expected_dict = {
-            "ValueRecord": {
-                "XPlacement": 1,
-                "YPlacement": 2,
-                "XAdvance": 3,
-                "YAdvance": 4,
-                "XPlacementDevice": [{"Size": 10, "Value": 100}],
-            }
-        }
-        self.assertEqual(value_rec.toDict(), expected_dict)
 
-    def test_valueRecordDefinition_toDict(self):
-        doc = self.parse("valueRecordDef 123 foo;")
-        vr_def = doc.statements[0]
-        self.assertIsInstance(vr_def, ast.ValueRecordDefinition)
-        expected_dict = {
-            "ValueRecordDefinition": {
-                "Name": "foo",
-                "Value": {"ValueRecord": {"XAdvance": 123}},
-            }
-        }
-        self.assertEqual(vr_def.toDict(), expected_dict)
+    def test_anchor_simple(self):
+        self.assertAstToDictEqual(
+            "feature test { pos cursive A <anchor 120 -20> <anchor NULL>; } test;",
+            {"Anchor": {"X": 120, "Y": -20}},
+            "statements.0.statements.0.entryAnchor",
+        )
 
-    def test_markClassName_toDict(self):
-        doc = self.parse("markClass A <anchor 0 0> @MC; @GC = [@MC];")
-        gc_def = doc.statements[1]
-        mark_class_name_node = gc_def.glyphs.original[0]
-        self.assertIsInstance(mark_class_name_node, ast.MarkClassName)
-        expected_dict = {"ClassName": "MC"}
-        self.assertEqual(mark_class_name_node.toDict(), expected_dict)
+    def test_anchor_contourpoint(self):
+        self.assertAstToDictEqual(
+            "feature test { pos cursive A <anchor 120 -20 contourpoint 5> <anchor NULL>; } test;",
+            {"Anchor": {"X": 120, "Y": -20, "ContourPoint": 5}},
+            "statements.0.statements.0.entryAnchor",
+        )
 
-    def test_anonymousBlock_toDict(self):
-        doc = self.parse("anon TEST {\n content \n} TEST;")
-        anon_block = doc.statements[0]
-        self.assertIsInstance(anon_block, ast.AnonymousBlock)
-        expected_dict = {"AnonymousBlock": {"Tag": "TEST", "Content": "content"}}
-        self.assertEqual(anon_block.toDict(), expected_dict)
+    def test_anchor_device(self):
+        self.assertAstToDictEqual(
+            "feature test { pos cursive A <anchor 120 -20 <device 11 111> <device NULL>> <anchor NULL>; } test;",
+            {
+                "Anchor": {
+                    "X": 120,
+                    "Y": -20,
+                    "XDevice": [{"Size": 11, "Value": 111}],
+                }
+            },
+            "statements.0.statements.0.entryAnchor",
+        )
 
-    def test_featureFile_toDict(self):
-        doc = self.parse("# File comment\nfeature liga { sub f i by f_i; } liga;")
-        self.assertIsInstance(doc, ast.FeatureFile)
-        expected_dict = {
-            "FeatureFile": {
-                "Statements": [
-                    {"Comment": "# File comment"},
-                    {
-                        "FeatureBlock": {
-                            "Name": "liga",
-                            "Statements": [
-                                {
-                                    "LigatureSubstitution": {
-                                        "In": [{"Glyph": "f"}, {"Glyph": "i"}],
-                                        "Out": {"Glyph": "f_i"},
+    def test_anchor_named(self):
+        self.assertAstToDictEqual(
+            "feature test { anchorDef 123 456 foo; pos cursive A <anchor foo> <anchor NULL>; } test;",
+            {"Anchor": {"Name": "foo"}},
+            "statements.0.statements.1.entryAnchor",
+        )
+
+    def test_anchorDefinition(self):
+        self.assertAstToDictEqual(
+            "anchorDef 123 456 foo;",
+            {"AnchorDefinition": {"Name": "foo", "X": 123, "Y": 456}},
+        )
+
+    def test_anchorDefinition_contourpoint(self):
+        self.assertAstToDictEqual(
+            "anchorDef 123 456 contourpoint 5 foo;",
+            {
+                "AnchorDefinition": {
+                    "Name": "foo",
+                    "X": 123,
+                    "Y": 456,
+                    "ContourPoint": 5,
+                }
+            },
+        )
+
+    def test_valueRecord_simple_horiz(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A B -50; } kern;",
+            {"ValueRecord": {"XAdvance": -50}},
+            "statements.0.statements.0.valuerecord1",
+        )
+
+    def test_valueRecord_simple_vert(self):
+        self.assertAstToDictEqual(
+            "feature vkrn { pos A B -50; } vkrn;",
+            {"ValueRecord": {"YAdvance": -50, "Vertical": True}},
+            "statements.0.statements.0.valuerecord1",
+        )
+
+    def test_valueRecord_full(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A <1 2 3 4> B; } kern;",
+            {
+                "ValueRecord": {
+                    "XPlacement": 1,
+                    "YPlacement": 2,
+                    "XAdvance": 3,
+                    "YAdvance": 4,
+                }
+            },
+            "statements.0.statements.0.valuerecord1",
+        )
+
+    def test_valueRecord_device(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A <1 2 3 4 <device 10 100> <device NULL> <device NULL> <device NULL>> B; } kern;",
+            {
+                "ValueRecord": {
+                    "XPlacement": 1,
+                    "YPlacement": 2,
+                    "XAdvance": 3,
+                    "YAdvance": 4,
+                    "XPlacementDevice": [{"Size": 10, "Value": 100}],
+                }
+            },
+            "statements.0.statements.0.valuerecord1",
+        )
+
+    def test_valueRecordDefinition(self):
+        self.assertAstToDictEqual(
+            "valueRecordDef 123 foo;",
+            {
+                "ValueRecordDefinition": {
+                    "Name": "foo",
+                    "Value": {"ValueRecord": {"XAdvance": 123}},
+                }
+            },
+        )
+
+    def test_markClassName(self):
+        self.assertAstToDictEqual(
+            "markClass A <anchor 0 0> @MC; @GC = [@MC];",
+            {"ClassName": "MC"},
+            "statements.1.glyphs.original.0",  # Accessing MarkClassName within GlyphClassDefinition
+        )
+
+    def test_anonymousBlock(self):
+        self.assertAstToDictEqual(
+            "anon TEST {\n content \n} TEST;",
+            {"AnonymousBlock": {"Tag": "TEST", "Content": "content"}},
+        )
+
+    def test_featureFile(self):
+        self.assertAstToDictEqual(
+            "# File comment\nfeature liga { sub f i by f_i; } liga;",
+            {
+                "FeatureFile": {
+                    "Statements": [
+                        {"Comment": "# File comment"},
+                        {
+                            "FeatureBlock": {
+                                "Name": "liga",
+                                "Statements": [
+                                    {
+                                        "LigatureSubstitution": {
+                                            "In": [{"Glyph": "f"}, {"Glyph": "i"}],
+                                            "Out": {"Glyph": "f_i"},
+                                        }
                                     }
-                                }
-                            ],
+                                ],
+                            }
+                        },
+                    ],
+                }
+            },
+            lambda doc: doc,
+        )
+
+    def test_featureBlock(self):
+        self.assertAstToDictEqual(
+            "feature liga useExtension { sub f i by f_i; } liga;",
+            {
+                "FeatureBlock": {
+                    "Name": "liga",
+                    "UseExtension": True,
+                    "Statements": [
+                        {
+                            "LigatureSubstitution": {
+                                "In": [{"Glyph": "f"}, {"Glyph": "i"}],
+                                "Out": {"Glyph": "f_i"},
+                            }
                         }
+                    ],
+                }
+            },
+        )
+
+    def test_nestedBlock(self):
+        self.assertAstToDictEqual(
+            'feature ss01 { featureNames { name "Alternate"; }; } ss01;',
+            {
+                "NestedBlock": {
+                    "Tag": "ss01",
+                    "BlockName": "featureNames",
+                    "Statements": [
+                        {
+                            "FeatureName": {
+                                "Type": "Name",
+                                "String": "Alternate",
+                                "PlatformID": 3,
+                                "PlatformEncodingID": 1,
+                                "LanguageID": 1033,
+                            }
+                        }
+                    ],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_lookupBlock(self):
+        self.assertAstToDictEqual(
+            "lookup MYLOOKUP { sub A by B; } MYLOOKUP;",
+            {
+                "LookupBlock": {
+                    "Name": "MYLOOKUP",
+                    "Statements": [
+                        {
+                            "SingleSubstitution": {
+                                "In": [{"Glyph": "A"}],
+                                "Out": [{"Glyph": "B"}],
+                            }
+                        }
+                    ],
+                }
+            },
+        )
+
+    def test_tableBlock(self):
+        self.assertAstToDictEqual(
+            "table GDEF { GlyphClassDef [A], [f_i], [acute], ; } GDEF;",
+            {
+                "TableBlock": {
+                    "Name": "GDEF",
+                    "Statements": [
+                        {
+                            "GlyphTypeDefinitions": {
+                                "BaseGlyphs": {"GlyphClass": [{"Glyph": "A"}]},
+                                "LigatureGlyphs": {"GlyphClass": [{"Glyph": "f_i"}]},
+                                "MarkGlyphs": {"GlyphClass": [{"Glyph": "acute"}]},
+                            }
+                        }
+                    ],
+                }
+            },
+        )
+
+    def test_glyphClassDefinition(self):
+        self.assertAstToDictEqual(
+            "@myClass = [A B C];",
+            {
+                "GlyphDefinitionClass": {
+                    "Name": "myClass",
+                    "Glyphs": {
+                        "GlyphClass": [{"Glyph": "A"}, {"Glyph": "B"}, {"Glyph": "C"}]
                     },
-                ],
-            }
-        }
-        self.assertEqual(doc.toDict(), expected_dict)
-
-    def test_featureBlock_toDict(self):
-        doc = self.parse("feature liga useExtension { sub f i by f_i; } liga;")
-        feature_block = doc.statements[0]
-        self.assertIsInstance(feature_block, ast.FeatureBlock)
-        expected_dict = {
-            "FeatureBlock": {
-                "Name": "liga",
-                "UseExtension": True,
-                "Statements": [
-                    {
-                        "LigatureSubstitution": {
-                            "In": [{"Glyph": "f"}, {"Glyph": "i"}],
-                            "Out": {"Glyph": "f_i"},
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(feature_block.toDict(), expected_dict)
-
-    def test_nestedBlock_toDict(self):
-        doc = self.parse('feature ss01 { featureNames { name "Alternate"; }; } ss01;')
-        feature_block = doc.statements[0]
-        nested_block = feature_block.statements[0]
-        self.assertIsInstance(nested_block, ast.NestedBlock)
-        expected_dict = {
-            "NestedBlock": {
-                "Tag": "ss01",
-                "BlockName": "featureNames",
-                "Statements": [
-                    {
-                        "FeatureName": {
-                            "Type": "Name",
-                            "String": "Alternate",
-                            "PlatformID": 3,
-                            "PlatformEncodingID": 1,
-                            "LanguageID": 1033,
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(nested_block.toDict(), expected_dict)
-
-    def test_lookupBlock_toDict(self):
-        doc = self.parse("lookup MYLOOKUP { sub A by B; } MYLOOKUP;")
-        lookup_block = doc.statements[0]
-        self.assertIsInstance(lookup_block, ast.LookupBlock)
-        expected_dict = {
-            "LookupBlock": {
-                "Name": "MYLOOKUP",
-                "Statements": [
-                    {
-                        "SingleSubstitution": {
-                            "In": [{"Glyph": "A"}],
-                            "Out": [{"Glyph": "B"}],
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(lookup_block.toDict(), expected_dict)
-
-    def test_tableBlock_toDict(self):
-        doc = self.parse("table GDEF { GlyphClassDef [A], [f_i], [acute], ; } GDEF;")
-        table_block = doc.statements[0]
-        self.assertIsInstance(table_block, ast.TableBlock)
-        expected_dict = {
-            "TableBlock": {
-                "Name": "GDEF",
-                "Statements": [
-                    {
-                        "GlyphTypeDefinitions": {
-                            "BaseGlyphs": {"GlyphClass": [{"Glyph": "A"}]},
-                            "LigatureGlyphs": {"GlyphClass": [{"Glyph": "f_i"}]},
-                            "MarkGlyphs": {"GlyphClass": [{"Glyph": "acute"}]},
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(table_block.toDict(), expected_dict)
-
-    def test_glyphClassDefinition_toDict(self):
-        doc = self.parse("@myClass = [A B C];")
-        gc_def = doc.statements[0]
-        self.assertIsInstance(gc_def, ast.GlyphClassDefinition)
-        expected_dict = {
-            "GlyphDefinitionClass": {
-                "Name": "myClass",
-                "Glyphs": {
-                    "GlyphClass": [{"Glyph": "A"}, {"Glyph": "B"}, {"Glyph": "C"}]
-                },
-            }
-        }
-        self.assertEqual(gc_def.toDict(), expected_dict)
-
-    def test_glyphClassDefStatement_toDict(self):
-        doc = self.parse("table GDEF { GlyphClassDef [A], [f_i], [acute], [C]; } GDEF;")
-        gcd_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(gcd_stmt, ast.GlyphClassDefStatement)
-        expected_dict = {
-            "GlyphTypeDefinitions": {
-                "BaseGlyphs": {"GlyphClass": [{"Glyph": "A"}]},
-                "LigatureGlyphs": {"GlyphClass": [{"Glyph": "f_i"}]},
-                "MarkGlyphs": {"GlyphClass": [{"Glyph": "acute"}]},
-                "ComponentGlyphs": {"GlyphClass": [{"Glyph": "C"}]},
-            }
-        }
-        self.assertEqual(gcd_stmt.toDict(), expected_dict)
-
-    def test_markClassDefinition_toDict(self):
-        doc = self.parse("markClass acute <anchor 300 500> @TOP_MARKS;")
-        mcd_stmt = doc.statements[0]
-        self.assertIsInstance(mcd_stmt, ast.MarkClassDefinition)
-        expected_dict = {
-            "MarkClassDefinition": {
-                "Name": "TOP_MARKS",
-                "Anchor": {"Anchor": {"X": 300, "Y": 500}},
-                "Glyphs": {"Glyph": "acute"},
-            }
-        }
-        self.assertEqual(mcd_stmt.toDict(), expected_dict)
-
-    def test_alternateSubstStatement_toDict(self):
-        doc = self.parse("feature test { sub a from [a.1 a.2]; } test;")
-        alt_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(alt_sub, ast.AlternateSubstStatement)
-        expected_dict = {
-            "AlternateSubstitution": {
-                "In": {"Glyph": "a"},
-                "Out": {"GlyphClass": [{"Glyph": "a.1"}, {"Glyph": "a.2"}]},
-            }
-        }
-        self.assertEqual(alt_sub.toDict(), expected_dict)
-
-    def test_attachStatement_toDict(self):
-        doc = self.parse("table GDEF { Attach a 1; } GDEF;")
-        attach_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(attach_stmt, ast.AttachStatement)
-        expected_dict = {
-            "Attach": {
-                "Glyphs": {"Glyph": "a"},
-                "ContourPoints": [
-                    1
-                ],  # Note: parser makes this a set, but spec shows list
-            }
-        }
-        self.assertEqual(attach_stmt.toDict(), expected_dict)
-
-    def test_chainContextPosStatement_toDict(self):
-        doc = self.parse(
-            "lookup L { pos A 10; } L; feature test { pos B A' lookup L C; } test;"
+                }
+            },
         )
-        chain_pos = doc.statements[1].statements[0]
-        self.assertIsInstance(chain_pos, ast.ChainContextPosStatement)
-        expected_dict = {
-            "ChainContextualPositioning": {
-                "Prefix": [{"Glyph": "B"}],
-                "ChainedLookups": [{"Glyph": "A", "Lookups": ["L"]}],
-                "Suffix": [{"Glyph": "C"}],
-            }
-        }
-        self.assertEqual(chain_pos.toDict(), expected_dict)
 
-    def test_chainContextSubstStatement_toDict(self):
-        doc = self.parse(
-            "lookup L { sub A by B; } L; feature test { sub C A' lookup L D; } test;"
+    def test_glyphClassDefStatement(self):
+        self.assertAstToDictEqual(
+            "table GDEF { GlyphClassDef [A], [f_i], [acute], [C]; } GDEF;",
+            {
+                "GlyphTypeDefinitions": {
+                    "BaseGlyphs": {"GlyphClass": [{"Glyph": "A"}]},
+                    "LigatureGlyphs": {"GlyphClass": [{"Glyph": "f_i"}]},
+                    "MarkGlyphs": {"GlyphClass": [{"Glyph": "acute"}]},
+                    "ComponentGlyphs": {"GlyphClass": [{"Glyph": "C"}]},
+                }
+            },
+            "statements.0.statements.0",
         )
-        chain_sub = doc.statements[1].statements[0]
-        self.assertIsInstance(chain_sub, ast.ChainContextSubstStatement)
-        expected_dict = {
-            "ChainContextualSubstitution": {
-                "Prefix": [{"Glyph": "C"}],
-                "ChainedLookups": [{"Glyph": "A", "Lookups": ["L"]}],
-                "Suffix": [{"Glyph": "D"}],
-            }
-        }
-        self.assertEqual(chain_sub.toDict(), expected_dict)
 
-    def test_cursivePosStatement_toDict(self):
-        doc = self.parse(
-            "feature curs { pos cursive A <anchor 10 20> <anchor 30 40>; } curs;"
+    def test_markClassDefinition(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 300 500> @TOP_MARKS;",
+            {
+                "MarkClassDefinition": {
+                    "Name": "TOP_MARKS",
+                    "Anchor": {"Anchor": {"X": 300, "Y": 500}},
+                    "Glyphs": {"Glyph": "acute"},
+                }
+            },
         )
-        curs_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(curs_pos, ast.CursivePosStatement)
-        expected_dict = {
-            "CursivePositioning": {
-                "Class": {"Glyph": "A"},
-                "Entry": {"Anchor": {"X": 10, "Y": 20}},
-                "Exit": {"Anchor": {"X": 30, "Y": 40}},
-            }
-        }
-        self.assertEqual(curs_pos.toDict(), expected_dict)
 
-    def test_featureReferenceStatement_toDict(self):
-        doc = self.parse("feature aalt { feature salt; } aalt;")
-        feat_ref = doc.statements[0].statements[0]
-        self.assertIsInstance(feat_ref, ast.FeatureReferenceStatement)
-        expected_dict = {"FeatureReference": "salt"}
-        self.assertEqual(feat_ref.toDict(), expected_dict)
+    def test_alternateSubstStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { sub a from [a.1 a.2]; } test;",
+            {
+                "AlternateSubstitution": {
+                    "In": {"Glyph": "a"},
+                    "Out": {"GlyphClass": [{"Glyph": "a.1"}, {"Glyph": "a.2"}]},
+                }
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_ignorePosStatement_toDict(self):
-        doc = self.parse("feature test { ignore pos A B' C; } test;")
-        ign_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(ign_pos, ast.IgnorePosStatement)
-        expected_dict = {
-            "IgnorePositioning": [
-                {
-                    "Prefix": [{"Glyph": "A"}],
-                    "Glyphs": [{"Glyph": "B"}],
+    def test_attachStatement(self):
+        self.assertAstToDictEqual(
+            "table GDEF { Attach a 1; } GDEF;",
+            {
+                "Attach": {
+                    "Glyphs": {"Glyph": "a"},
+                    "ContourPoints": [1],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_chainContextPosStatement(self):
+        self.assertAstToDictEqual(
+            "lookup L { pos A 10; } L; feature test { pos B A' lookup L C; } test;",
+            {
+                "ChainContextualPositioning": {
+                    "Prefix": [{"Glyph": "B"}],
+                    "ChainedLookups": [{"Glyph": "A", "Lookups": ["L"]}],
                     "Suffix": [{"Glyph": "C"}],
                 }
-            ]
-        }
-        self.assertEqual(ign_pos.toDict(), expected_dict)
+            },
+            "statements.1.statements.0",
+        )
 
-    def test_ignoreSubstStatement_toDict(self):
-        doc = self.parse("feature test { ignore sub A B' C; } test;")
-        ign_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(ign_sub, ast.IgnoreSubstStatement)
-        expected_dict = {
-            "IgnoreSubstitution": [
-                {
-                    "Prefix": [{"Glyph": "A"}],
-                    "Glyphs": [{"Glyph": "B"}],
-                    "Suffix": [{"Glyph": "C"}],
+    def test_chainContextSubstStatement(self):
+        self.assertAstToDictEqual(
+            "lookup L { sub A by B; } L; feature test { sub C A' lookup L D; } test;",
+            {
+                "ChainContextualSubstitution": {
+                    "Prefix": [{"Glyph": "C"}],
+                    "ChainedLookups": [{"Glyph": "A", "Lookups": ["L"]}],
+                    "Suffix": [{"Glyph": "D"}],
                 }
-            ]
-        }
-        self.assertEqual(ign_sub.toDict(), expected_dict)
+            },
+            "statements.1.statements.0",
+        )
 
-    def test_includeStatement_toDict(self):
-        # Need followIncludes=False for the parser to return the IncludeStatement
+    def test_cursivePosStatement(self):
+        self.assertAstToDictEqual(
+            "feature curs { pos cursive A <anchor 10 20> <anchor 30 40>; } curs;",
+            {
+                "CursivePositioning": {
+                    "Class": {"Glyph": "A"},
+                    "Entry": {"Anchor": {"X": 10, "Y": 20}},
+                    "Exit": {"Anchor": {"X": 30, "Y": 40}},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_featureReferenceStatement(self):
+        self.assertAstToDictEqual(
+            "feature aalt { feature salt; } aalt;",
+            {"FeatureReference": "salt"},
+            "statements.0.statements.0",
+        )
+
+    def test_ignorePosStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { ignore pos A B' C; } test;",
+            {
+                "IgnorePositioning": [
+                    {
+                        "Prefix": [{"Glyph": "A"}],
+                        "Glyphs": [{"Glyph": "B"}],
+                        "Suffix": [{"Glyph": "C"}],
+                    }
+                ]
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_ignoreSubstStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { ignore sub A B' C; } test;",
+            {
+                "IgnoreSubstitution": [
+                    {
+                        "Prefix": [{"Glyph": "A"}],
+                        "Glyphs": [{"Glyph": "B"}],
+                        "Suffix": [{"Glyph": "C"}],
+                    }
+                ]
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_includeStatement(self):
         doc = self.parse("include(somefile.fea);", followIncludes=False)
-        inc_stmt = doc.statements[0]
-        self.assertIsInstance(inc_stmt, ast.IncludeStatement)
-        expected_dict = {"Include": "somefile.fea"}
-        self.assertEqual(inc_stmt.toDict(), expected_dict)
+        self.assertEqual(doc.statements[0].toDict(), {"Include": "somefile.fea"})
 
-    def test_scriptStatement_toDict(self):
-        doc = self.parse("feature test { script latn; } test;")
-        script_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(script_stmt, ast.ScriptStatement)
-        expected_dict = {"Script": "latn"}
-        self.assertEqual(script_stmt.toDict(), expected_dict)
-
-    def test_languageStatement_toDict(self):
-        doc = self.parse("feature test { language DEU required; } test;")
-        lang_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {"Language": "DEU", "Required": True}
-        self.assertEqual(lang_stmt.toDict(), expected_dict)
-
-    def test_languageSystemStatement_toDict(self):
-        doc = self.parse("languagesystem latn NLD;")
-        langsys_stmt = doc.statements[0]
-        self.assertIsInstance(langsys_stmt, ast.LanguageSystemStatement)
-        expected_dict = {"LanguageSystem": {"Script": "latn", "Language": "NLD"}}
-        self.assertEqual(langsys_stmt.toDict(), expected_dict)
-
-    def test_fontRevisionStatement_toDict(self):
-        doc = self.parse("table head { FontRevision 1.005; } head;")
-        rev_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(rev_stmt, ast.FontRevisionStatement)
-        expected_dict = {"FontRevision": 1.005}
-        self.assertEqual(rev_stmt.toDict(), expected_dict)
-
-    def test_ligatureCaretByIndexStatement_toDict(self):
-        doc = self.parse("table GDEF { LigatureCaretByIndex f_f_i 2 4; } GDEF;")
-        lig_caret = doc.statements[0].statements[0]
-        self.assertIsInstance(lig_caret, ast.LigatureCaretByIndexStatement)
-        expected_dict = {
-            "LigatureCaretByIndex": {
-                "Glyphs": {"Glyph": "f_f_i"},
-                "Carets": [2, 4],
-            }
-        }
-        self.assertEqual(lig_caret.toDict(), expected_dict)
-
-    def test_ligatureCaretByPosStatement_toDict(self):
-        doc = self.parse("table GDEF { LigatureCaretByPos f_f_i 300 600; } GDEF;")
-        lig_caret = doc.statements[0].statements[0]
-        self.assertIsInstance(lig_caret, ast.LigatureCaretByPosStatement)
-        expected_dict = {
-            "LigatureCaretByPosition": {
-                "Glyphs": {"Glyph": "f_f_i"},
-                "Carets": [300, 600],
-            }
-        }
-        self.assertEqual(lig_caret.toDict(), expected_dict)
-
-    def test_ligatureSubstStatement_toDict(self):
-        doc = self.parse("feature liga { sub f f i by f_f_i; } liga;")
-        lig_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(lig_sub, ast.LigatureSubstStatement)
-        expected_dict = {
-            "LigatureSubstitution": {
-                "In": [{"Glyph": "f"}, {"Glyph": "f"}, {"Glyph": "i"}],
-                "Out": {"Glyph": "f_f_i"},
-            }
-        }
-        self.assertEqual(lig_sub.toDict(), expected_dict)
-
-    def test_lookupFlagStatement_toDict(self):
-        doc = self.parse(
-            "lookup L { lookupflag IgnoreMarks UseMarkFilteringSet [cedilla]; } L;"
-        )
-        lookup_flag = doc.statements[0].statements[0]
-        self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
-        expected_dict = {
-            "LookupFlag": {
-                "Flags": ["IgnoreMarks"],
-                "UseMarkFilteringSet": {"GlyphClass": [{"Glyph": "cedilla"}]},
-            }
-        }
-        self.assertEqual(lookup_flag.toDict(), expected_dict)
-
-    def test_lookupReferenceStatement_toDict(self):
-        doc = self.parse("lookup L {} L; feature test { lookup L; } test;")
-        lookup_ref = doc.statements[1].statements[0]
-        self.assertIsInstance(lookup_ref, ast.LookupReferenceStatement)
-        expected_dict = {"LookupReference": "L"}
-        self.assertEqual(lookup_ref.toDict(), expected_dict)
-
-    def test_markBasePosStatement_toDict(self):
-        doc = self.parse(
-            "markClass acute <anchor 300 500> @TOP; feature test { pos base A <anchor 150 450> mark @TOP; } test;"
-        )
-        mark_base = doc.statements[1].statements[0]
-        self.assertIsInstance(mark_base, ast.MarkBasePosStatement)
-        expected_dict = {
-            "MarkBasePositioning": {
-                "Base": {"Glyph": "A"},
-                "Marks": [
-                    {"Anchor": {"Anchor": {"X": 150, "Y": 450}}, "MarkClass": "TOP"}
-                ],
-            }
-        }
-        self.assertEqual(mark_base.toDict(), expected_dict)
-
-    def test_markLigPosStatement_toDict(self):
-        doc = self.parse(
-            "markClass acute <anchor 300 500> @TOP; feature test { pos ligature f_f_i <anchor 100 400> mark @TOP ligComponent <anchor 400 400> mark @TOP ligComponent <anchor NULL>; } test;"
-        )
-        mark_lig = doc.statements[1].statements[0]
-        self.assertIsInstance(mark_lig, ast.MarkLigPosStatement)
-        expected_dict = {
-            "MarkLigaturePositioning": {
-                "Ligatures": {"Glyph": "f_f_i"},
-                "Marks": [
-                    [{"Anchor": {"Anchor": {"X": 100, "Y": 400}}, "MarkClass": "TOP"}],
-                    [{"Anchor": {"Anchor": {"X": 400, "Y": 400}}, "MarkClass": "TOP"}],
-                    {"Anchor": None},  # Represents <anchor NULL>
-                ],
-            }
-        }
-        self.assertEqual(mark_lig.toDict(), expected_dict)
-
-    def test_markMarkPosStatement_toDict(self):
-        doc = self.parse(
-            "markClass acute <anchor 300 500> @TOP; markClass grave <anchor 300 500> @TOP2; feature test { pos mark acute <anchor 0 50> mark @TOP2; } test;"
-        )
-        mark_mark = doc.statements[2].statements[0]
-        self.assertIsInstance(mark_mark, ast.MarkMarkPosStatement)
-        expected_dict = {
-            "MarkToMarkPositioning": {
-                "Base": {"Glyph": "acute"},
-                "Marks": [
-                    {"Anchor": {"Anchor": {"X": 0, "Y": 50}}, "MarkClass": "TOP2"}
-                ],
-            }
-        }
-        self.assertEqual(mark_mark.toDict(), expected_dict)
-
-    def test_multipleSubstStatement_toDict(self):
-        doc = self.parse("feature test { sub f_i by f i; } test;")
-        multi_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(multi_sub, ast.MultipleSubstStatement)
-        expected_dict = {
-            "MultipleSubstitution": {
-                "In": {"Glyph": "f_i"},
-                "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
-            }
-        }
-        self.assertEqual(multi_sub.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatA(self):
-        doc = self.parse("feature kern { pos A -50 B 20; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"Glyph": "B"},
-                "Value2": {"ValueRecord": {"XAdvance": 20}},
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatB(self):
-        doc = self.parse("feature kern { pos A B -50; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"Glyph": "B"},
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_enumerated(self):
-        doc = self.parse("feature kern { enum pos A B -50; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"Glyph": "B"},
-                "Enumerated": True,
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_reverseChainSingleSubstStatement_toDict(self):
-        doc = self.parse("feature test { rsub A B' C by D; } test;")
-        rsub = doc.statements[0].statements[0]
-        self.assertIsInstance(rsub, ast.ReverseChainSingleSubstStatement)
-        expected_dict = {
-            "ReverseChainSingleSubstitution": {
-                "Prefix": [{"Glyph": "A"}],
-                "In": [{"Glyph": "B"}],
-                "Suffix": [{"Glyph": "C"}],
-                "Out": [{"Glyph": "D"}],
-            }
-        }
-        self.assertEqual(rsub.toDict(), expected_dict)
-
-    def test_singleSubstStatement_toDict(self):
-        doc = self.parse("feature smcp { sub a by a.sc; } smcp;")
-        single_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(single_sub, ast.SingleSubstStatement)
-        expected_dict = {
-            "SingleSubstitution": {
-                "In": [{"Glyph": "a"}],
-                "Out": [{"Glyph": "a.sc"}],
-            }
-        }
-        self.assertEqual(single_sub.toDict(), expected_dict)
-
-    def test_singlePosStatement_toDict(self):
-        doc = self.parse("feature kern { pos A 50; } kern;")
-        single_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(single_pos, ast.SinglePosStatement)
-        expected_dict = {
-            "SinglePositioning": {
-                "Positions": [
-                    {
-                        "Glyph": {"Glyph": "A"},
-                        "Value": {"ValueRecord": {"XAdvance": 50}},
-                    }
-                ]
-            }
-        }
-        self.assertEqual(single_pos.toDict(), expected_dict)
-
-    def test_subtableStatement_toDict(self):
-        doc = self.parse("feature test { subtable; } test;")
-        subtable_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(subtable_stmt, ast.SubtableStatement)
-        expected_dict = "Subtable"
-        self.assertEqual(subtable_stmt.toDict(), expected_dict)
-
-    def test_nameRecord_toDict(self):
-        doc = self.parse('table name { nameid 1 "Family Name"; } name;')
-        name_record = doc.statements[0].statements[0]
-        self.assertIsInstance(name_record, ast.NameRecord)
-        expected_dict = {
-            "NameRecord": {
-                "String": "Family Name",
-                "PlatformID": 3,
-                "PlatformEncodingID": 1,
-                "LanguageID": 1033,
-            }
-        }
-        actual_dict = name_record.toDict()
-        self.assertEqual(name_record.toDict(), expected_dict)
-
-    def test_featureNameStatement_toDict(self):
-        doc = self.parse('feature ss01 { featureNames { name "Alternate 1"; }; } ss01;')
-        name_stmt = doc.statements[0].statements[0].statements[0]
-        self.assertIsInstance(name_stmt, ast.FeatureNameStatement)
-        expected_dict = {
-            "FeatureName": {
-                "Type": "Name",
-                "String": "Alternate 1",
-                "PlatformID": 3,
-                "PlatformEncodingID": 1,
-                "LanguageID": 1033,
-            }
-        }
-        # Simplify check for default name record attributes
-        actual_dict = name_stmt.toDict()
-        self.assertEqual(actual_dict["FeatureName"]["String"], "Alternate 1")
-        self.assertEqual(actual_dict["FeatureName"]["Type"], "Name")
-        self.assertIn("PlatformID", actual_dict["FeatureName"])
-        self.assertIn("PlatformEncodingID", actual_dict["FeatureName"])
-        self.assertIn("LanguageID", actual_dict["FeatureName"])
-
-    def test_statNameStatement_toDict(self):
-        doc = self.parse('table STAT { DesignAxis wght 0 { name "Weight"; }; } STAT;')
-        name_stmt = doc.statements[0].statements[0].names[0]
-        self.assertIsInstance(name_stmt, ast.STATNameStatement)
-        expected_dict = {
-            "STATName": {
-                "String": "Weight",
-                "PlatformID": 3,
-                "PlatformEncodingID": 1,
-                "LanguageID": 1033,
-            }
-        }
-        # Simplify check for default name record attributes
-        actual_dict = name_stmt.toDict()
-        self.assertEqual(actual_dict["STATName"]["String"], "Weight")
-        self.assertIn("PlatformID", actual_dict["STATName"])
-        self.assertIn("PlatformEncodingID", actual_dict["STATName"])
-        self.assertIn("LanguageID", actual_dict["STATName"])
-
-    def test_cvParametersNameStatement_toDict(self):
-        doc = self.parse(
-            'feature cv01 { cvParameters { FeatUILabelNameID { name "Cv Param Name"; }; }; } cv01;'
-        )
-        name_stmt = doc.statements[0].statements[0].statements[0].statements[0]
-        self.assertIsInstance(name_stmt, ast.CVParametersNameStatement)
-        expected_dict = {
-            "CVParametersName": {
-                "String": "Cv Param Name",
-                "PlatformID": 3,
-                "PlatformEncodingID": 1,
-                "LanguageID": 1033,
-            }
-        }
-        actual_dict = name_stmt.toDict()
-        self.assertEqual(actual_dict["CVParametersName"]["String"], "Cv Param Name")
-        self.assertIn("PlatformID", actual_dict["CVParametersName"])
-        self.assertIn("PlatformEncodingID", actual_dict["CVParametersName"])
-        self.assertIn("LanguageID", actual_dict["CVParametersName"])
-
-    def test_sizeParameters_toDict(self):
-        doc = self.parse("feature size { parameters 10.0 1 80 120; } size;")
-        size_params = doc.statements[0].statements[0]
-        self.assertIsInstance(size_params, ast.SizeParameters)
-        expected_dict = {
-            "SizeParameters": {
-                "DesignSize": 10.0,
-                "SubfamilyID": 1,
-                "RangeStart": 80,
-                "RangeEnd": 120,
-            }
-        }
-        self.assertEqual(size_params.toDict(), expected_dict)
-
-    def test_characterStatement_toDict(self):
-        doc = self.parse("feature cv01 { cvParameters { Character 65; }; } cv01;")
-        char_stmt = doc.statements[0].statements[0].statements[0]
-        self.assertIsInstance(char_stmt, ast.CharacterStatement)
-        expected_dict = {"Character": 65}
-        self.assertEqual(char_stmt.toDict(), expected_dict)
-
-    def test_os2Field_toDict(self):
-        doc = self.parse("table OS/2 { TypoAscender 750; } OS/2;")
-        os2_field = doc.statements[0].statements[0]
-        self.assertIsInstance(os2_field, ast.OS2Field)
-        expected_dict = {"OS2Field": {"TypoAscender": 750}}
-        self.assertEqual(os2_field.toDict(), expected_dict)
-
-    def test_hheaField_toDict(self):
-        doc = self.parse("table hhea { CaretOffset 50; } hhea;")
-        hhea_field = doc.statements[0].statements[0]
-        self.assertIsInstance(hhea_field, ast.HheaField)
-        expected_dict = {"HheaField": {"CaretOffset": 50}}
-        self.assertEqual(hhea_field.toDict(), expected_dict)
-
-    def test_vheaField_toDict(self):
-        doc = self.parse("table vhea { VertTypoAscender 800; } vhea;")
-        vhea_field = doc.statements[0].statements[0]
-        self.assertIsInstance(vhea_field, ast.VheaField)
-        expected_dict = {"VheaField": {"VertTypoAscender": 800}}
-        self.assertEqual(vhea_field.toDict(), expected_dict)
-
-    def test_statDesignAxisStatement_toDict(self):
-        doc = self.parse('table STAT { DesignAxis wght 0 { name "Weight"; }; } STAT;')
-        design_axis = doc.statements[0].statements[0]
-        self.assertIsInstance(design_axis, ast.STATDesignAxisStatement)
-        expected_dict = {
-            "STATDesignAxis": {
-                "Tag": "wght",
-                "AxisOrder": 0,
-                "Names": [
-                    {
-                        "STATName": {
-                            "String": "Weight",
-                            "PlatformID": 3,
-                            "PlatformEncodingID": 1,
-                            "LanguageID": 1033,
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(
-            design_axis.toDict(),
-            expected_dict,
+    def test_scriptStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { script latn; } test;",
+            {"Script": "latn"},
+            "statements.0.statements.0",
         )
 
-    def test_elidedFallbackName_toDict(self):
-        doc = self.parse('table STAT { ElidedFallbackName { name "Regular"; }; } STAT;')
-        elided_name = doc.statements[0].statements[0]
-        self.assertIsInstance(elided_name, ast.ElidedFallbackName)
-        expected_dict = {
-            "ElidedFallbackName": {
-                "Names": [
-                    {
-                        "STATName": {
-                            "String": "Regular",
-                            "PlatformID": 3,
-                            "PlatformEncodingID": 1,
-                            "LanguageID": 1033,
-                        }
-                    }
-                ]
-            }
-        }
-        self.assertEqual(elided_name.toDict(), expected_dict)
-
-    def test_elidedFallbackNameID_toDict(self):
-        doc = self.parse("table STAT { ElidedFallbackNameID 256; } STAT;")
-        elided_id = doc.statements[0].statements[0]
-        self.assertIsInstance(elided_id, ast.ElidedFallbackNameID)
-        expected_dict = {"ElidedFallbackNameID": 256}
-        self.assertEqual(elided_id.toDict(), expected_dict)
-
-    def test_statAxisValueStatement_toDict(self):
-        doc = self.parse(
-            'table STAT { DesignAxis wght 0 { name "Weight"; }; AxisValue { location wght 400; name "Regular"; flag ElidableAxisValueName; }; } STAT;'
+    def test_languageStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { language DEU required; } test;",
+            {"Language": "DEU", "Required": True},
+            "statements.0.statements.0",
         )
-        axis_value = doc.statements[0].statements[1]
-        self.assertIsInstance(axis_value, ast.STATAxisValueStatement)
-        expected_dict = {
-            "STATAxisValue": {
-                "Locations": [{"AxisValueLocation": {"Tag": "wght", "Values": [400]}}],
-                "Names": [
-                    {
-                        "STATName": {
-                            "String": "Regular",
-                            "PlatformID": 3,
-                            "PlatformEncodingID": 1,
-                            "LanguageID": 1033,
-                        }
-                    }
-                ],
-                "Flags": ["ElidableAxisValueName"],
-            }
-        }
-        self.assertEqual(axis_value.toDict(), expected_dict)
 
-    def test_axisValueLocationStatement_toDict(self):
-        doc = self.parse(
-            'table STAT { DesignAxis wght 0 { name "Weight"; }; AxisValue { location wght 400 300 500; name "Regular"; }; } STAT;'
+    def test_languageSystemStatement(self):
+        self.assertAstToDictEqual(
+            "languagesystem latn NLD;",
+            {"LanguageSystem": {"Script": "latn", "Language": "NLD"}},
+            "statements.0",
         )
-        axis_value_statement = doc.statements[0].statements[
-            1
-        ]  # Get the AxisValue statement
-        axis_loc = axis_value_statement.locations[0]  # Get the location from it
-        self.assertIsInstance(axis_loc, ast.AxisValueLocationStatement)
-        expected_dict = {
-            "AxisValueLocation": {"Tag": "wght", "Values": [400, 300, 500]}
-        }
-        self.assertEqual(axis_loc.toDict(), expected_dict)
 
-    def test_conditionsetStatement_toDict(self):
-        doc = self.parse("conditionset Cond1 { wght 400 700; wdth 75 100; } Cond1;")
-        cond_set = doc.statements[0]
-        self.assertIsInstance(cond_set, ast.ConditionsetStatement)
-        expected_dict = {
-            "ConditionSet": {
-                "Name": "Cond1",
-                "Conditions": {
-                    "wght": {"Min": 400, "Max": 700},
-                    "wdth": {"Min": 75, "Max": 100},
-                },
-            }
-        }
-        self.assertEqual(cond_set.toDict(), expected_dict)
-
-    def test_variationBlock_toDict(self):
-        doc = self.parse(
-            "conditionset Cond1 { wght 700 900; } Cond1; variation rvrn Cond1 { sub A by B; } rvrn;"
+    def test_fontRevisionStatement(self):
+        self.assertAstToDictEqual(
+            "table head { FontRevision 1.005; } head;",
+            {"FontRevision": 1.005},
+            "statements.0.statements.0",
         )
-        var_block = doc.statements[1]
-        self.assertIsInstance(var_block, ast.VariationBlock)
-        expected_dict = {
-            "Variation": {
-                "Name": "rvrn",
-                "ConditionSet": "Cond1",
-                "Statements": [
-                    {
-                        "SingleSubstitution": {
-                            "In": [{"Glyph": "A"}],
-                            "Out": [{"Glyph": "B"}],
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(var_block.toDict(), expected_dict)
 
-    def test_attachStatement_toDict_class(self):
-        doc = self.parse("@C = [a e]; table GDEF { Attach @C 2; } GDEF;")
-        attach_stmt = doc.statements[1].statements[0]
-        self.assertIsInstance(attach_stmt, ast.AttachStatement)
-        expected_dict = {
-            "Attach": {
-                "Glyphs": {"ClassName": "C"},
-                "ContourPoints": [2],
-            }
-        }
-        actual = attach_stmt.toDict()
-        self.assertEqual(actual, expected_dict)
-
-    def test_glyphClass_toDict_empty(self):
-        doc = self.parse("@empty = [];")
-        gc_def = doc.statements[0]
-        glyph_class = gc_def.glyphs
-        self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {"GlyphClass": []}
-        self.assertEqual(glyph_class.toDict(), expected_dict)
-
-    def test_glyphClass_toDict_from_markClass(self):
-        doc = self.parse("markClass acute <anchor 0 0> @MC; @GC = [@MC ogonek];")
-        gc_def = doc.statements[1]
-        glyph_class = gc_def.glyphs
-        self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {"GlyphClass": [{"ClassName": "MC"}, {"Glyph": "ogonek"}]}
-        self.assertEqual(glyph_class.toDict(), expected_dict)
-
-    def test_glyphClass_toDict_range_cid(self):
-        doc = self.parse(r"@myRange = [\999-\1001];")
-        gc_def = doc.statements[0]
-        glyph_class = gc_def.glyphs
-        self.assertIsInstance(glyph_class, ast.GlyphClass)
-        expected_dict = {
-            "GlyphClass": [{"GlyphRange": ({"Glyph": "\\999"}, {"Glyph": "\\1001"})}]
-        }
-        self.assertEqual(glyph_class.toDict(), expected_dict)
-
-    def test_glyphClassDefStatement_toDict_empty(self):
-        doc = self.parse("table GDEF { GlyphClassDef ,,,; } GDEF;")
-        gcd_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(gcd_stmt, ast.GlyphClassDefStatement)
-        expected_dict = {"GlyphTypeDefinitions": {}}
-        self.assertEqual(gcd_stmt.toDict(), expected_dict)
-
-    def test_ignorePosStatement_toDict_multiple(self):
-        doc = self.parse("feature test { ignore pos A B' C, X Y' Z; } test;")
-        ign_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(ign_pos, ast.IgnorePosStatement)
-        expected_dict = {
-            "IgnorePositioning": [
-                {
-                    "Prefix": [{"Glyph": "A"}],
-                    "Glyphs": [{"Glyph": "B"}],
-                    "Suffix": [{"Glyph": "C"}],
-                },
-                {
-                    "Prefix": [{"Glyph": "X"}],
-                    "Glyphs": [{"Glyph": "Y"}],
-                    "Suffix": [{"Glyph": "Z"}],
-                },
-            ]
-        }
-        self.assertEqual(ign_pos.toDict(), expected_dict)
-
-    def test_ignoreSubstStatement_toDict_multiple(self):
-        doc = self.parse("feature test { ignore sub A B' C, X Y' Z; } test;")
-        ign_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(ign_sub, ast.IgnoreSubstStatement)
-        expected_dict = {
-            "IgnoreSubstitution": [
-                {
-                    "Prefix": [{"Glyph": "A"}],
-                    "Glyphs": [{"Glyph": "B"}],
-                    "Suffix": [{"Glyph": "C"}],
-                },
-                {
-                    "Prefix": [{"Glyph": "X"}],
-                    "Glyphs": [{"Glyph": "Y"}],
-                    "Suffix": [{"Glyph": "Z"}],
-                },
-            ]
-        }
-        self.assertEqual(ign_sub.toDict(), expected_dict)
-
-    def test_languageStatement_toDict_default(self):
-        doc = self.parse("feature test { language NLD; } test;")
-        lang_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {"Language": "NLD"}
-        self.assertEqual(lang_stmt.toDict(), expected_dict)
-
-    def test_languageStatement_toDict_exclude(self):
-        doc = self.parse("feature test { language NLD exclude_dflt; } test;")
-        lang_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {"Language": "NLD", "ExcludeDefault": True}
-        self.assertEqual(lang_stmt.toDict(), expected_dict)
-
-    def test_languageStatement_toDict_exclude_required(self):
-        doc = self.parse("feature test { language NLD exclude_dflt required; } test;")
-        lang_stmt = doc.statements[0].statements[0]
-        self.assertIsInstance(lang_stmt, ast.LanguageStatement)
-        expected_dict = {
-            "Language": "NLD",
-            "ExcludeDefault": True,
-            "Required": True,
-        }
-        self.assertEqual(lang_stmt.toDict(), expected_dict)
-
-    def test_ligatureCaretByIndexStatement_toDict_class(self):
-        doc = self.parse(
-            "@L = [f_f_i f_l]; table GDEF { LigatureCaretByIndex @L 2 4; } GDEF;"
-        )
-        lig_caret = doc.statements[1].statements[0]
-        self.assertIsInstance(lig_caret, ast.LigatureCaretByIndexStatement)
-        expected_dict = {
-            "LigatureCaretByIndex": {
-                "Glyphs": {"ClassName": "L"},
-                "Carets": [2, 4],
-            }
-        }
-        self.assertEqual(lig_caret.toDict(), expected_dict)
-
-    def test_ligatureCaretByPosStatement_toDict_class(self):
-        doc = self.parse(
-            "@L = [f_f_i f_l]; table GDEF { LigatureCaretByPos @L 300 600; } GDEF;"
-        )
-        lig_caret = doc.statements[1].statements[0]
-        self.assertIsInstance(lig_caret, ast.LigatureCaretByPosStatement)
-        expected_dict = {
-            "LigatureCaretByPosition": {
-                "Glyphs": {"ClassName": "L"},
-                "Carets": [300, 600],
-            }
-        }
-        self.assertEqual(lig_caret.toDict(), expected_dict)
-
-    def test_lookupBlock_toDict_useExtension(self):
-        doc = self.parse("lookup MYLOOKUP useExtension { sub A by B; } MYLOOKUP;")
-        lookup_block = doc.statements[0]
-        self.assertIsInstance(lookup_block, ast.LookupBlock)
-        expected_dict = {
-            "LookupBlock": {
-                "Name": "MYLOOKUP",
-                "UseExtension": True,
-                "Statements": [
-                    {
-                        "SingleSubstitution": {
-                            "In": [{"Glyph": "A"}],
-                            "Out": [{"Glyph": "B"}],
-                        }
-                    }
-                ],
-            }
-        }
-        self.assertEqual(lookup_block.toDict(), expected_dict)
-
-    def test_lookupFlagStatement_toDict_multiple_flags(self):
-        doc = self.parse("lookup L { lookupflag RightToLeft IgnoreMarks; } L;")
-        lookup_flag = doc.statements[0].statements[0]
-        self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
-        expected_dict = {"LookupFlag": {"Flags": ["RightToLeft", "IgnoreMarks"]}}
-        self.assertEqual(lookup_flag.toDict(), expected_dict)
-
-    def test_lookupFlagStatement_toDict_markAttachment(self):
-        doc = self.parse(
-            "markClass acute <anchor 0 0> @MC; lookup L { lookupflag MarkAttachmentType @MC; } L;"
-        )
-        lookup_flag = doc.statements[1].statements[0]
-        self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
-        expected_dict = {"LookupFlag": {"MarkAttachment": {"ClassName": "MC"}}}
-        self.assertEqual(lookup_flag.toDict(), expected_dict)
-
-    def test_lookupFlagStatement_toDict_markAttachment_class(self):
-        doc = self.parse("lookup L { lookupflag MarkAttachmentType [acute grave]; } L;")
-        lookup_flag = doc.statements[0].statements[0]
-        self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
-        expected_dict = {
-            "LookupFlag": {
-                "MarkAttachment": {
-                    "GlyphClass": [{"Glyph": "acute"}, {"Glyph": "grave"}]
+    def test_ligatureCaretByIndexStatement(self):
+        self.assertAstToDictEqual(
+            "table GDEF { LigatureCaretByIndex f_f_i 2 4; } GDEF;",
+            {
+                "LigatureCaretByIndex": {
+                    "Glyphs": {"Glyph": "f_f_i"},
+                    "Carets": [2, 4],
                 }
-            }
-        }
-        self.assertEqual(lookup_flag.toDict(), expected_dict)
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_lookupFlagStatement_toDict_numeric(self):
-        doc = self.parse("lookup L { lookupflag 8; } L;")  # 8 = IgnoreMarks
-        lookup_flag = doc.statements[0].statements[0]
-        self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
-        expected_dict = {"LookupFlag": {"Flags": ["IgnoreMarks"]}}
-        self.assertEqual(lookup_flag.toDict(), expected_dict)
+    def test_ligatureCaretByPosStatement(self):
+        self.assertAstToDictEqual(
+            "table GDEF { LigatureCaretByPos f_f_i 300 600; } GDEF;",
+            {
+                "LigatureCaretByPosition": {
+                    "Glyphs": {"Glyph": "f_f_i"},
+                    "Carets": [300, 600],
+                }
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_lookupFlagStatement_toDict_zero(self):
-        doc = self.parse("lookup L { lookupflag 0; } L;")
-        lookup_flag = doc.statements[0].statements[0]
-        self.assertIsInstance(lookup_flag, ast.LookupFlagStatement)
-        expected_dict = {"LookupFlag": {}}
-        self.assertEqual(lookup_flag.toDict(), expected_dict)
+    def test_ligatureSubstStatement(self):
+        self.assertAstToDictEqual(
+            "feature liga { sub f f i by f_f_i; } liga;",
+            {
+                "LigatureSubstitution": {
+                    "In": [{"Glyph": "f"}, {"Glyph": "f"}, {"Glyph": "i"}],
+                    "Out": {"Glyph": "f_f_i"},
+                }
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_singlePosStatement_toDict_class_horiz(self):
-        doc = self.parse("feature kern { @V = [A V]; pos @V -50; } kern;")
-        single_pos = doc.statements[0].statements[1]
-        self.assertIsInstance(single_pos, ast.SinglePosStatement)
-        expected_dict = {
-            "SinglePositioning": {
-                "Positions": [
+    def test_lookupFlagStatement(self):
+        self.assertAstToDictEqual(
+            "lookup L { lookupflag IgnoreMarks UseMarkFilteringSet [cedilla]; } L;",
+            {
+                "LookupFlag": {
+                    "Flags": ["IgnoreMarks"],
+                    "UseMarkFilteringSet": {"GlyphClass": [{"Glyph": "cedilla"}]},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_lookupReferenceStatement(self):
+        self.assertAstToDictEqual(
+            "lookup L {} L; feature test { lookup L; } test;",
+            {"LookupReference": "L"},
+            "statements.1.statements.0",
+        )
+
+    def test_markBasePosStatement(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 300 500> @TOP; feature test { pos base A <anchor 150 450> mark @TOP; } test;",
+            {
+                "MarkBasePositioning": {
+                    "Base": {"Glyph": "A"},
+                    "Marks": [
+                        {"Anchor": {"Anchor": {"X": 150, "Y": 450}}, "MarkClass": "TOP"}
+                    ],
+                }
+            },
+            "statements.1.statements.0",
+        )
+
+    def test_markLigPosStatement(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 300 500> @TOP; feature test { pos ligature f_f_i <anchor 100 400> mark @TOP ligComponent <anchor 400 400> mark @TOP ligComponent <anchor NULL>; } test;",
+            {
+                "MarkLigaturePositioning": {
+                    "Ligatures": {"Glyph": "f_f_i"},
+                    "Marks": [
+                        [
+                            {
+                                "Anchor": {"Anchor": {"X": 100, "Y": 400}},
+                                "MarkClass": "TOP",
+                            }
+                        ],
+                        [
+                            {
+                                "Anchor": {"Anchor": {"X": 400, "Y": 400}},
+                                "MarkClass": "TOP",
+                            }
+                        ],
+                        {"Anchor": None},
+                    ],
+                }
+            },
+            "statements.1.statements.0",
+        )
+
+    def test_markMarkPosStatement(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 300 500> @TOP; markClass grave <anchor 300 500> @TOP2; feature test { pos mark acute <anchor 0 50> mark @TOP2; } test;",
+            {
+                "MarkToMarkPositioning": {
+                    "Base": {"Glyph": "acute"},
+                    "Marks": [
+                        {"Anchor": {"Anchor": {"X": 0, "Y": 50}}, "MarkClass": "TOP2"}
+                    ],
+                }
+            },
+            "statements.2.statements.0",
+        )
+
+    def test_multipleSubstStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { sub f_i by f i; } test;",
+            {
+                "MultipleSubstitution": {
+                    "In": {"Glyph": "f_i"},
+                    "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_formatA(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A -50 B 20; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"Glyph": "B"},
+                    "Value2": {"ValueRecord": {"XAdvance": 20}},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_formatB(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A B -50; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"Glyph": "B"},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_enumerated(self):
+        self.assertAstToDictEqual(
+            "feature kern { enum pos A B -50; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"Glyph": "B"},
+                    "Enumerated": True,
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_reverseChainSingleSubstStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { rsub A B' C by D; } test;",
+            {
+                "ReverseChainSingleSubstitution": {
+                    "Prefix": [{"Glyph": "A"}],
+                    "In": [{"Glyph": "B"}],
+                    "Suffix": [{"Glyph": "C"}],
+                    "Out": [{"Glyph": "D"}],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_singleSubstStatement(self):
+        self.assertAstToDictEqual(
+            "feature smcp { sub a by a.sc; } smcp;",
+            {
+                "SingleSubstitution": {
+                    "In": [{"Glyph": "a"}],
+                    "Out": [{"Glyph": "a.sc"}],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_singlePosStatement(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A 50; } kern;",
+            {
+                "SinglePositioning": {
+                    "Positions": [
+                        {
+                            "Glyph": {"Glyph": "A"},
+                            "Value": {"ValueRecord": {"XAdvance": 50}},
+                        }
+                    ]
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_subtableStatement(self):
+        self.assertAstToDictEqual(
+            "feature test { subtable; } test;", "Subtable", "statements.0.statements.0"
+        )
+
+    def test_nameRecord(self):
+        self.assertAstToDictEqual(
+            'table name { nameid 1 "Family Name"; } name;',
+            {
+                "NameRecord": {
+                    "String": "Family Name",
+                    "PlatformID": 3,
+                    "PlatformEncodingID": 1,
+                    "LanguageID": 1033,
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_featureNameStatement(self):
+        self.assertAstToDictEqual(
+            'feature ss01 { featureNames { name "Alternate 1"; }; } ss01;',
+            {
+                "FeatureName": {
+                    "Type": "Name",
+                    "String": "Alternate 1",
+                    "PlatformID": 3,
+                    "PlatformEncodingID": 1,
+                    "LanguageID": 1033,
+                }
+            },
+            "statements.0.statements.0.statements.0",
+        )
+
+    def test_statNameStatement(self):
+        self.assertAstToDictEqual(
+            'table STAT { DesignAxis wght 0 { name "Weight"; }; } STAT;',
+            {
+                "STATName": {
+                    "String": "Weight",
+                    "PlatformID": 3,
+                    "PlatformEncodingID": 1,
+                    "LanguageID": 1033,
+                }
+            },
+            "statements.0.statements.0.names.0",
+        )
+
+    def test_cvParametersNameStatement(self):
+        self.assertAstToDictEqual(
+            'feature cv01 { cvParameters { FeatUILabelNameID { name "Cv Param Name"; }; }; } cv01;',
+            {
+                "CVParametersName": {
+                    "String": "Cv Param Name",
+                    "PlatformID": 3,
+                    "PlatformEncodingID": 1,
+                    "LanguageID": 1033,
+                }
+            },
+            "statements.0.statements.0.statements.0.statements.0",
+        )
+
+    def test_sizeParameters(self):
+        self.assertAstToDictEqual(
+            "feature size { parameters 10.0 1 80 120; } size;",
+            {
+                "SizeParameters": {
+                    "DesignSize": 10.0,
+                    "SubfamilyID": 1,
+                    "RangeStart": 80,
+                    "RangeEnd": 120,
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_characterStatement(self):
+        self.assertAstToDictEqual(
+            "feature cv01 { cvParameters { Character 65; }; } cv01;",
+            {"Character": 65},
+            "statements.0.statements.0.statements.0",
+        )
+
+    def test_os2Field(self):
+        self.assertAstToDictEqual(
+            "table OS/2 { TypoAscender 750; } OS/2;",
+            {"OS2Field": {"TypoAscender": 750}},
+            "statements.0.statements.0",
+        )
+
+    def test_hheaField(self):
+        self.assertAstToDictEqual(
+            "table hhea { CaretOffset 50; } hhea;",
+            {"HheaField": {"CaretOffset": 50}},
+            "statements.0.statements.0",
+        )
+
+    def test_vheaField(self):
+        self.assertAstToDictEqual(
+            "table vhea { VertTypoAscender 800; } vhea;",
+            {"VheaField": {"VertTypoAscender": 800}},
+            "statements.0.statements.0",
+        )
+
+    def test_statDesignAxisStatement(self):
+        self.assertAstToDictEqual(
+            'table STAT { DesignAxis wght 0 { name "Weight"; }; } STAT;',
+            {
+                "STATDesignAxis": {
+                    "Tag": "wght",
+                    "AxisOrder": 0,
+                    "Names": [
+                        {
+                            "STATName": {
+                                "String": "Weight",
+                                "PlatformID": 3,
+                                "PlatformEncodingID": 1,
+                                "LanguageID": 1033,
+                            }
+                        }
+                    ],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_elidedFallbackName(self):
+        self.assertAstToDictEqual(
+            'table STAT { ElidedFallbackName { name "Regular"; }; } STAT;',
+            {
+                "ElidedFallbackName": {
+                    "Names": [
+                        {
+                            "STATName": {
+                                "String": "Regular",
+                                "PlatformID": 3,
+                                "PlatformEncodingID": 1,
+                                "LanguageID": 1033,
+                            }
+                        }
+                    ]
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_elidedFallbackNameID(self):
+        self.assertAstToDictEqual(
+            "table STAT { ElidedFallbackNameID 256; } STAT;",
+            {"ElidedFallbackNameID": 256},
+            "statements.0.statements.0",
+        )
+
+    def test_statAxisValueStatement(self):
+        self.assertAstToDictEqual(
+            'table STAT { DesignAxis wght 0 { name "Weight"; }; AxisValue { location wght 400; name "Regular"; flag ElidableAxisValueName; }; } STAT;',
+            {
+                "STATAxisValue": {
+                    "Locations": [
+                        {"AxisValueLocation": {"Tag": "wght", "Values": [400]}}
+                    ],
+                    "Names": [
+                        {
+                            "STATName": {
+                                "String": "Regular",
+                                "PlatformID": 3,
+                                "PlatformEncodingID": 1,
+                                "LanguageID": 1033,
+                            }
+                        }
+                    ],
+                    "Flags": ["ElidableAxisValueName"],
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_axisValueLocationStatement(self):
+        self.assertAstToDictEqual(
+            'table STAT { DesignAxis wght 0 { name "Weight"; }; AxisValue { location wght 400 300 500; name "Regular"; }; } STAT;',
+            {"AxisValueLocation": {"Tag": "wght", "Values": [400, 300, 500]}},
+            "statements.0.statements.1.locations.0",
+        )
+
+    def test_conditionsetStatement(self):
+        self.assertAstToDictEqual(
+            "conditionset Cond1 { wght 400 700; wdth 75 100; } Cond1;",
+            {
+                "ConditionSet": {
+                    "Name": "Cond1",
+                    "Conditions": {
+                        "wght": {"Min": 400, "Max": 700},
+                        "wdth": {"Min": 75, "Max": 100},
+                    },
+                }
+            },
+            "statements.0",
+        )
+
+    def test_variationBlock(self):
+        self.assertAstToDictEqual(
+            "conditionset Cond1 { wght 700 900; } Cond1; variation rvrn Cond1 { sub A by B; } rvrn;",
+            {
+                "Variation": {
+                    "Name": "rvrn",
+                    "ConditionSet": "Cond1",
+                    "Statements": [
+                        {
+                            "SingleSubstitution": {
+                                "In": [{"Glyph": "A"}],
+                                "Out": [{"Glyph": "B"}],
+                            }
+                        }
+                    ],
+                }
+            },
+            "statements.1",
+        )
+
+    def test_attachStatement_class(self):
+        self.assertAstToDictEqual(
+            "@C = [a e]; table GDEF { Attach @C 2; } GDEF;",
+            {"Attach": {"Glyphs": {"ClassName": "C"}, "ContourPoints": [2]}},
+            "statements.1.statements.0",
+        )
+
+    def test_glyphClass_empty(self):
+        self.assertAstToDictEqual(
+            "@empty = [];",
+            {"GlyphClass": []},
+            "statements.0.glyphs",
+        )
+
+    def test_glyphClass_from_markClass(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 0 0> @MC; @GC = [@MC ogonek];",
+            {"GlyphClass": [{"ClassName": "MC"}, {"Glyph": "ogonek"}]},
+            "statements.1.glyphs",
+        )
+
+    def test_glyphClass_range_cid(self):
+        self.assertAstToDictEqual(
+            r"@myRange = [\999-\1001];",
+            {"GlyphClass": [{"GlyphRange": ({"Glyph": "\\999"}, {"Glyph": "\\1001"})}]},
+            "statements.0.glyphs",
+        )
+
+    def test_glyphClassDefStatement_empty(self):
+        self.assertAstToDictEqual(
+            "table GDEF { GlyphClassDef ,,,; } GDEF;",
+            {"GlyphTypeDefinitions": {}},
+            "statements.0.statements.0",
+        )
+
+    def test_ignorePosStatement_multiple(self):
+        self.assertAstToDictEqual(
+            "feature test { ignore pos A B' C, X Y' Z; } test;",
+            {
+                "IgnorePositioning": [
                     {
-                        "Glyph": {"ClassName": "V"},
-                        "Value": {"ValueRecord": {"XAdvance": -50}},
-                    }
+                        "Prefix": [{"Glyph": "A"}],
+                        "Glyphs": [{"Glyph": "B"}],
+                        "Suffix": [{"Glyph": "C"}],
+                    },
+                    {
+                        "Prefix": [{"Glyph": "X"}],
+                        "Glyphs": [{"Glyph": "Y"}],
+                        "Suffix": [{"Glyph": "Z"}],
+                    },
                 ]
-            }
-        }
-        self.assertEqual(single_pos.toDict(), expected_dict)
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_pairPosStatement_toDict_formatA_multiple_values(self):
-        doc = self.parse("feature kern { pos A 50 B 60; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": 50}},
-                "Second": {"Glyph": "B"},
-                "Value2": {"ValueRecord": {"XAdvance": 60}},
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_singlePosStatement_toDict_chained(self):
-        doc = self.parse("feature kern { pos A' 50 B; } kern;")
-        single_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(single_pos, ast.SinglePosStatement)
-        expected_dict = {
-            "SinglePositioning": {
-                "Positions": [
+    def test_ignoreSubstStatement_multiple(self):
+        self.assertAstToDictEqual(
+            "feature test { ignore sub A B' C, X Y' Z; } test;",
+            {
+                "IgnoreSubstitution": [
                     {
-                        "Glyph": {"Glyph": "A"},
-                        "Value": {"ValueRecord": {"XAdvance": 50}},
+                        "Prefix": [{"Glyph": "A"}],
+                        "Glyphs": [{"Glyph": "B"}],
+                        "Suffix": [{"Glyph": "C"}],
+                    },
+                    {
+                        "Prefix": [{"Glyph": "X"}],
+                        "Glyphs": [{"Glyph": "Y"}],
+                        "Suffix": [{"Glyph": "Z"}],
+                    },
+                ]
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_languageStatement_default(self):
+        self.assertAstToDictEqual(
+            "feature test { language NLD; } test;",
+            {"Language": "NLD"},
+            "statements.0.statements.0",
+        )
+
+    def test_languageStatement_exclude(self):
+        self.assertAstToDictEqual(
+            "feature test { language NLD exclude_dflt; } test;",
+            {"Language": "NLD", "ExcludeDefault": True},
+            "statements.0.statements.0",
+        )
+
+    def test_languageStatement_exclude_required(self):
+        self.assertAstToDictEqual(
+            "feature test { language NLD exclude_dflt required; } test;",
+            {"Language": "NLD", "ExcludeDefault": True, "Required": True},
+            "statements.0.statements.0",
+        )
+
+    def test_ligatureCaretByIndexStatement_class(self):
+        self.assertAstToDictEqual(
+            "@L = [f_f_i f_l]; table GDEF { LigatureCaretByIndex @L 2 4; } GDEF;",
+            {"LigatureCaretByIndex": {"Glyphs": {"ClassName": "L"}, "Carets": [2, 4]}},
+            "statements.1.statements.0",
+        )
+
+    def test_ligatureCaretByPosStatement_class(self):
+        self.assertAstToDictEqual(
+            "@L = [f_f_i f_l]; table GDEF { LigatureCaretByPos @L 300 600; } GDEF;",
+            {
+                "LigatureCaretByPosition": {
+                    "Glyphs": {"ClassName": "L"},
+                    "Carets": [300, 600],
+                }
+            },
+            "statements.1.statements.0",
+        )
+
+    def test_lookupBlock_useExtension(self):
+        self.assertAstToDictEqual(
+            "lookup MYLOOKUP useExtension { sub A by B; } MYLOOKUP;",
+            {
+                "LookupBlock": {
+                    "Name": "MYLOOKUP",
+                    "UseExtension": True,
+                    "Statements": [
+                        {
+                            "SingleSubstitution": {
+                                "In": [{"Glyph": "A"}],
+                                "Out": [{"Glyph": "B"}],
+                            }
+                        }
+                    ],
+                }
+            },
+            "statements.0",
+        )
+
+    def test_lookupFlagStatement_multiple_flags(self):
+        self.assertAstToDictEqual(
+            "lookup L { lookupflag RightToLeft IgnoreMarks; } L;",
+            {"LookupFlag": {"Flags": ["RightToLeft", "IgnoreMarks"]}},
+            "statements.0.statements.0",
+        )
+
+    def test_lookupFlagStatement_markAttachment(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 0 0> @MC; lookup L { lookupflag MarkAttachmentType @MC; } L;",
+            {"LookupFlag": {"MarkAttachment": {"ClassName": "MC"}}},
+            "statements.1.statements.0",
+        )
+
+    def test_lookupFlagStatement_markAttachment_class(self):
+        self.assertAstToDictEqual(
+            "lookup L { lookupflag MarkAttachmentType [acute grave]; } L;",
+            {
+                "LookupFlag": {
+                    "MarkAttachment": {
+                        "GlyphClass": [{"Glyph": "acute"}, {"Glyph": "grave"}]
                     }
-                ],
-                "Suffix": [{"Glyph": "B"}],
-            }
-        }
-        self.assertEqual(single_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatA_class(self):
-        doc = self.parse("feature kern { @A = [A]; @B = [B]; pos @A -50 @B 20; } kern;")
-        pair_pos = doc.statements[0].statements[2]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"ClassName": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"ClassName": "B"},
-                "Value2": {"ValueRecord": {"XAdvance": 20}},
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatA_enumerated(self):
-        doc = self.parse("feature kern { enum pos A -50 B 20; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"Glyph": "B"},
-                "Value2": {"ValueRecord": {"XAdvance": 20}},
-                "Enumerated": True,
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatA_null_first(self):
-        doc = self.parse("feature kern { pos A <NULL> B 20; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": None,
-                "Second": {"Glyph": "B"},
-                "Value2": {"ValueRecord": {"XAdvance": 20}},
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatA_null_second(self):
-        doc = self.parse("feature kern { pos A -50 B <NULL>; } kern;")
-        pair_pos = doc.statements[0].statements[0]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"Glyph": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"Glyph": "B"},
-                "Value2": None,
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_formatB_class(self):
-        doc = self.parse("feature kern { @A = [A]; @B = [B]; pos @A @B -50; } kern;")
-        pair_pos = doc.statements[0].statements[2]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"ClassName": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"ClassName": "B"},
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
-
-    def test_pairPosStatement_toDict_enumerated_class(self):
-        doc = self.parse(
-            "feature kern { @A = [A]; @B = [B]; enum pos @A @B -50; } kern;"
+                }
+            },
+            "statements.0.statements.0",
         )
-        pair_pos = doc.statements[0].statements[2]
-        self.assertIsInstance(pair_pos, ast.PairPosStatement)
-        expected_dict = {
-            "PairPositioning": {
-                "First": {"ClassName": "A"},
-                "Value1": {"ValueRecord": {"XAdvance": -50}},
-                "Second": {"ClassName": "B"},
-                "Enumerated": True,
-            }
-        }
-        self.assertEqual(pair_pos.toDict(), expected_dict)
 
-    def test_cursivePosStatement_toDict_class(self):
-        doc = self.parse(
-            "feature curs { @C = [A B]; pos cursive @C <anchor 10 20> <anchor 30 40>; } curs;"
+    def test_lookupFlagStatement_numeric(self):
+        self.assertAstToDictEqual(
+            "lookup L { lookupflag 8; } L;",  # 8 = IgnoreMarks
+            {"LookupFlag": {"Flags": ["IgnoreMarks"]}},
+            "statements.0.statements.0",
         )
-        curs_pos = doc.statements[0].statements[1]
-        self.assertIsInstance(curs_pos, ast.CursivePosStatement)
-        expected_dict = {
-            "CursivePositioning": {
-                "Class": {"ClassName": "C"},
-                "Entry": {"Anchor": {"X": 10, "Y": 20}},
-                "Exit": {"Anchor": {"X": 30, "Y": 40}},
-            }
-        }
-        self.assertEqual(curs_pos.toDict(), expected_dict)
 
-    def test_markBasePosStatement_toDict_class_multiple(self):
-        doc = self.parse(
+    def test_lookupFlagStatement_zero(self):
+        self.assertAstToDictEqual(
+            "lookup L { lookupflag 0; } L;",
+            {"LookupFlag": {}},
+            "statements.0.statements.0",
+        )
+
+    def test_singlePosStatement_class_horiz(self):
+        self.assertAstToDictEqual(
+            "feature kern { @V = [A V]; pos @V -50; } kern;",
+            {
+                "SinglePositioning": {
+                    "Positions": [
+                        {
+                            "Glyph": {"ClassName": "V"},
+                            "Value": {"ValueRecord": {"XAdvance": -50}},
+                        }
+                    ]
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_pairPosStatement_formatA_multiple_values(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A 50 B 60; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": 50}},
+                    "Second": {"Glyph": "B"},
+                    "Value2": {"ValueRecord": {"XAdvance": 60}},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_singlePosStatement_chained(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A' 50 B; } kern;",
+            {
+                "SinglePositioning": {
+                    "Positions": [
+                        {
+                            "Glyph": {"Glyph": "A"},
+                            "Value": {"ValueRecord": {"XAdvance": 50}},
+                        }
+                    ],
+                    "Suffix": [{"Glyph": "B"}],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_formatA_class(self):
+        self.assertAstToDictEqual(
+            "feature kern { @A = [A]; @B = [B]; pos @A -50 @B 20; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"ClassName": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"ClassName": "B"},
+                    "Value2": {"ValueRecord": {"XAdvance": 20}},
+                }
+            },
+            "statements.0.statements.2",
+        )
+
+    def test_pairPosStatement_formatA_enumerated(self):
+        self.assertAstToDictEqual(
+            "feature kern { enum pos A -50 B 20; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"Glyph": "B"},
+                    "Value2": {"ValueRecord": {"XAdvance": 20}},
+                    "Enumerated": True,
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_formatA_null_first(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A <NULL> B 20; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": None,
+                    "Second": {"Glyph": "B"},
+                    "Value2": {"ValueRecord": {"XAdvance": 20}},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_formatA_null_second(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A -50 B <NULL>; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"Glyph": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"Glyph": "B"},
+                    "Value2": None,
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_pairPosStatement_formatB_class(self):
+        self.assertAstToDictEqual(
+            "feature kern { @A = [A]; @B = [B]; pos @A @B -50; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"ClassName": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"ClassName": "B"},
+                }
+            },
+            "statements.0.statements.2",
+        )
+
+    def test_pairPosStatement_enumerated_class(self):
+        self.assertAstToDictEqual(
+            "feature kern { @A = [A]; @B = [B]; enum pos @A @B -50; } kern;",
+            {
+                "PairPositioning": {
+                    "First": {"ClassName": "A"},
+                    "Value1": {"ValueRecord": {"XAdvance": -50}},
+                    "Second": {"ClassName": "B"},
+                    "Enumerated": True,
+                }
+            },
+            "statements.0.statements.2",
+        )
+
+    def test_cursivePosStatement_class(self):
+        self.assertAstToDictEqual(
+            "feature curs { @C = [A B]; pos cursive @C <anchor 10 20> <anchor 30 40>; } curs;",
+            {
+                "CursivePositioning": {
+                    "Class": {"ClassName": "C"},
+                    "Entry": {"Anchor": {"X": 10, "Y": 20}},
+                    "Exit": {"Anchor": {"X": 30, "Y": 40}},
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_markBasePosStatement_class_multiple(self):
+        self.assertAstToDictEqual(
             "markClass acute <anchor 0 0> @TOP; markClass cedilla <anchor 0 0> @BOT;"
-            "feature test { @B = [A E]; pos base @B <anchor 150 450> mark @TOP <anchor 150 -50> mark @BOT; } test;"
+            "feature test { @B = [A E]; pos base @B <anchor 150 450> mark @TOP <anchor 150 -50> mark @BOT; } test;",
+            {
+                "MarkBasePositioning": {
+                    "Base": {"ClassName": "B"},
+                    "Marks": [
+                        {
+                            "Anchor": {"Anchor": {"X": 150, "Y": 450}},
+                            "MarkClass": "TOP",
+                        },
+                        {
+                            "Anchor": {"Anchor": {"X": 150, "Y": -50}},
+                            "MarkClass": "BOT",
+                        },
+                    ],
+                }
+            },
+            "statements.2.statements.1",
         )
-        mark_base = doc.statements[2].statements[1]
-        self.assertIsInstance(mark_base, ast.MarkBasePosStatement)
-        expected_dict = {
-            "MarkBasePositioning": {
-                "Base": {"ClassName": "B"},
-                "Marks": [
-                    {"Anchor": {"Anchor": {"X": 150, "Y": 450}}, "MarkClass": "TOP"},
-                    {"Anchor": {"Anchor": {"X": 150, "Y": -50}}, "MarkClass": "BOT"},
-                ],
-            }
-        }
-        self.assertEqual(mark_base.toDict(), expected_dict)
 
-    def test_markLigPosStatement_toDict_class(self):
-        doc = self.parse(
-            "markClass acute <anchor 0 0> @TOP; feature test { @L = [f_f_i f_l]; pos ligature @L <anchor 100 400> mark @TOP ligComponent <anchor NULL>; } test;"
+    def test_markLigPosStatement_class(self):
+        self.assertAstToDictEqual(
+            "markClass acute <anchor 0 0> @TOP; feature test { @L = [f_f_i f_l]; pos ligature @L <anchor 100 400> mark @TOP ligComponent <anchor NULL>; } test;",
+            {
+                "MarkLigaturePositioning": {
+                    "Ligatures": {"ClassName": "L"},
+                    "Marks": [
+                        [
+                            {
+                                "Anchor": {"Anchor": {"X": 100, "Y": 400}},
+                                "MarkClass": "TOP",
+                            }
+                        ],
+                        {"Anchor": None},
+                    ],
+                }
+            },
+            "statements.1.statements.1",
         )
-        mark_lig = doc.statements[1].statements[1]
-        self.assertIsInstance(mark_lig, ast.MarkLigPosStatement)
-        expected_dict = {
-            "MarkLigaturePositioning": {
-                "Ligatures": {"ClassName": "L"},
-                "Marks": [
-                    [{"Anchor": {"Anchor": {"X": 100, "Y": 400}}, "MarkClass": "TOP"}],
-                    {"Anchor": None},
-                ],
-            }
-        }
-        self.assertEqual(mark_lig.toDict(), expected_dict)
 
-    def test_markMarkPosStatement_toDict_class(self):
-        doc = self.parse(
+    def test_markMarkPosStatement_class(self):
+        self.assertAstToDictEqual(
             "markClass acute <anchor 0 0> @TOP; markClass grave <anchor 0 0> @TOP2; "
-            "feature test { @M = [acute grave]; pos mark @M <anchor 0 50> mark @TOP2; } test;"
+            "feature test { @M = [acute grave]; pos mark @M <anchor 0 50> mark @TOP2; } test;",
+            {
+                "MarkToMarkPositioning": {
+                    "Base": {"ClassName": "M"},
+                    "Marks": [
+                        {"Anchor": {"Anchor": {"X": 0, "Y": 50}}, "MarkClass": "TOP2"}
+                    ],
+                }
+            },
+            "statements.2.statements.1",
         )
-        mark_mark = doc.statements[2].statements[1]
-        self.assertIsInstance(mark_mark, ast.MarkMarkPosStatement)
-        expected_dict = {
-            "MarkToMarkPositioning": {
-                "Base": {"ClassName": "M"},
-                "Marks": [
-                    {"Anchor": {"Anchor": {"X": 0, "Y": 50}}, "MarkClass": "TOP2"}
-                ],
-            }
-        }
-        self.assertEqual(mark_mark.toDict(), expected_dict)
 
-    def test_chainContextPosStatement_toDict_multiple(self):
-        doc = self.parse(
+    def test_chainContextPosStatement_multiple(self):
+        self.assertAstToDictEqual(
             "lookup L1 { pos I 10; } L1; lookup L2 { pos N 20; } L2; "
-            "feature test { pos A B I' lookup L1 N' lookup L2 P; } test;"
+            "feature test { pos A B I' lookup L1 N' lookup L2 P; } test;",
+            {
+                "ChainContextualPositioning": {
+                    "Prefix": [{"Glyph": "A"}, {"Glyph": "B"}],
+                    "ChainedLookups": [
+                        {"Glyph": "I", "Lookups": ["L1"]},
+                        {"Glyph": "N", "Lookups": ["L2"]},
+                    ],
+                    "Suffix": [{"Glyph": "P"}],
+                }
+            },
+            "statements.2.statements.0",
         )
-        chain_pos = doc.statements[2].statements[0]
-        self.assertIsInstance(chain_pos, ast.ChainContextPosStatement)
-        expected_dict = {
-            "ChainContextualPositioning": {
-                "Prefix": [{"Glyph": "A"}, {"Glyph": "B"}],
-                "ChainedLookups": [
-                    {"Glyph": "I", "Lookups": ["L1"]},
-                    {"Glyph": "N", "Lookups": ["L2"]},
-                ],
-                "Suffix": [{"Glyph": "P"}],
-            }
-        }
-        self.assertEqual(chain_pos.toDict(), expected_dict)
 
-    def test_markClassDefinition_toDict_class(self):
-        doc = self.parse("markClass [acute grave] <anchor 300 500> @TOP_MARKS;")
-        mcd_stmt = doc.statements[0]
-        self.assertIsInstance(mcd_stmt, ast.MarkClassDefinition)
-        expected_dict = {
-            "MarkClassDefinition": {
-                "Name": "TOP_MARKS",
-                "Anchor": {"Anchor": {"X": 300, "Y": 500}},
-                "Glyphs": {"GlyphClass": [{"Glyph": "acute"}, {"Glyph": "grave"}]},
-            }
-        }
-        self.assertEqual(mcd_stmt.toDict(), expected_dict)
-
-    def test_nameRecord_toDict_specific_ids(self):
-        doc = self.parse('table name { nameid 1 1 0 18 "Test Name"; } name;')
-        name_record = doc.statements[0].statements[0]
-        self.assertIsInstance(name_record, ast.NameRecord)
-        expected_dict = {
-            "NameRecord": {
-                "String": "Test Name",
-                "PlatformID": 1,
-                "PlatformEncodingID": 0,
-                "LanguageID": 18,
-            }
-        }
-        self.assertEqual(name_record.toDict(), expected_dict)
-
-    def test_reverseChainSingleSubstStatement_toDict_class(self):
-        doc = self.parse("feature test { @B = [B b]; rsub A @B' C by D; } test;")
-        rsub = doc.statements[0].statements[1]
-        self.assertIsInstance(rsub, ast.ReverseChainSingleSubstStatement)
-        expected_dict = {
-            "ReverseChainSingleSubstitution": {
-                "Prefix": [{"Glyph": "A"}],
-                "In": [{"ClassName": "B"}],
-                "Suffix": [{"Glyph": "C"}],
-                "Out": [{"Glyph": "D"}],
-            }
-        }
-        self.assertEqual(rsub.toDict(), expected_dict)
-
-    def test_reverseChainSingleSubstStatement_toDict_range(self):
-        doc = self.parse("feature test { rsub A [a-c]' D by X; } test;")
-        rsub = doc.statements[0].statements[0]
-        self.assertIsInstance(rsub, ast.ReverseChainSingleSubstStatement)
-        expected_dict = {
-            "ReverseChainSingleSubstitution": {
-                "Prefix": [{"Glyph": "A"}],
-                "In": [
-                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}
-                ],
-                "Suffix": [{"Glyph": "D"}],
-                "Out": [{"Glyph": "X"}],
-            }
-        }
-        self.assertEqual(rsub.toDict(), expected_dict)
-
-    def test_elidedFallbackName_toDict_multiple(self):
-        doc = self.parse(
-            'table STAT { ElidedFallbackName { name "Reg"; name 1 0 18 "Rom"; }; } STAT;'
+    def test_markClassDefinition_class(self):
+        self.assertAstToDictEqual(
+            "markClass [acute grave] <anchor 300 500> @TOP_MARKS;",
+            {
+                "MarkClassDefinition": {
+                    "Name": "TOP_MARKS",
+                    "Anchor": {"Anchor": {"X": 300, "Y": 500}},
+                    "Glyphs": {"GlyphClass": [{"Glyph": "acute"}, {"Glyph": "grave"}]},
+                }
+            },
+            "statements.0",
         )
-        elided_name = doc.statements[0].statements[0]
-        self.assertIsInstance(elided_name, ast.ElidedFallbackName)
-        expected_dict = {
-            "ElidedFallbackName": {
-                "Names": [
-                    {
-                        "STATName": {
-                            "String": "Reg",
-                            "PlatformID": 3,
-                            "PlatformEncodingID": 1,
-                            "LanguageID": 1033,
+
+    def test_nameRecord_specific_ids(self):
+        self.assertAstToDictEqual(
+            'table name { nameid 1 1 0 18 "Test Name"; } name;',
+            {
+                "NameRecord": {
+                    "String": "Test Name",
+                    "PlatformID": 1,
+                    "PlatformEncodingID": 0,
+                    "LanguageID": 18,
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_reverseChainSingleSubstStatement_class(self):
+        self.assertAstToDictEqual(
+            "feature test { @B = [B b]; rsub A @B' C by D; } test;",
+            {
+                "ReverseChainSingleSubstitution": {
+                    "Prefix": [{"Glyph": "A"}],
+                    "In": [{"ClassName": "B"}],
+                    "Suffix": [{"Glyph": "C"}],
+                    "Out": [{"Glyph": "D"}],
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_reverseChainSingleSubstStatement_range(self):
+        self.assertAstToDictEqual(
+            "feature test { rsub A [a-c]' D by X; } test;",
+            {
+                "ReverseChainSingleSubstitution": {
+                    "Prefix": [{"Glyph": "A"}],
+                    "In": [
+                        {
+                            "GlyphClass": [
+                                {"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}
+                            ]
                         }
-                    },
-                    {
-                        "STATName": {
-                            "String": "Rom",
-                            "PlatformID": 1,
-                            "PlatformEncodingID": 0,
-                            "LanguageID": 18,
+                    ],
+                    "Suffix": [{"Glyph": "D"}],
+                    "Out": [{"Glyph": "X"}],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_elidedFallbackName_multiple(self):
+        self.assertAstToDictEqual(
+            'table STAT { ElidedFallbackName { name "Reg"; name 1 0 18 "Rom"; }; } STAT;',
+            {
+                "ElidedFallbackName": {
+                    "Names": [
+                        {
+                            "STATName": {
+                                "String": "Reg",
+                                "PlatformID": 3,
+                                "PlatformEncodingID": 1,
+                                "LanguageID": 1033,
+                            }
+                        },
+                        {
+                            "STATName": {
+                                "String": "Rom",
+                                "PlatformID": 1,
+                                "PlatformEncodingID": 0,
+                                "LanguageID": 18,
+                            }
+                        },
+                    ]
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_singleSubstStatement_chained(self):
+        self.assertAstToDictEqual(
+            "feature test { sub A' B by C; } test;",
+            {
+                "SingleSubstitution": {
+                    "In": [{"Glyph": "A"}],
+                    "Out": [{"Glyph": "C"}],
+                    "Suffix": [{"Glyph": "B"}],
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_singleSubstStatement_class(self):
+        self.assertAstToDictEqual(
+            "feature smcp { @lower = [a b]; sub @lower by a.sc; } smcp;",
+            {
+                "SingleSubstitution": {
+                    "In": [{"ClassName": "lower"}],
+                    "Out": [{"Glyph": "a.sc"}],
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_singleSubstStatement_class_chained(self):
+        self.assertAstToDictEqual(
+            "feature smcp { @lower = [a b]; sub C @lower' D by a.sc; } smcp;",
+            {
+                "SingleSubstitution": {
+                    "Prefix": [{"Glyph": "C"}],
+                    "In": [{"ClassName": "lower"}],
+                    "Suffix": [{"Glyph": "D"}],
+                    "Out": [{"Glyph": "a.sc"}],
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_singleSubstStatement_range(self):
+        self.assertAstToDictEqual(
+            "feature smcp { sub [a-c] by [A.sc-C.sc]; } smcp;",
+            {
+                "SingleSubstitution": {
+                    "In": [
+                        {
+                            "GlyphClass": [
+                                {"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}
+                            ]
                         }
-                    },
-                ]
-            }
-        }
-        self.assertEqual(elided_name.toDict(), expected_dict)
-
-    def test_singleSubstStatement_toDict_chained(self):
-        doc = self.parse("feature test { sub A' B by C; } test;")
-        single_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(single_sub, ast.SingleSubstStatement)
-        expected_dict = {
-            "SingleSubstitution": {
-                "In": [{"Glyph": "A"}],
-                "Out": [{"Glyph": "C"}],
-                "Suffix": [{"Glyph": "B"}],
-            }
-        }
-        self.assertEqual(single_sub.toDict(), expected_dict)
-
-    def test_singleSubstStatement_toDict_class(self):
-        doc = self.parse("feature smcp { @lower = [a b]; sub @lower by a.sc; } smcp;")
-        single_sub = doc.statements[0].statements[1]
-        self.assertIsInstance(single_sub, ast.SingleSubstStatement)
-        expected_dict = {
-            "SingleSubstitution": {
-                "In": [{"ClassName": "lower"}],
-                "Out": [{"Glyph": "a.sc"}],
-            }
-        }
-        self.assertEqual(single_sub.toDict(), expected_dict)
-
-    def test_singleSubstStatement_toDict_class_chained(self):
-        doc = self.parse(
-            "feature smcp { @lower = [a b]; sub C @lower' D by a.sc; } smcp;"
+                    ],
+                    "Out": [
+                        {
+                            "GlyphClass": [
+                                {"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}
+                            ]
+                        }
+                    ],
+                }
+            },
+            "statements.0.statements.0",
         )
-        single_sub = doc.statements[0].statements[1]
-        self.assertIsInstance(single_sub, ast.SingleSubstStatement)
-        expected_dict = {
-            "SingleSubstitution": {
-                "Prefix": [{"Glyph": "C"}],
-                "In": [{"ClassName": "lower"}],
-                "Suffix": [{"Glyph": "D"}],
-                "Out": [{"Glyph": "a.sc"}],
-            }
-        }
-        self.assertEqual(single_sub.toDict(), expected_dict)
 
-    def test_singleSubstStatement_toDict_range(self):
-        doc = self.parse("feature smcp { sub [a-c] by [A.sc-C.sc]; } smcp;")
-        single_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(single_sub, ast.SingleSubstStatement)
-        expected_dict = {
-            "SingleSubstitution": {
-                "In": [
-                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}
-                ],
-                "Out": [
-                    {
-                        "GlyphClass": [
-                            {"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}
-                        ]
-                    }
-                ],
-            }
-        }
-        self.assertEqual(single_sub.toDict(), expected_dict)
-
-    def test_singleSubstStatement_toDict_range_chained(self):
-        doc = self.parse("feature smcp { sub X [a-c]' Y by [A.sc-C.sc]; } smcp;")
-        single_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(single_sub, ast.SingleSubstStatement)
-        expected_dict = {
-            "SingleSubstitution": {
-                "Prefix": [{"Glyph": "X"}],
-                "In": [
-                    {"GlyphClass": [{"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}]}
-                ],
-                "Suffix": [{"Glyph": "Y"}],
-                "Out": [
-                    {
-                        "GlyphClass": [
-                            {"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}
-                        ]
-                    }
-                ],
-            }
-        }
-        self.assertEqual(single_sub.toDict(), expected_dict)
-
-    def test_multipleSubstStatement_toDict_chained(self):
-        doc = self.parse("feature test { sub A f_i' B by f i; } test;")
-        multi_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(multi_sub, ast.MultipleSubstStatement)
-        expected_dict = {
-            "MultipleSubstitution": {
-                "Prefix": [{"Glyph": "A"}],
-                "In": {"Glyph": "f_i"},
-                "Suffix": [{"Glyph": "B"}],
-                "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
-            }
-        }
-        self.assertEqual(multi_sub.toDict(), expected_dict)
-
-    def test_multipleSubstStatement_toDict_force_chained(self):
-        doc = self.parse("feature test { sub f_i' by f i; } test;")
-        multi_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(multi_sub, ast.MultipleSubstStatement)
-        expected_dict = {
-            "MultipleSubstitution": {
-                "In": {"Glyph": "f_i"},
-                "Chained": True,
-                "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
-            }
-        }
-        self.assertEqual(multi_sub.toDict(), expected_dict)
-
-    def test_multipleSubstStatement_toDict_classes(self):
-        doc = self.parse(
-            "feature test { @IN = [f_i f_l]; @F = [f]; @IL = [i l]; sub @IN by @F @IL; } test;"
+    def test_singleSubstStatement_range_chained(self):
+        self.assertAstToDictEqual(
+            "feature smcp { sub X [a-c]' Y by [A.sc-C.sc]; } smcp;",
+            {
+                "SingleSubstitution": {
+                    "Prefix": [{"Glyph": "X"}],
+                    "In": [
+                        {
+                            "GlyphClass": [
+                                {"GlyphRange": ({"Glyph": "a"}, {"Glyph": "c"})}
+                            ]
+                        }
+                    ],
+                    "Suffix": [{"Glyph": "Y"}],
+                    "Out": [
+                        {
+                            "GlyphClass": [
+                                {"GlyphRange": ({"Glyph": "A.sc"}, {"Glyph": "C.sc"})}
+                            ]
+                        }
+                    ],
+                }
+            },
+            "statements.0.statements.0",
         )
-        multi_sub = doc.statements[0].statements[3]
-        self.assertIsInstance(multi_sub, ast.MultipleSubstStatement)
-        expected_dict = {
-            "MultipleSubstitution": {
-                "In": {"ClassName": "IN"},
-                "Out": [{"ClassName": "F"}, {"ClassName": "IL"}],
-            }
-        }
-        self.assertEqual(multi_sub.toDict(), expected_dict)
 
-    def test_multipleSubstStatement_toDict_classes_mixed(self):
-        doc = self.parse(
-            "feature test { @IN = [f_i f_l]; @IL = [i l]; sub @IN by f @IL; } test;"
+    def test_multipleSubstStatement_chained(self):
+        self.assertAstToDictEqual(
+            "feature test { sub A f_i' B by f i; } test;",
+            {
+                "MultipleSubstitution": {
+                    "Prefix": [{"Glyph": "A"}],
+                    "In": {"Glyph": "f_i"},
+                    "Suffix": [{"Glyph": "B"}],
+                    "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
+                }
+            },
+            "statements.0.statements.0",
         )
-        multi_sub = doc.statements[0].statements[2]
-        self.assertIsInstance(multi_sub, ast.MultipleSubstStatement)
-        expected_dict = {
-            "MultipleSubstitution": {
-                "In": {"ClassName": "IN"},
-                "Out": [{"Glyph": "f"}, {"ClassName": "IL"}],
-            }
-        }
-        self.assertEqual(multi_sub.toDict(), expected_dict)
 
-    def test_multipleSubstStatement_toDict_classes_mixed_singleton(self):
-        doc = self.parse(
-            "feature test { @IN = [f_i f_l]; @F = [f]; @IL = [i l]; sub @IN by @F @IL; } test;"
+    def test_multipleSubstStatement_force_chained(self):
+        self.assertAstToDictEqual(
+            "feature test { sub f_i' by f i; } test;",
+            {
+                "MultipleSubstitution": {
+                    "In": {"Glyph": "f_i"},
+                    "Chained": True,
+                    "Out": [{"Glyph": "f"}, {"Glyph": "i"}],
+                }
+            },
+            "statements.0.statements.0",
         )
-        multi_sub = doc.statements[0].statements[
-            3
-        ]  # Re-using test_multipleSubstStatement_toDict_classes example as it fits
-        self.assertIsInstance(multi_sub, ast.MultipleSubstStatement)
-        expected_dict = {
-            "MultipleSubstitution": {
-                "In": {"ClassName": "IN"},
-                "Out": [{"ClassName": "F"}, {"ClassName": "IL"}],
-            }
-        }
-        self.assertEqual(multi_sub.toDict(), expected_dict)
 
-    def test_alternateSubstStatement_toDict_chained(self):
-        doc = self.parse("feature test { sub X a' Y from [a.1 a.2]; } test;")
-        alt_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(alt_sub, ast.AlternateSubstStatement)
-        expected_dict = {
-            "AlternateSubstitution": {
-                "Prefix": [{"Glyph": "X"}],
-                "Suffix": [{"Glyph": "Y"}],
-                "In": {"Glyph": "a"},
-                "Out": {"GlyphClass": [{"Glyph": "a.1"}, {"Glyph": "a.2"}]},
-            }
-        }
-        self.assertEqual(alt_sub.toDict(), expected_dict)
+    def test_multipleSubstStatement_classes(self):
+        self.assertAstToDictEqual(
+            "feature test { @IN = [f_i f_l]; @F = [f]; @IL = [i l]; sub @IN by @F @IL; } test;",
+            {
+                "MultipleSubstitution": {
+                    "In": {"ClassName": "IN"},
+                    "Out": [{"ClassName": "F"}, {"ClassName": "IL"}],
+                }
+            },
+            "statements.0.statements.3",
+        )
 
-    def test_alternateSubstStatement_toDict_class(self):
-        doc = self.parse("feature test { @ALT = [a.1 a.2]; sub a from @ALT; } test;")
-        alt_sub = doc.statements[0].statements[1]
-        self.assertIsInstance(alt_sub, ast.AlternateSubstStatement)
-        expected_dict = {
-            "AlternateSubstitution": {
-                "In": {"Glyph": "a"},
-                "Out": {"ClassName": "ALT"},
-            }
-        }
-        self.assertEqual(alt_sub.toDict(), expected_dict)
+    def test_multipleSubstStatement_classes_mixed(self):
+        self.assertAstToDictEqual(
+            "feature test { @IN = [f_i f_l]; @IL = [i l]; sub @IN by f @IL; } test;",
+            {
+                "MultipleSubstitution": {
+                    "In": {"ClassName": "IN"},
+                    "Out": [{"Glyph": "f"}, {"ClassName": "IL"}],
+                }
+            },
+            "statements.0.statements.2",
+        )
 
-    def test_ligatureSubstStatement_toDict_chained(self):
-        doc = self.parse("feature liga { sub X f' f' i' Y by f_f_i; } liga;")
-        lig_sub = doc.statements[0].statements[0]
-        self.assertIsInstance(lig_sub, ast.LigatureSubstStatement)
-        expected_dict = {
-            "LigatureSubstitution": {
-                "Prefix": [{"Glyph": "X"}],
-                "In": [{"Glyph": "f"}, {"Glyph": "f"}, {"Glyph": "i"}],
-                "Suffix": [{"Glyph": "Y"}],
-                "Out": {"Glyph": "f_f_i"},
-            }
-        }
-        self.assertEqual(lig_sub.toDict(), expected_dict)
+    def test_alternateSubstStatement_chained(self):
+        self.assertAstToDictEqual(
+            "feature test { sub X a' Y from [a.1 a.2]; } test;",
+            {
+                "AlternateSubstitution": {
+                    "Prefix": [{"Glyph": "X"}],
+                    "Suffix": [{"Glyph": "Y"}],
+                    "In": {"Glyph": "a"},
+                    "Out": {"GlyphClass": [{"Glyph": "a.1"}, {"Glyph": "a.2"}]},
+                }
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_chainContextSubstStatement_toDict_multiple(self):
-        doc = self.parse(
+    def test_alternateSubstStatement_class(self):
+        self.assertAstToDictEqual(
+            "feature test { @ALT = [a.1 a.2]; sub a from @ALT; } test;",
+            {
+                "AlternateSubstitution": {
+                    "In": {"Glyph": "a"},
+                    "Out": {"ClassName": "ALT"},
+                }
+            },
+            "statements.0.statements.1",
+        )
+
+    def test_ligatureSubstStatement_chained(self):
+        self.assertAstToDictEqual(
+            "feature liga { sub X f' f' i' Y by f_f_i; } liga;",
+            {
+                "LigatureSubstitution": {
+                    "Prefix": [{"Glyph": "X"}],
+                    "In": [{"Glyph": "f"}, {"Glyph": "f"}, {"Glyph": "i"}],
+                    "Suffix": [{"Glyph": "Y"}],
+                    "Out": {"Glyph": "f_f_i"},
+                }
+            },
+            "statements.0.statements.0",
+        )
+
+    def test_chainContextSubstStatement_multiple(self):
+        self.assertAstToDictEqual(
             "lookup L1 { sub I by X; } L1; lookup L2 { sub N by Y; } L2; "
-            "feature test { sub A B I' lookup L1 N' lookup L2 P; } test;"
+            "feature test { sub A B I' lookup L1 N' lookup L2 P; } test;",
+            {
+                "ChainContextualSubstitution": {
+                    "Prefix": [{"Glyph": "A"}, {"Glyph": "B"}],
+                    "ChainedLookups": [
+                        {"Glyph": "I", "Lookups": ["L1"]},
+                        {"Glyph": "N", "Lookups": ["L2"]},
+                    ],
+                    "Suffix": [{"Glyph": "P"}],
+                }
+            },
+            "statements.2.statements.0",
         )
-        chain_sub = doc.statements[2].statements[0]
-        self.assertIsInstance(chain_sub, ast.ChainContextSubstStatement)
-        expected_dict = {
-            "ChainContextualSubstitution": {
-                "Prefix": [{"Glyph": "A"}, {"Glyph": "B"}],
-                "ChainedLookups": [
-                    {"Glyph": "I", "Lookups": ["L1"]},
-                    {"Glyph": "N", "Lookups": ["L2"]},
-                ],
-                "Suffix": [{"Glyph": "P"}],
-            }
-        }
-        self.assertEqual(chain_sub.toDict(), expected_dict)
 
-    def test_valueRecordDefinition_toDict_null(self):
-        doc = self.parse("valueRecordDef <NULL> foo;")
-        vr_def = doc.statements[0]
-        self.assertIsInstance(vr_def, ast.ValueRecordDefinition)
-        expected_dict = {
-            "ValueRecordDefinition": {
-                "Name": "foo",
-                "Value": None,
-            }
-        }
-        self.assertEqual(vr_def.toDict(), expected_dict)
-
-    def test_valueRecordDefinition_toDict_named(self):
-        doc = self.parse("valueRecordDef 100 foo; valueRecordDef <foo> bar;")
-        vr_def = doc.statements[1]
-        self.assertIsInstance(vr_def, ast.ValueRecordDefinition)
-        expected_dict = {
-            "ValueRecordDefinition": {
-                "Name": "bar",
-                "Value": {"ValueRecord": {"XAdvance": 100}},
-            }
-        }
-        self.assertEqual(vr_def.toDict(), expected_dict)
-
-    def test_valueRecord_toDict_multiple_devices(self):
-        doc = self.parse(
-            "feature kern { pos A <1 2 3 4 <device 10 100, 11 110> <device 12 120> <device NULL> <device NULL>> B; } kern;"
+    def test_valueRecordDefinition_null(self):
+        self.assertAstToDictEqual(
+            "valueRecordDef <NULL> foo;",
+            {"ValueRecordDefinition": {"Name": "foo", "Value": None}},
+            "statements.0",
         )
-        pair_pos = doc.statements[0].statements[0]
-        value_rec = pair_pos.valuerecord1
-        self.assertIsInstance(value_rec, ast.ValueRecord)
-        expected_dict = {
-            "ValueRecord": {
-                "XPlacement": 1,
-                "YPlacement": 2,
-                "XAdvance": 3,
-                "YAdvance": 4,
-                "XPlacementDevice": [
-                    {"Size": 10, "Value": 100},
-                    {"Size": 11, "Value": 110},
-                ],
-                "YPlacementDevice": [{"Size": 12, "Value": 120}],
-            }
-        }
-        self.assertEqual(value_rec.toDict(), expected_dict)
 
-    def test_baseAxis_toDict(self):
-        doc = self.parse(
-            "table BASE { HorizAxis.BaseTagList foo  bar ; HorizAxis.BaseScriptList latn foo 0 0, DFLT bar 0 0 ; } BASE;"
+    def test_valueRecordDefinition_named(self):
+        self.assertAstToDictEqual(
+            "valueRecordDef 100 foo; valueRecordDef <foo> bar;",
+            {
+                "ValueRecordDefinition": {
+                    "Name": "bar",
+                    "Value": {"ValueRecord": {"XAdvance": 100}},
+                }
+            },
+            "statements.1",
         )
-        base_axis = doc.statements[0].statements[0]
-        self.assertIsInstance(base_axis, ast.BaseAxis)
-        expected_dict = {
-            "BaseAxis": {
-                "Direction": "Horizontal",
-                "Bases": ["foo", "bar"],
-                "Scripts": [
-                    {"Script": "latn", "Baseline": "foo", "Coordinates": [0, 0]},
-                    {"Script": "DFLT", "Baseline": "bar", "Coordinates": [0, 0]},
-                ],
-            }
-        }
-        self.assertEqual(base_axis.toDict(), expected_dict)
 
-    def test_os2Field_toDict_range(self):
-        doc = self.parse("table OS/2 { UnicodeRange 0 1 2; } OS/2;")
-        os2_field = doc.statements[0].statements[0]
-        self.assertIsInstance(os2_field, ast.OS2Field)
-        expected_dict = {"OS2Field": {"UnicodeRange": [0, 1, 2]}}
-        self.assertEqual(os2_field.toDict(), expected_dict)
+    def test_valueRecord_multiple_devices(self):
+        self.assertAstToDictEqual(
+            "feature kern { pos A <1 2 3 4 <device 10 100, 11 110> <device 12 120> <device NULL> <device NULL>> B; } kern;",
+            {
+                "ValueRecord": {
+                    "XPlacement": 1,
+                    "YPlacement": 2,
+                    "XAdvance": 3,
+                    "YAdvance": 4,
+                    "XPlacementDevice": [
+                        {"Size": 10, "Value": 100},
+                        {"Size": 11, "Value": 110},
+                    ],
+                    "YPlacementDevice": [{"Size": 12, "Value": 120}],
+                }
+            },
+            "statements.0.statements.0.valuerecord1",
+        )
 
-    def test_os2Field_toDict_vendor(self):
-        doc = self.parse('table OS/2 { Vendor "TEST"; } OS/2;')
-        os2_field = doc.statements[0].statements[0]
-        self.assertIsInstance(os2_field, ast.OS2Field)
-        expected_dict = {"OS2Field": {"Vendor": "TEST"}}
-        self.assertEqual(os2_field.toDict(), expected_dict)
+    def test_baseAxis(self):
+        self.assertAstToDictEqual(
+            "table BASE { HorizAxis.BaseTagList foo  bar ; HorizAxis.BaseScriptList latn foo 0 0, DFLT bar 0 0 ; } BASE;",
+            {
+                "BaseAxis": {
+                    "Direction": "Horizontal",
+                    "Bases": ["foo", "bar"],
+                    "Scripts": [
+                        {"Script": "latn", "Baseline": "foo", "Coordinates": [0, 0]},
+                        {"Script": "DFLT", "Baseline": "bar", "Coordinates": [0, 0]},
+                    ],
+                }
+            },
+            "statements.0.statements.0",
+        )
 
-    def test_hheaField_toDict_lowercase(self):
-        doc = self.parse("table hhea { Ascender 750; } hhea;")
-        hhea_field = doc.statements[0].statements[0]
-        self.assertIsInstance(hhea_field, ast.HheaField)
-        expected_dict = {"HheaField": {"Ascender": 750}}
+    def test_os2Field_range(self):
+        self.assertAstToDictEqual(
+            "table OS/2 { UnicodeRange 0 1 2; } OS/2;",
+            {"OS2Field": {"UnicodeRange": [0, 1, 2]}},
+            "statements.0.statements.0",
+        )
+
+    def test_os2Field_vendor(self):
+        self.assertAstToDictEqual(
+            'table OS/2 { Vendor "TEST"; } OS/2;',
+            {"OS2Field": {"Vendor": "TEST"}},
+            "statements.0.statements.0",
+        )
+
+    def test_hheaField_lowercase(self):
+        self.assertAstToDictEqual(
+            "table hhea { Ascender 750; } hhea;",
+            {"HheaField": {"Ascender": 750}},
+            "statements.0.statements.0",
+        )
 
 
 if __name__ == "__main__":
