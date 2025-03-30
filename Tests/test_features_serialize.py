@@ -414,7 +414,7 @@ class AstToDictTest(unittest.TestCase):
         expected_dict = {
             "ChainContextualPositioning": {
                 "Prefix": [{"Glyph": "B"}],
-                "ChainedLookups": [{"Glyph": {"Glyph": "A"}, "Lookups": ["L"]}],
+                "ChainedLookups": [{"Glyph": "A", "Lookups": ["L"]}],
                 "Suffix": [{"Glyph": "C"}],
             }
         }
@@ -429,7 +429,7 @@ class AstToDictTest(unittest.TestCase):
         expected_dict = {
             "ChainContextualSubstitution": {
                 "Prefix": [{"Glyph": "C"}],
-                "ChainedLookups": [{"Glyph": {"Glyph": "A"}, "Lookups": ["L"]}],
+                "ChainedLookups": [{"Glyph": "A", "Lookups": ["L"]}],
                 "Suffix": [{"Glyph": "D"}],
             }
         }
@@ -1396,8 +1396,8 @@ class AstToDictTest(unittest.TestCase):
             "ChainContextualPositioning": {
                 "Prefix": [{"Glyph": "A"}, {"Glyph": "B"}],
                 "ChainedLookups": [
-                    {"Glyph": {"Glyph": "I"}, "Lookups": ["L1"]},
-                    {"Glyph": {"Glyph": "N"}, "Lookups": ["L2"]},
+                    {"Glyph": "I", "Lookups": ["L1"]},
+                    {"Glyph": "N", "Lookups": ["L2"]},
                 ],
                 "Suffix": [{"Glyph": "P"}],
             }
@@ -1696,8 +1696,8 @@ class AstToDictTest(unittest.TestCase):
             "ChainContextualSubstitution": {
                 "Prefix": [{"Glyph": "A"}, {"Glyph": "B"}],
                 "ChainedLookups": [
-                    {"Glyph": {"Glyph": "I"}, "Lookups": ["L1"]},
-                    {"Glyph": {"Glyph": "N"}, "Lookups": ["L2"]},
+                    {"Glyph": "I", "Lookups": ["L1"]},
+                    {"Glyph": "N", "Lookups": ["L2"]},
                 ],
                 "Suffix": [{"Glyph": "P"}],
             }

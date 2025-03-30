@@ -251,7 +251,7 @@ def _chain_context_to_dict(self, key):
             result["Prefix"] = [p.toDict() for p in self.prefix]
         glyph_lookups = []
         for i, g in enumerate(self.glyphs):
-            glyph_entry = {"Glyph": g.toDict()}
+            glyph_entry = g.toDict()
             if self.lookups[i]:
                 glyph_entry["Lookups"] = [lu.name for lu in self.lookups[i]]
             glyph_lookups.append(glyph_entry)
