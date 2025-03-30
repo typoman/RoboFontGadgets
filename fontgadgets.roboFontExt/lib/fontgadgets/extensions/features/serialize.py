@@ -463,8 +463,10 @@ def toDict(self):
         "First": self.glyphs1.toDict(),
         "Value1": value_record_to_dict(self.valuerecord1),
         "Second": self.glyphs2.toDict(),
-        "Enumerated": self.enumerated,
     }
+
+    if self.enumerated:
+       result["Enumerated"] = self.enumerated
 
     if hasattr(self, "valuerecord2") and self.valuerecord2 is not None:
         result["Value2"] = value_record_to_dict(self.valuerecord2)

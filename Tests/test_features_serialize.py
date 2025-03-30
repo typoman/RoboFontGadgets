@@ -652,7 +652,6 @@ class AstToDictTest(unittest.TestCase):
                 "Value1": {"ValueRecord": {"XAdvance": -50}},
                 "Second": {"Glyph": "B"},
                 "Value2": {"ValueRecord": {"XAdvance": 20}},
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
@@ -666,7 +665,6 @@ class AstToDictTest(unittest.TestCase):
                 "First": {"Glyph": "A"},
                 "Value1": {"ValueRecord": {"XAdvance": -50}},
                 "Second": {"Glyph": "B"},
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
@@ -1083,9 +1081,9 @@ class AstToDictTest(unittest.TestCase):
         lang_stmt = doc.statements[0].statements[0]
         self.assertIsInstance(lang_stmt, ast.LanguageStatement)
         expected_dict = {
-                "Language": "NLD",
-                "ExcludeDefault": True,
-                "Required": True,
+            "Language": "NLD",
+            "ExcludeDefault": True,
+            "Required": True,
         }
         self.assertEqual(lang_stmt.toDict(), expected_dict)
 
@@ -1206,7 +1204,6 @@ class AstToDictTest(unittest.TestCase):
                 "Value1": {"ValueRecord": {"XAdvance": 50}},
                 "Second": {"Glyph": "B"},
                 "Value2": {"ValueRecord": {"XAdvance": 60}},
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
@@ -1238,7 +1235,6 @@ class AstToDictTest(unittest.TestCase):
                 "Value1": {"ValueRecord": {"XAdvance": -50}},
                 "Second": {"ClassName": "B"},
                 "Value2": {"ValueRecord": {"XAdvance": 20}},
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
@@ -1268,7 +1264,6 @@ class AstToDictTest(unittest.TestCase):
                 "Value1": None,
                 "Second": {"Glyph": "B"},
                 "Value2": {"ValueRecord": {"XAdvance": 20}},
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
@@ -1283,7 +1278,6 @@ class AstToDictTest(unittest.TestCase):
                 "Value1": {"ValueRecord": {"XAdvance": -50}},
                 "Second": {"Glyph": "B"},
                 "Value2": None,
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
@@ -1297,7 +1291,6 @@ class AstToDictTest(unittest.TestCase):
                 "First": {"ClassName": "A"},
                 "Value1": {"ValueRecord": {"XAdvance": -50}},
                 "Second": {"ClassName": "B"},
-                "Enumerated": False,
             }
         }
         self.assertEqual(pair_pos.toDict(), expected_dict)
