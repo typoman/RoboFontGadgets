@@ -362,9 +362,15 @@ class ParsedFeatureFile:
         self._parseStatements(self.featureFile)
         for feaTag, feaRefList in self._featureReferences.items():
             for feaRef in feaRefList:
-                feaRef.featureBlocks = self.features[feaTag]
-            for featureBlock in self.features[feaTag]:
-                self._appendToListAttribute(featureBlock, "references", feaRefList)
+                try:
+                    features = self.features[feaTag]
+                except KeyError:
+                    location = feaRef.location
+                    warn(f"{location}: Feature {feaTag} has not been defined")
+                    continue
+                self._appendToListAttribute(feaRef, "featureBlocks", features)
+                for featureBlock in self.features[feaTag]:
+                    self._appendToListAttribute(featureBlock, "references", feaRefList)
         self._currentElement = None
 
     def _parseElement(self, e):
