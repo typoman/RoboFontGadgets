@@ -118,6 +118,7 @@ def toDict(self):
 
 
 ast.AnonymousBlock._serialize_attrs = {"tag": "Tag", "content": "Content"}
+ast.AnonymousBlock._serialize_name = "Anonymous"
 
 ast.FeatureFile._serialize_attrs = {
     "statements": "Statements",
@@ -129,22 +130,24 @@ ast.FeatureBlock._serialize_attrs = {
     "name": "Name",
     "use_extension": "UseExtension",
 }
+ast.FeatureBlock._serialize_name = "Feature"
 
 ast.NestedBlock._serialize_attrs = {
     "tag": "Tag",
     "block_name": "BlockName",
     "statements": "Statements",
 }
+ast.NestedBlock._serialize_name = "Block"
 
 ast.LookupBlock._serialize_attrs = {
     "name": "Name",
     "use_extension": "UseExtension",
     "statements": "Statements",
 }
-
+ast.LookupBlock._serialize_name = "Lookup"
 
 ast.TableBlock._serialize_attrs = {"name": "Name", "statements": "Statements"}
-
+ast.TableBlock._serialize_name = "Table"
 
 ast.GlyphClassDefinition._serialize_name = "GlyphDefinitionClass"
 ast.GlyphClassDefinition._serialize_attrs = {

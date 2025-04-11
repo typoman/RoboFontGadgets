@@ -233,7 +233,7 @@ class AstToDictTest(unittest.TestCase):
     def test_anonymousBlock(self):
         self.assertAstToDictEqual(
             "anon TEST {\n content \n} TEST;",
-            {"AnonymousBlock": {"Tag": "TEST", "Content": "content"}},
+            {"Anonymous": {"Tag": "TEST", "Content": "content"}},
         )
 
     def test_featureFile(self):
@@ -244,7 +244,7 @@ class AstToDictTest(unittest.TestCase):
                     "Statements": [
                         {"Comment": "# File comment"},
                         {
-                            "FeatureBlock": {
+                            "Feature": {
                                 "Name": "liga",
                                 "Statements": [
                                     {
@@ -266,7 +266,7 @@ class AstToDictTest(unittest.TestCase):
         self.assertAstToDictEqual(
             "feature liga useExtension { sub f i by f_i; } liga;",
             {
-                "FeatureBlock": {
+                "Feature": {
                     "Name": "liga",
                     "UseExtension": True,
                     "Statements": [
@@ -285,7 +285,7 @@ class AstToDictTest(unittest.TestCase):
         self.assertAstToDictEqual(
             'feature ss01 { featureNames { name "Alternate"; }; } ss01;',
             {
-                "NestedBlock": {
+                "Block": {
                     "Tag": "ss01",
                     "BlockName": "featureNames",
                     "Statements": [
@@ -305,7 +305,7 @@ class AstToDictTest(unittest.TestCase):
         self.assertAstToDictEqual(
             "lookup MYLOOKUP { sub A by B; } MYLOOKUP;",
             {
-                "LookupBlock": {
+                "Lookup": {
                     "Name": "MYLOOKUP",
                     "Statements": [
                         {
@@ -323,7 +323,7 @@ class AstToDictTest(unittest.TestCase):
         self.assertAstToDictEqual(
             "table GDEF { GlyphClassDef [A], [f_i], [acute], ; } GDEF;",
             {
-                "TableBlock": {
+                "Table": {
                     "Name": "GDEF",
                     "Statements": [
                         {
@@ -1030,7 +1030,7 @@ class AstToDictTest(unittest.TestCase):
         self.assertAstToDictEqual(
             "lookup MYLOOKUP useExtension { sub A by B; } MYLOOKUP;",
             {
-                "LookupBlock": {
+                "Lookup": {
                     "Name": "MYLOOKUP",
                     "UseExtension": True,
                     "Statements": [
