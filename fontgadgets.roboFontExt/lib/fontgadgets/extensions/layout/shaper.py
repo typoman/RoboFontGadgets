@@ -139,3 +139,37 @@ class HBShaper:
             glyphsInfo.baseLevel = baseLevel
         return glyphsInfo
 
+    def getFeatures(self, otTableTag):
+        features = set()
+        for scriptIndex, script in enumerate(hb.ot_layout_table_get_script_tags(self.face, otTableTag)):
+            langIdices = list(range(len(hb.ot_layout_script_get_language_tags(self.face, otTableTag, scriptIndex))))
+            langIdices.append(0xFFFF)
+            for langIndex in langIdices:
+                features.update(hb.ot_layout_language_get_feature_tags(self.face, otTableTag, scriptIndex, langIndex))
+        return features
+
+    def getStylisticSetNames(self):
+        tags = _stylisticSets & set(self.getFeatures("GSUB"))
+        if not tags:
+            return {}
+        gsubTable = self.ttFont.get("GSUB")
+        nameTable = self.ttFont.get("name")
+        if gsubTable is None or nameTable is None:
+            return {}
+        gsubTable = gsubTable.table
+        names = {}
+        for feature in gsubTable.FeatureList.FeatureRecord:
+            tag = feature.FeatureTag
+            if tag in tags and tag not in names:
+                feaParams = feature.Feature.FeatureParams
+                if feaParams is not None:
+                    nameRecord = nameTable.getName(feaParams.UINameID, 3, 1)
+                    if nameRecord is not None:
+                        names[tag] = nameRecord.toUnicode()
+        return names
+
+    def getScriptsAndLanguages(self, otTableTag):
+        scriptsAndLanguages = {}
+        for scriptIndex, script in enumerate(hb.ot_layout_table_get_script_tags(self.face, otTableTag)):
+            scriptsAndLanguages[script] = set(hb.ot_layout_script_get_language_tags(self.face, otTableTag, scriptIndex))
+        return scriptsAndLanguages
