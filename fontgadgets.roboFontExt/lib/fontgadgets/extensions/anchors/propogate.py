@@ -135,7 +135,7 @@ def getAnchorsToPropagate(glyph, skipPrefixes: tuple = (), skipGlyphNames: tuple
             logger.warning(f"Base glyph {component.baseGlyph} not found in font.")
             continue
         propogatedAnchorsInComponent = AnchorsDict()
-        propogatedAnchorsInComponent = getAnchorsToPropagate(baseGlyphOfThisComponent, skipPrefixes=skipPrefixes, skipGlyphNames=tuple(skipGlyphNames))
+        propogatedAnchorsInComponent = baseGlyphOfThisComponent.getAnchorsToPropagate(skipPrefixes=skipPrefixes, skipGlyphNames=tuple(skipGlyphNames))
         propogatedAnchorsInComponent.accumulate(AnchorsDict.fromGlyph(baseGlyphOfThisComponent))
 
         if _isLigaComponent(compositeExistingAnchors.keys(), propogatedAnchorsInComponent.keys()):
