@@ -7,7 +7,9 @@ import operator
 from pathlib import Path
 from fontgadgets.tools import FontGadgetsError
 from unittest.mock import MagicMock, patch
-
+from fontTools.ttLib import TTFont
+import shutil
+from pathlib import Path
 
 def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
     if tables is None:
@@ -20,6 +22,19 @@ def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
     tables.discard("GlyphOrder")
     arg_tables = list(sorted(tables))
 
+    ttx_path = Path(__file__).parent.joinpath("data/ttx/" + ttx)
+
+    if not ttx_path.exists():
+        # If the ttx file doesn't exist, write it and raise an error
+        with tempfile.NamedTemporaryFile(mode='wb', suffix='.ttx', delete=False) as tmp:
+            try:
+                actual_ttx_path = Path(tmp.name)
+                font.saveXML(tmp.name, tables=arg_tables)
+                shutil.copy(actual_ttx_path, ttx_path)
+                raise FileNotFoundError(f"Expected TTX file not found. Created it at: {ttx_path}")
+            finally:
+                actual_ttx_path.unlink(missing_ok=True)
+
     with tempfile.NamedTemporaryFile(mode='wb', suffix='.ttx', delete=False) as tmp:
         try:
             actual_ttx_path = Path(tmp.name)
@@ -28,7 +43,6 @@ def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
             with open(actual_ttx_path, "r", encoding="utf-8") as actual_file:
                 actual_lines = [line.rstrip() + "\n" for line in actual_file.readlines()]
 
-            ttx_path = Path(__file__).parent.joinpath("data/ttx/" + ttx)
             with open(ttx_path, "r", encoding="utf-8") as expected_file:
                 expected_lines = [line.rstrip() + "\n" for line in expected_file.readlines()]
 
@@ -46,13 +60,15 @@ def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
                 shutil.copy(actual_ttx_path, save_path)
                 raise AssertionError(error_message)
             return True
-
-        except Exception as e:
-            raise AssertionError(f"Error during TTX comparison: {str(e)}")
         finally:
             actual_ttx_path.unlink(missing_ok=True)
-
     return False
+
+def assertTableSameAsTTX(table, ttx):
+    table_tag = table.tableTag
+    dummy_font = TTFont()
+    dummy_font[table_tag] = table
+    fontIsSameAsTTXForGivenTables(dummy_font, ttx, tables=[table_tag])
 
 def sample_random_glyph(seed: int) -> defcon.Glyph:
     """
