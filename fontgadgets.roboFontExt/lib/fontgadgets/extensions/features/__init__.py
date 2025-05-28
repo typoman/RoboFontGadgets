@@ -721,7 +721,7 @@ def _renameGlyphNames(e, trasnlateMap):
     return e
 
 
-@font_cached_property("Features.TextChanged", "Layer.GlyphAdded", " Layer.GlyphDeleted")
+@font_cached_property("Features.TextChanged", "Layer.GlyphAdded", "Layer.GlyphDeleted")
 def parsed(features):
     return ParsedFeatureFile(features.font)
 

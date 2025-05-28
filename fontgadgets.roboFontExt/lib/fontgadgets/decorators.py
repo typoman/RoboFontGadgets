@@ -2,10 +2,13 @@ import fontgadgets.tools
 from fontgadgets.tools import *
 
 
-def _raisInvalidNotification(funct):
-    raise FontGadgetsError(
-        f"Invalid destructive notification type in the function {funct}"
-    )
+def checkNotifications(destructiveNotifications):
+    invalidNotifations = set(destructiveNotifications) - VALID_DEFCON_NOTIFCATIONS
+    if invalidNotifations:
+        raise FontGadgetsError(
+            f"Invalid passed destructive notification(s):\n{'\n'.join(invalidNotifations)}\n"
+            f"\nValid choices are:\n{'\n'.join(sorted(VALID_DEFCON_NOTIFCATIONS))}"
+        )
 
 
 def font_cached_method(*destructiveNotifications):
@@ -15,8 +18,7 @@ def font_cached_method(*destructiveNotifications):
     be cached using defcon representations according to the
     destructiveNotifications.
     """
-    if any([not isinstance(n, str) for n in destructiveNotifications]):
-        _raisInvalidNotification(destructiveNotifications[0])
+    checkNotifications(destructiveNotifications)
 
     def wrapper(funct):
         functInfo = fontgadgets.tools.getFontFunctionProperties(funct)
@@ -57,8 +59,7 @@ def font_cached_property(*destructiveNotifications):
     The results will be cached using defcon representations according to the
     passed destructiveNotifications arguments.
     """
-    if any([not isinstance(n, str) for n in destructiveNotifications]):
-        _raisInvalidNotification(destructiveNotifications[0])
+    checkNotifications(destructiveNotifications)
 
     def wrapper(funct):
         functInfo = fontgadgets.tools.getFontFunctionProperties(funct)

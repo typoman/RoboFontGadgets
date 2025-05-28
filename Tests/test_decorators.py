@@ -62,7 +62,7 @@ def test_destroyRepresentationsForNotification(defcon_font_1, fontParts_font_1):
     assert FUNCT_EXECUTED_NUM["font_cached_method_funct_tester"] == 2
 
 
-@fontgadgets.decorators.font_cached_method("Glyph.Changed")
+@fontgadgets.decorators.font_cached_method("Glyph.WidthChanged")
 def font_cached_method_funct_tester1(font):
     """
     font_cached_method funct tester 1 doc
@@ -99,12 +99,16 @@ def font_cached_method_funct_tester4(font) -> tuple[defcon.Glyph, str]:
 
 def test_font_cached_method(defcon_font_1, fontParts_font_1):
     assert defcon_font_1.font_cached_method_funct_tester1() == "test font_cached_method 1"
-    assert (
-        fontParts_font_1.font_cached_method_funct_tester1() == "test font_cached_method 1"
-    )
+    assert fontParts_font_1.font_cached_method_funct_tester1() == "test font_cached_method 1"
     with pytest.raises(AttributeError):
         fontParts_font_1.font_cached_method_funct_tester2()
     assert defcon_font_1.font_cached_method_funct_tester2() == "test font_cached_method 2"
     assert isinstance(defcon_font_1.font_cached_method_funct_tester3(), defcon.Glyph)
     assert isinstance(defcon_font_1.font_cached_method_funct_tester4()[0], defcon.Glyph)
     assert defcon_font_1.font_cached_method_funct_tester4()[1], "test font_cached_method 4"
+
+def test_invalid_notification(defcon_font_1, fontParts_font_1):
+    with pytest.raises(FontGadgetsError, match="Invalid passed destructive notification"):
+        @fontgadgets.decorators.font_cached_method("Glyph.MarginsChanged")
+        def font_cached_method_funct_tester1(font):
+            return
