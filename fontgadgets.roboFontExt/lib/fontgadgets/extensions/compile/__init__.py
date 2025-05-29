@@ -1,6 +1,7 @@
 from fontgadgets.decorators import *
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from defcon import Glyph
+from ufo2ft.outlineCompiler import StubGlyph, otRound
 from fontTools.fontBuilder import FontBuilder
 from warnings import warn
 import fontgadgets.extensions.glyph.boolean
@@ -23,6 +24,47 @@ def t2CharString(glyph):
 REQUIRED_GLYPHS = [".notdef", "space"]
 _EMPTY_CHAR_STRING = T2CharStringPen(100, None).getCharString()
 
+def NotdefGlyph(width, unitsPerEm, ascender, descender):
+    glyph = Glyph()
+    glyph.name = '.notdef'
+    drawing_pen = glyph.getPen()
+    width = otRound(unitsPerEm * 0.5)
+    glyph.width = width
+    stroke_thickness = otRound(unitsPerEm * 0.05)
+    outer_xMin = stroke_thickness
+    outer_xMax = width - stroke_thickness
+    outer_yMax = ascender
+    outer_yMin = descender
+    drawing_pen.moveTo((outer_xMin, outer_yMin))
+    drawing_pen.lineTo((outer_xMax, outer_yMin))
+    drawing_pen.lineTo((outer_xMax, outer_yMax))
+    drawing_pen.lineTo((outer_xMin, outer_yMax))
+    drawing_pen.closePath()
+    inner_xMin = outer_xMin + stroke_thickness
+    inner_xMax = outer_xMax - stroke_thickness
+    inner_yMax = outer_yMax - stroke_thickness
+    inner_yMin = outer_yMin + stroke_thickness
+    drawing_pen.moveTo((inner_xMin, inner_yMin))
+    drawing_pen.lineTo((inner_xMin, inner_yMax))
+    drawing_pen.lineTo((inner_xMax, inner_yMax))
+    drawing_pen.lineTo((inner_xMax, inner_yMin))
+    drawing_pen.closePath()
+    return glyph
+
+@font_cached_property(
+    "Layer.GlyphAdded", "Layer.GlyphDeleted"
+)
+def _fallbackNotDef(font):
+    if ".notdef" in font:
+        return font[".notdef"]
+    defaultWidth = otRound(font.info.unitsPerEm * 0.5)
+    return NotdefGlyph(
+        width=defaultWidth,
+        unitsPerEm=font.info.unitsPerEm,
+        ascender=font.info.ascender,
+        descender=font.info.descender,
+    )
+
 class Compiler:
 
     """
@@ -35,7 +77,7 @@ class Compiler:
         for glyph_name in REQUIRED_GLYPHS:
             if glyph_name not in self._glyphSet:
                 g = Glyph()
-                g.width = 0
+                g.width = otRound(font.info.unitsPerEm * 0.5)
                 self._glyphSet[glyph_name] = g
         self._otf = None
 
