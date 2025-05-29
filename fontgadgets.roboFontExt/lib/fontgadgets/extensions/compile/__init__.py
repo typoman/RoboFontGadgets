@@ -50,8 +50,8 @@ class Compiler:
         fb.setupCharacterMap(
             {uni: names[0] for uni, names in self.font.unicodeData.items()}
         )
-        familyName = self.font.info.familyName
-        styleName = self.font.info.styleName
+        familyName = str(self.font.info.familyName)
+        styleName = str(self.font.info.styleName)
         version = "0.1"
         self.fontName = familyName + "-" + styleName
         self.fontName = self.fontName.replace(" ", "")
