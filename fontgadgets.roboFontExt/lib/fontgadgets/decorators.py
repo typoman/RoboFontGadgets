@@ -5,9 +5,12 @@ from fontgadgets.tools import *
 def checkNotifications(destructiveNotifications):
     invalidNotifations = set(destructiveNotifications) - VALID_DEFCON_NOTIFCATIONS
     if invalidNotifations:
+        nl = "\n"
         raise FontGadgetsError(
-            f"Invalid passed destructive notification(s):\n{'\n'.join(invalidNotifations)}\n"
-            f"\nValid choices are:\n{'\n'.join(sorted(VALID_DEFCON_NOTIFCATIONS))}"
+            f"Invalid passed destructive notification(s):"
+            f"{nl.join(invalidNotifations)}"
+            f"Valid choices are:"
+            f"{nl.join(sorted(VALID_DEFCON_NOTIFCATIONS))}"
         )
 
 
