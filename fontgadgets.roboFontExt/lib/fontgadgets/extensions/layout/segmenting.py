@@ -1,3 +1,21 @@
+"""
+Text segmentation for bidirectional text layout.
+
+This module provides functionality to:
+1. Segment text by script (Latin, Arabic, Hebrew, etc.)
+2. Determine bidirectional embedding levels (for RTL/LTR text)
+3. Reorder segments for proper display
+
+The main use case is preparing text for rendering in mixed-script,
+bidirectional contexts (e.g. Arabic/Latin combinations).
+
+Key functions:
+- textSegments(): Split text into script/bidi segments
+- reorderedSegments(): Reorder segments for display
+- detectScript(): Identify Unicode script for each character
+- getBiDiInfo(): Get bidirectional algorithm metadata
+
+"""
 import itertools
 from fontTools.unicodedata import script
 from unicodedata2 import category
@@ -7,12 +25,12 @@ import unicodedata2
 import bidi.algorithm
 
 
-# all this module is copied from drawbot-skia written by Just Van Rossum
+# based on drawbot-skia written by Just Van Rossum
 
 bidi.algorithm.bidirectional = unicodedata2.bidirectional
 bidi.algorithm.category = unicodedata2.category
 bidi.algorithm.mirrored = unicodedata2.mirrored
-from bidi.algorithm import (  # noqa: ignore E402
+from bidi.algorithm import (
     get_empty_storage,
     get_base_level,
     get_embedding_levels,
@@ -23,13 +41,31 @@ from bidi.algorithm import (  # noqa: ignore E402
     reorder_resolved_levels,
     PARAGRAPH_LEVELS,
 )
-from bidi.mirror import MIRRORED  # noqa: ignore E402
+from bidi.mirror import MIRRORED
 
 
 UNKNOWN_SCRIPT = {"Zinh", "Zyyy", "Zxxx"}
 
 
 def textSegments(txt):
+    """
+    Split text into segments with consistent script and bidirectional level.
+
+    Args:
+        txt: The input text string to segment.
+
+    Returns:
+        A tuple of:
+        - List of segments, where each segment is a tuple of:
+          (text, script_code, bidi_level, start_index)
+        - The base bidi level (0 for LTR, 1 for RTL)
+
+    >>> segments, base_level = textSegments("Hello العالم")
+    >>> base_level
+    0
+    >>> segments
+    [('Hello ', 'Latn', 0, 0), ('العالم', 'Arab', 1, 6)]
+    """
     scripts = detectScript(txt)
     storage = getBiDiInfo(txt)
 
@@ -63,6 +99,52 @@ def textSegments(txt):
 
 
 def reorderedSegments(segments, isRTL, isSegmentRTLFunc):
+    """
+    Reorder text segments for proper bidirectional display.
+
+    Args:
+        segments: List of text segments from textSegments(), where each segment is:
+            (text, script_code, bidi_level, start_index)
+        isRTL: Base paragraph direction (True for RTL, False for LTR)
+        isSegmentRTLFunc: Function that takes a segment tuple and returns True if
+                         the segment should be treated as RTL (typically checks if
+                         bidi_level % 2 == 1)
+
+    Returns:
+        List of segments in visual order (left-to-right display order), with RTL
+        segments in reverse order when needed.
+
+    >>> # LTR base paragraph with mixed LTR/RTL segments.
+    >>> # Based on test_reorderedSegments()
+    >>> # Input text: " hello  أحدث  מוסיקה  hello "
+    >>> segments = [
+    ...     (' hello  ', 'Latn', 0, 0),
+    ...     ('أحدث  ', 'Arab', 1, 8),
+    ...     ('מוסיקה ', 'Hebr', 1, 14),
+    ...     (' h', 'Hebr', 0, 20),
+    ...     ('ello  ', 'Latn', 0, 22)
+    ... ]
+    >>> is_rtl_base = False
+    >>> reordered = reorderedSegments(segments, is_rtl_base, lambda s: s[2] % 2 == 1)
+    >>> # The two consecutive RTL segments ('Arab' and 'Hebr') are reordered.
+    >>> reordered
+    [(' hello  ', 'Latn', 0, 0), ('מוסיקה ', 'Hebr', 1, 14), ('أحدث  ', 'Arab', 1, 8), (' h', 'Hebr', 0, 20), ('ello  ', 'Latn', 0, 22)]
+
+    >>> # RTL base paragraph with mixed RTL/LTR segments.
+    >>> # Based on a case in test_textSegments()
+    >>> # Input text: " أحدث  hello  أحدث "
+    >>> segments = [
+    ...     (' أحدث ', 'Arab', 1, 0),
+    ...     (' hello', 'Latn', 2, 7),
+    ...     ('  ', 'Latn', 1, 12),
+    ...     ('أحدث ', 'Arab', 1, 14)
+    ... ]
+    >>> is_rtl_base = True
+    >>> reordered = reorderedSegments(segments, is_rtl_base, lambda s: s[2] % 2 == 1)
+    >>> # The entire sequence of segment groups is reversed for RTL display.
+    >>> reordered
+    [('أحدث ', 'Arab', 1, 14), ('  ', 'Latn', 1, 12), (' hello', 'Latn', 2, 7), (' أحدث ', 'Arab', 1, 0)]
+    """
     reorderedSegments = []
     for value, sub in itertools.groupby(segments, key=isSegmentRTLFunc):
         if isRTL == value:
@@ -76,6 +158,23 @@ def reorderedSegments(segments, isRTL, isSegmentRTLFunc):
 
 
 def detectScript(txt):
+    """Identify the Unicode script for each character in a string.
+
+    Handles unknown/ambiguous characters by inheriting script from adjacent characters.
+    Special cases:
+    - Inherits script from previous character for unknown script codes (Zyyy, Zinh, Zxxx)
+    - Treats mirrored closing punctuation (like ')') as having no script
+
+    Args:
+        txt: Input text string to analyze
+
+    Returns:
+        A list where each element is the script code (e.g. 'Latn', 'Arab', 'Hebr')
+        for the corresponding character in the input string.
+
+    >>> detectScript("Aل")
+    ['Latn', 'Arab']
+    """
     charScript = [script(c) for c in txt]
 
     for i, ch in enumerate(txt):
@@ -90,7 +189,6 @@ def detectScript(txt):
                 scr = None
         charScript[i] = scr
 
-    # Any unknowns should be mapped to the _next_ script
     prev = None
     for i in range(len(txt) - 1, -1, -1):
         if charScript[i] is None:
@@ -98,9 +196,7 @@ def detectScript(txt):
         else:
             prev = charScript[i]
 
-    # There may be unknowns at the end of the string, fall back to
-    # preceding script
-    prev = "Zxxx"  # last resort
+    prev = "Zxxx"
     for i in range(len(txt)):
         if charScript[i] is None:
             charScript[i] = prev
@@ -112,20 +208,31 @@ def detectScript(txt):
     return charScript
 
 
-# copied from bidi/algorthm.py and modified to be more useful for us.
+# JVR: copied from bidi/algorthm.py and modified to be more useful for us.
 
 
 def getBiDiInfo(text, *, upper_is_rtl=False, base_dir=None, debug=False):
     """
-    Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
-    for debugging (default: False).
+    Analyze text using the Unicode Bidirectional Algorithm (UBA).
 
-    Set `base_dir` to 'L' or 'R' to override the calculated base_level.
+    Args:
+        text: Input string to analyze
+        upper_is_rtl: Treat uppercase as strong RTL (for debugging)
+        base_dir: Override base direction ('L' or 'R')
+        debug: Print algorithm steps to stderr
 
-    Set `debug` to True to display (using sys.stderr) the steps taken with the
-    algorithm.
+    Returns:
+        Dict containing:
+        - base_level: Paragraph embedding level (0=LTR, 1=RTL)
+        - base_dir: Base direction ('L' or 'R')
+        - chars: List of character dicts with:
+            * ch: The character
+            * level: Resolved bidi level
+            * index: Original position
 
-    Returns an info dict object and the display layout.
+    >>> info = getBiDiInfo("Hello, العالم!")
+    >>> info["base_level"]  # Returns 0 (LTR base direction)
+    0
     """
     storage = get_empty_storage()
 
@@ -150,3 +257,9 @@ def getBiDiInfo(text, *, upper_is_rtl=False, base_dir=None, debug=False):
     reorder_resolved_levels(storage, debug)
 
     return storage
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
