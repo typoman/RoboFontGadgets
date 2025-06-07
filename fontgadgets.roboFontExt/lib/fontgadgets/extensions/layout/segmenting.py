@@ -17,6 +17,7 @@ Key functions:
 
 """
 import itertools
+from collections import namedtuple
 from fontTools.unicodedata import script
 from unicodedata2 import category
 
@@ -46,6 +47,7 @@ from bidi.mirror import MIRRORED
 
 UNKNOWN_SCRIPT = {"Zinh", "Zyyy", "Zxxx"}
 
+Segment = namedtuple("Segment", ["text", "bidi_level", "start_index"])
 
 def textSegments(txt):
     """
@@ -56,15 +58,15 @@ def textSegments(txt):
 
     Returns:
         A tuple of:
-        - List of segments, where each segment is a tuple of:
-          (text, script_code, bidi_level, start_index)
+        - List of segments, where each segment is a Segment namedtuple:
+          Segment(text, bidi_level, start_index)
         - The base bidi level (0 for LTR, 1 for RTL)
 
     >>> segments, base_level = textSegments("Hello العالم")
     >>> base_level
     0
     >>> segments
-    [('Hello ', 'Latn', 0, 0), ('العالم', 'Arab', 1, 6)]
+    [Segment(text='Hello ', bidi_level=0, start_index=0), Segment(text='العالم', bidi_level=1, start_index=6)]
     """
     scripts = detectScript(txt)
     storage = getBiDiInfo(txt)
@@ -92,8 +94,8 @@ def textSegments(txt):
         nextIndex = index + rl
         segment = charInfo[index:nextIndex]
         runChars = txt[index:nextIndex]
-        script, bidiLevel = segment[0]
-        segments.append((runChars, script, bidiLevel, index))
+        _script, bidiLevel = segment[0]
+        segments.append(Segment(runChars, bidiLevel, index))
         index = nextIndex
     return segments, storage["base_level"]
 
@@ -103,10 +105,10 @@ def reorderedSegments(segments, isRTL, isSegmentRTLFunc):
     Reorder text segments for proper bidirectional display.
 
     Args:
-        segments: List of text segments from textSegments(), where each segment is:
-            (text, script_code, bidi_level, start_index)
+        segments: List of text segments from textSegments(), where each segment is
+                  a Segment namedtuple.
         isRTL: Base paragraph direction (True for RTL, False for LTR)
-        isSegmentRTLFunc: Function that takes a segment tuple and returns True if
+        isSegmentRTLFunc: Function that takes a segment and returns True if
                          the segment should be treated as RTL (typically checks if
                          bidi_level % 2 == 1)
 
@@ -118,32 +120,32 @@ def reorderedSegments(segments, isRTL, isSegmentRTLFunc):
     >>> # Based on test_reorderedSegments()
     >>> # Input text: " hello  أحدث  מוסיקה  hello "
     >>> segments = [
-    ...     (' hello  ', 'Latn', 0, 0),
-    ...     ('أحدث  ', 'Arab', 1, 8),
-    ...     ('מוסיקה ', 'Hebr', 1, 14),
-    ...     (' h', 'Hebr', 0, 20),
-    ...     ('ello  ', 'Latn', 0, 22)
+    ...     Segment(' hello  ', 0, 0),
+    ...     Segment('أحدث  ', 1, 8),
+    ...     Segment('מוסיקה ', 1, 14),
+    ...     Segment(' h', 0, 20),
+    ...     Segment('ello  ', 0, 22)
     ... ]
     >>> is_rtl_base = False
-    >>> reordered = reorderedSegments(segments, is_rtl_base, lambda s: s[2] % 2 == 1)
+    >>> reordered = reorderedSegments(segments, is_rtl_base, lambda s: s.bidi_level % 2 == 1)
     >>> # The two consecutive RTL segments ('Arab' and 'Hebr') are reordered.
     >>> reordered
-    [(' hello  ', 'Latn', 0, 0), ('מוסיקה ', 'Hebr', 1, 14), ('أحدث  ', 'Arab', 1, 8), (' h', 'Hebr', 0, 20), ('ello  ', 'Latn', 0, 22)]
+    [Segment(text=' hello  ', bidi_level=0, start_index=0), Segment(text='מוסיקה ', bidi_level=1, start_index=14), Segment(text='أحدث  ', bidi_level=1, start_index=8), Segment(text=' h', bidi_level=0, start_index=20), Segment(text='ello  ', bidi_level=0, start_index=22)]
 
     >>> # RTL base paragraph with mixed RTL/LTR segments.
     >>> # Based on a case in test_textSegments()
     >>> # Input text: " أحدث  hello  أحدث "
     >>> segments = [
-    ...     (' أحدث ', 'Arab', 1, 0),
-    ...     (' hello', 'Latn', 2, 7),
-    ...     ('  ', 'Latn', 1, 12),
-    ...     ('أحدث ', 'Arab', 1, 14)
+    ...     Segment(' أحدث ', 1, 0),
+    ...     Segment(' hello', 2, 7),
+    ...     Segment('  ', 1, 12),
+    ...     Segment('أحدث ', 1, 14)
     ... ]
     >>> is_rtl_base = True
-    >>> reordered = reorderedSegments(segments, is_rtl_base, lambda s: s[2] % 2 == 1)
+    >>> reordered = reorderedSegments(segments, is_rtl_base, lambda s: s.bidi_level % 2 == 1)
     >>> # The entire sequence of segment groups is reversed for RTL display.
     >>> reordered
-    [('أحدث ', 'Arab', 1, 14), ('  ', 'Latn', 1, 12), (' hello', 'Latn', 2, 7), (' أحدث ', 'Arab', 1, 0)]
+    [Segment(text='أحدث ', bidi_level=1, start_index=14), Segment(text='  ', bidi_level=1, start_index=12), Segment(text=' hello', bidi_level=2, start_index=7), Segment(text=' أحدث ', bidi_level=1, start_index=0)]
     """
     reorderedSegments = []
     for value, sub in itertools.groupby(segments, key=isSegmentRTLFunc):
@@ -261,5 +263,4 @@ def getBiDiInfo(text, *, upper_is_rtl=False, base_dir=None, debug=False):
 
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()

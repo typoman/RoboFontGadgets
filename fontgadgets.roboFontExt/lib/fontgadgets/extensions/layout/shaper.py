@@ -1,6 +1,6 @@
 import uharfbuzz as hb
 import fontgadgets.extensions.compile
-from fontgadgets.extensions.layout.segmenting import textSegments, reorderedSegments, UNKNOWN_SCRIPT
+from fontgadgets.extensions.layout.segmenting import textSegments, reorderedSegments, UNKNOWN_SCRIPT, Segment
 from types import SimpleNamespace
 # based on drawbot-skia
 
@@ -115,15 +115,15 @@ class HBShaper:
             SimpleNamespace: An object containing the shaped glyph IDs, clusters, positions, and end position.
         """
         segments, baseLevel = textSegments(txt)
-        segments = reorderedSegments(segments, baseLevel % 2, lambda item: item[2] % 2)
+        segments = reorderedSegments(segments, baseLevel % 2, lambda item: item.bidi_level % 2)
         startPos = (0, 0)
         glyphsInfo = None
-        for runChars, _, _, index in segments:
+        for segment in segments:
             runInfo = shapeSegment(
                 hbFont=self.hbFont,
-                text=runChars,
+                text=segment.text,
                 startPos=startPos,
-                startCluster=index,
+                startCluster=segment.start_index,
                 features=features,
                 language=language,
             )
