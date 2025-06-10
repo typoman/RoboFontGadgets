@@ -130,7 +130,7 @@ def breakParagraphsUsingLineWidth(paragraphs, lineWidth):
     to arrange them into lines. All state related to the current line being built,
     such as its accumulated width and the segments it contains, is reset for each
     new paragraph. All the shaped glyphs are in visual order which is left to
-    right. This makes the operation of line break more complex, as I need to find 
+    right. This makes the operation of line break more complex, as I need to find
     glyph to char mapping when I break the segmemt.
 
     Inside the main loop that processes a single paragraph, the logic builds one
@@ -190,49 +190,41 @@ def breakParagraphsUsingLineWidth(paragraphs, lineWidth):
     for paragraph in paragraphs:
         baseLevel = paragraph.baseLevel
         isRTL = baseLevel % 2 == 1
-        remainingSegments = list(paragraph.segments)
+        remainingSegments = list(reversed(paragraph.segments))
         while remainingSegments:
             currentLineSegments = []
             addedSegmentsWidth = 0
             while remainingSegments:
-                currentSegment = remainingSegments[0]
+                currentSegment = remainingSegments.pop()
                 if addedSegmentsWidth + currentSegment.width <= lineWidth:
                     addedSegmentsWidth += currentSegment.width
                     currentLineSegments.append(currentSegment)
-                    remainingSegments.pop(0)
                 else:
                     availableWidth = lineWidth - addedSegmentsWidth
                     breakIndex = _getBreakIndexInSegmentUsingSpaces(currentSegment, availableWidth)
                     if breakIndex is None:
                         if not currentLineSegments:
-                            # current line is empty and not broken by space, split it by glyphs that fit
                             breakIndex = _getBreakIndexInSegmentByGlyphAdvance(currentSegment, availableWidth)
                         else:
-                            # current line has glyphs and not broken by space,
-                            # split the un-fitting segment in the next line
-                            break
+                            # line has content, so the entire segment moves to the next line.
+                            # add it back to the list to be processed next.
+                            remainingSegments.append(currentSegment)
+                            break  # finalize the current line
                     if breakIndex is not None:
-                        # current line already has glyphs and another glyph run that needs to be broken
+                        # the segment needs to be split.
                         if breakIndex == 0:
-                            # at least split by one glyph, otherwise infinite loop
-                            breakIndex = 1
+                            breakIndex = 1  # at least one glyph is taken for this line
                         currentSubSeg, nextLineSubSeg = _breakSegmentAtIndex(currentSegment, breakIndex)
                         if currentSegment.segment.bidi_level == 1:
-                            # in rtl segment, the part that stays in this line
-                            # is swapped, since the order here is visual order
-                            # not logical order
                             currentSubSeg, nextLineSubSeg = (nextLineSubSeg, currentSubSeg)
                         if nextLineSubSeg.glyphs:
-                            remainingSegments[0] = nextLineSubSeg
-                        else:
-                            remainingSegments.pop(0)
+                            remainingSegments.append(nextLineSubSeg)
                         currentLineSegments.append(currentSubSeg)
+                        break
                     else:
-                        # the first glyph is too wide to break
+                        # the first glyph too wide fit in the line
                         return glyphLines
-                    break
             if currentLineSegments:
                 gline = _getGlyphLineFromSegmments(currentLineSegments, isRTL)
                 glyphLines.append(gline)
     return glyphLines
-    
