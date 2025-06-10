@@ -27,7 +27,7 @@ ShapedParagraph = namedtuple(
 )
 
 GlyphRecord = namedtuple("GlyphRecord", ["glyph", "position"])
-GlyphLine = namedtuple("GlyphLine", ["records"])
+GlyphLine = namedtuple("GlyphLine", ["records", "glyphRuns"])
 
 class HBShaper:
 
