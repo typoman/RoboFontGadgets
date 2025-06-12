@@ -1,31 +1,27 @@
+from fontgadgets.decorators import *
 import uharfbuzz as hb
 import fontgadgets.extensions.compile
-from fontgadgets.extensions.layout.segmenting import textSegments, reorderedSegments, UNKNOWN_SCRIPT, Segment
-from types import SimpleNamespace
+from fontgadgets.extensions.layout.segmenting import textSegments, Segment, reorderedSegments
 # based on drawbot-skia
-from collections import namedtuple, deque
-import itertools
 from itertools import islice
-from functools import cached_property
 
-Paragraph = namedtuple(
-    "Paragraph",
-    [
-        "baseLevel",  # Paragraph's base bidi level
-        "glyphRuns",  # List of GlyphRun objects
-    ],
-)
-
-GlyphRecord = namedtuple("GlyphRecord", ["glyph", "position"])
-GlyphLine = namedtuple("GlyphLine", ["records", "glyphRuns"])
+"""
+todo:
+- Move Paragraph to paragraph module.
+- Add more methods to GlyphRun to complete its immutable state.
+- Don't unpack and pack the positions from harfbuzz, it's an extra operation.
+  Keep them raw, until you need to calculate their final positions. It's
+  possible a layout engnine implementation, wouldn't need their abs positions?
+"""
 
 
 class GlyphRun:
     """
     A `GlyphRun` represents a list of glyphs produced by the HarfBuzz shaping
-    engine for a specific `Segment` of text. It contains the shaped glyphs,
-    their positions, advances (calculated width after kerning), and cluster
-    mapping, which links glyphs back to the original characters in the text.
+    engine from a segment of a text with a single bidi level. For a specific
+    `Segment` of text. It contains the shaped glyphs, their positions,
+    advances (calculated width after kerning), and cluster mapping, which
+    links glyphs back to the original characters in the text.
 
     GlyphRun direction is always visual order as in left to right. This means
     glyphs are supposed to be rendered from left to right on the screen no
@@ -205,19 +201,20 @@ class GlyphRun:
             relative_clusters=new_clusters_relative,
         )
 
+_stylisticSets = {f"ss{i:02}" for i in range(1, 21)}
 
 class HBShaper:
 
     def __init__(self, font):
         """
-        Initializes the HBShaper with the given font and.
+        Initializes a harfbuzz shaper for the given font.
 
         Args:
             font: The font to use.
         """
 
         self._font = font
-        self.ttFont = font._emptyOTFWithFeatures
+        self.ttFont = font._otfForHBShaper
         self._fontData = font.compiler.getOTFData()
         self.face = hb.Face(self._fontData, 0)
         self.hbFont = hb.Font(self.face) # Separate hb.Font instance for shapeShape
@@ -225,34 +222,37 @@ class HBShaper:
         self.glyphOrder = self.ttFont.getGlyphOrder()
         hb.ot_font_set_funcs(self.hbFont)
 
-    def shapeTextToParagraphs(self, txt, features=None, language=None, script=None, variations=None):
+    def shapeTextToGlyphRuns(self, txt, base_level=None, features=None, language=None, script=None, variations=None):
         """
         Shapes the given text using the provided font and features.
 
         Args:
             txt (str): The unicode string to apply open type features shaping.
+            baseLevel (int): Base level for direction of the text.
             features (dict, optional): The font features. {feat_tag: False/True, ...}
             language (str, optional): The language.
             script (str, optional): The script.
             variations (dict, optional): The font variations. {axis_tag: value, ...}
 
         Returns:
-            list: list of Paragraph instances.
+            list: GlyphRun
         """
-        result = []
-        for parTxt in txt.split("\n"):
-            segments, baseLevel = textSegments(parTxt)
-            shapedSegmentList = []
-            for segment in segments:
-                runInfo = self._shapeTextSegment(
-                    segment=segment,
-                    features=features,
-                    language=language,
-                    variations=variations,
-                )
-                shapedSegmentList.append(runInfo)
-            result.append(Paragraph(baseLevel, shapedSegmentList))
-        return result
+        glyphRunList = []
+        segments, _baseLevel = textSegments(txt)
+        if base_level is None:
+            base_level = _baseLevel
+        isSegmentRTL = lambda s: s.bidi_level % 2 == 1
+        segments = reorderedSegments(segments, base_level, isSegmentRTL)
+        for segment in segments:
+            runInfo = self._shapeTextSegment(
+                segment=segment,
+                features=features,
+                language=language,
+                variations=variations,
+                script=script,
+            )
+            glyphRunList.append(runInfo)
+        return glyphRunList
 
     def _shapeTextSegment(self, segment, features=None, variations=None, language=None, script=None):
         if features is None:
@@ -321,3 +321,28 @@ class HBShaper:
         for scriptIndex, script in enumerate(hb.ot_layout_table_get_script_tags(self.face, otTableTag)):
             scriptsAndLanguages[script] = set(hb.ot_layout_script_get_language_tags(self.face, otTableTag, scriptIndex))
         return scriptsAndLanguages
+
+
+@font_cached_property( "UnicodeData.Changed", "Layer.GlyphAdded",
+                      "Layer.GlyphDeleted", "Info.Changed",
+                      "Features.TextChanged", "Glyph.WidthChanged",
+                      "Anchor.Changed", "Groups.Changed", "Kerning.Changed",)
+def _otfForHBShaper(font):
+    """
+    OTF file without outlines for shaping text in harfbuzz.
+    """
+    otf = font._otfWithMetrics
+    fb = font.compiler.builder
+    compiler = font.compiler
+    compiler._otf = compiler.font.features.getCompiler(ttFont=compiler._otf, glyphSet=compiler._glyphSet).ttFont
+    return compiler._otf
+
+
+@font_cached_property( "UnicodeData.Changed", "Layer.GlyphAdded",
+                      "Layer.GlyphDeleted", "Info.Changed",
+                      "Features.TextChanged", "Glyph.WidthChanged",
+                      "Anchor.Changed", "Groups.Changed", "Kerning.Changed",)
+def _HBShaper(font):
+    hbshaper = HBShaper(font)
+    return hbshaper
+

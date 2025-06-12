@@ -2,6 +2,11 @@ from utils import *
 from fontgadgets.extensions.layout.paragraph import *
 from fontgadgets.extensions.layout.shaper import HBShaper
 import unittest
+"""
+todo
+more tests for edge cases, and maybe same phrases with different widths.
+"""
+
 
 class ParagraphTest(unittest.TestCase):
 

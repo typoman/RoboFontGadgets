@@ -1,4 +1,4 @@
-from .shaper import HBShaper, GlyphRecord
+from .shaper import HBShaper
 from .paragraph import breakParagraphsUsingLineWidth
 # based on drawbot-skia
 
