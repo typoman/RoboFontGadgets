@@ -1,5 +1,5 @@
-from .shaper import HBShaper, GlyphRecord
-from .paragraph import breakParagraphsUsingLineWidth
+from .shaper import HBShaper
+from .paragraph import *
 # based on drawbot-skia
 
 def alignGlyphPositionsInLine(glyphRecords, align):
@@ -30,7 +30,6 @@ class Layout:
             font (defcon.Font)
         """
         self._font = font
-        self.shaper = HBShaper(font=font)
 
     def getGlyphNamesAndPositionsFromText(
         self,
@@ -50,11 +49,11 @@ class Layout:
 
         Args:
             txt (str): The text to get glyph names and positions from.
-            features (dict, optional): The font features. Defaults to None.
             direction (int, optional): The text direction. Defaults to None.
-            language (str, optional): The language. Defaults to None.
-            script (str, optional): The script. Defaults to None.
-            variations (dict, optional): The font variations. Defaults to None.
+            features (dict, optional): The font features. {feat_tag: False/True, ...}
+            language (str, optional): The language.
+            script (str, optional): The script.
+            variations (dict, optional): The font variations. {axis_tag: value, ...}
             offset (tuple, optional): The offset. Defaults to None.
             align (str, optional): The alignment. Defaults to None.
             lineWidth (float, optional): The maximum line width. If None, no
@@ -68,31 +67,33 @@ class Layout:
         if not txt:
             return []
 
-        paragraphs = self.shaper.shapeTextToParagraphs(
-            txt,
-            features=features,
-            language=language,
-            script=script,
-            variations=variations,
-        )
-
-        # If no lineWidth specified, use a very large value
         if lineWidth is None:
             lineWidth = float("inf")
 
-        # Break paragraphs into lines
-        glyphLines = breakParagraphsUsingLineWidth(paragraphs, lineWidth)
+        paragraph = Paragraph(baseLevel=direction, width=lineWidth)
+        paragraph.addTextFromFont(txt, self._font, 
+                                    features=features,
+                                    language=language,
+                                    script=script,
+                                    variations=variations
+                                  )
+        paragraph.calculateGlyphLines()
 
-        # Collect all glyph records with offsets
         x, y = (0, 0) if offset is None else offset
         fontEm = self._font.info.ascender - self._font.info.descender
         lineGap = 0 if lineGap is None else lineGap
         lineGap += fontEm
         result = []
-        for i, line in enumerate(glyphLines):
+        for i, line in enumerate(paragraph.glyphLines):
             gline = []
-            for record in line.records:
-                gline.append((record.glyph, (record.position[0] + x, record.position[1] + y + (-lineGap * i))))
+            currentX, currentY = x, y
+            for record in line.glyphRecords:
+                ax, ay = record.advance
+                ox, oy = record.offset
+                gx, gy = currentX + ox, currentY + oy
+                gline.append((record.glyph.name, (gx, gy + (-lineGap * i))))
+                currentX += ax
+                currentY += ay
             if align:
                 gline = alignGlyphPositionsInLine(gline, align)
             result.extend(gline)

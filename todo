@@ -2,7 +2,8 @@
 - track file changes and post notifications. Example notifcations:
     'Features.IncludedFeaturesChanged'
     'Font.FileNameChanged'
-- alternate name for functions
+- alternate name for the registered function, because the names are also
+  polluting the module name space
 
 ## fontGadgets.tools
 - Add font_property_setter or font_property.setter
