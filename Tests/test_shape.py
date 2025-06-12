@@ -1,6 +1,8 @@
 from utils import *
 from fontgadgets.extensions.layout.shaper import *
 import unittest
+from pathlib import Path
+import defcon
 
 class TestGlyphRunClass(unittest.TestCase):
 
@@ -11,15 +13,21 @@ class TestGlyphRunClass(unittest.TestCase):
 
         # One-to-one mapping for simplicity
         self.glyphs = [f"g{i}" for i in range(len(self.original_text))]
-        self.positions = [(0, 0)] * len(self.original_text)
+        self.offsets = [(0, 0)] * len(self.original_text) # Changed from positions to offsets
         # Let each glyph have a width of 10
         self.advances = [(10, 0)] * len(self.original_text)
         self.clusters = list(range(len(self.original_text)))  # [0, 1, 2, ..., 18]
 
+        # Dummy font for GlyphRun constructor
+        class DummyFont:
+            pass
+        self.dummy_font = DummyFont()
+
         self.full_glyphRun = GlyphRun(
             segment=self.original_glyphRun,
+            font=self.dummy_font,
             glyphs=self.glyphs,
-            positions=self.positions,
+            offsets=self.offsets,
             advances=self.advances,
             clusters=self.clusters,
         )
@@ -84,52 +92,43 @@ class TestGlyphRunClass(unittest.TestCase):
 class ShaperTest(unittest.TestCase):
     def setUp(self):
         ufo_path = Path(__file__).parent.joinpath("data/ar-font-test-1.ufo")
-        font = defcon.Font(ufo_path)
+        self.font = defcon.Font(ufo_path)
         self.maxDiff = None
-        self._shaper = HBShaper(font)
-
-    def test_letter_postions(self):
-        pars = self._shaper.shapeTextToParagraphs("la فا")
-        expected = [
-            Paragraph(
-                baseLevel=0,
-                glyphRuns=[
-                    GlyphRun(
+        self._shaper = HBShaper(self.font)
+ 
+    def test_letter_postions(self): 
+        actual = self._shaper.shapeTextToGlyphRuns("la فا")
+        expected = [GlyphRun(
+                        font=self.font,
                         segment=Segment(text="la ", bidi_level=0, start_index=0),
                         glyphs=["l", "a", ".notdef"],
-                        positions=[(0, 0), (0, 0), (0, 0)],
+                        offsets=[(0, 0), (0, 0), (0, 0)],
                         advances=[(307, 0), (553, 0), (500, 0)],
                         clusters=[0, 1, 2],
                     ),
                     GlyphRun(
+                        font=self.font,
                         segment=Segment(text="فا", bidi_level=1, start_index=3),
                         glyphs=["alef-ar.fina", "feh-ar.init"],
-                        positions=[(0, 0), (0, 0)],
+                        offsets=[(0, 0), (0, 0)],
                         advances=[(254, 0), (416, 0)],
                         clusters=[1, 0],
                     ),
-                ],
-            )
-        ]
-        self.assertListEqual(pars, expected)
-
-    def test_diacritcs_postions(self):
-        pars = self._shaper.shapeTextToParagraphs("وِ")
-        expected = [
-            Paragraph(
-                baseLevel=1,
-                glyphRuns=[
-                    GlyphRun(
+                ]
+        self.assertListEqual(actual, expected) # Corrected indentation
+ 
+    def test_diacritcs_postions(self): 
+        actual = self._shaper.shapeTextToGlyphRuns("وِ")
+        expected = [GlyphRun(
+                        font=self.font,
                         segment=Segment(text="وِ", bidi_level=1, start_index=0),
                         glyphs=["kasra-ar", "waw-ar"],
-                        positions=[(100, -454), (0, 0)],
+                        offsets=[(100, -454), (0, 0)],
                         advances=[(0, 0), (426, 0)],
                         clusters=[1, 0],
                     )
-                ],
-            )
         ]
-        self.assertListEqual(pars, expected)
+        self.assertListEqual(actual, expected)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,31 +1,24 @@
+from fontgadgets.decorators import *
 import uharfbuzz as hb
 import fontgadgets.extensions.compile
-from fontgadgets.extensions.layout.segmenting import textSegments, reorderedSegments, UNKNOWN_SCRIPT, Segment
-from types import SimpleNamespace
+from fontgadgets.extensions.layout.segmenting import textSegments, Segment, reorderedSegments
 # based on drawbot-skia
-from collections import namedtuple, deque
-import itertools
 from itertools import islice
-from functools import cached_property
 
-Paragraph = namedtuple(
-    "Paragraph",
-    [
-        "baseLevel",  # Paragraph's base bidi level
-        "glyphRuns",  # List of GlyphRun objects
-    ],
-)
-
-GlyphRecord = namedtuple("GlyphRecord", ["glyph", "position"])
-GlyphLine = namedtuple("GlyphLine", ["records", "glyphRuns"])
-
+"""
+todo:
+- Don't unpack and pack the offsets from harfbuzz, it's an extra operation.
+  Keep them raw, until you need to calculate their final offsets. It's
+  possible a layout engnine implementation, wouldn't need their abs offsets?
+"""
 
 class GlyphRun:
     """
     A `GlyphRun` represents a list of glyphs produced by the HarfBuzz shaping
-    engine for a specific `Segment` of text. It contains the shaped glyphs,
-    their positions, advances (calculated width after kerning), and cluster
-    mapping, which links glyphs back to the original characters in the text.
+    engine from a segment of a text with a single bidi level for a specific
+    `Segment` of text. It contains the glyph names, their offsets, advances
+    (calculated width after kerning), and cluster mapping, which links glyphs
+    back to the original characters in the text.
 
     GlyphRun direction is always visual order as in left to right. This means
     glyphs are supposed to be rendered from left to right on the screen no
@@ -34,11 +27,6 @@ class GlyphRun:
     layout engine should each time advance the next glyph position to get its
     final position in the layout.
 
-    This class uses a mechanism for slicing. When a `GlyphRun` is sliced, it
-    creates a new `GlyphRun` instance that acts as a lightweight "view" into
-    the original, full `GlyphRun`'s data. This avoids data duplication and is
-    efficient for operations like line breaking, which involves frequent
-    slicing.
 
     Attributes:
         segment (Segment): The original text segment associated with this run.
@@ -46,7 +34,7 @@ class GlyphRun:
             and its new start index.
         width (float): The total advance width of all glyphs in the run.
         glyphs (iterator): An iterator for the glyph names in the run.
-        positions (iterator): An iterator for the (x_offset, y_offset) tuples for
+        offsets (iterator): An iterator for the (x_offset, y_offset) tuples for
             each glyph.
         advances (iterator): An iterator for the (x_advance, y_advance) tuples for
             each glyph.
@@ -55,39 +43,6 @@ class GlyphRun:
             For a sliced run, these clusters are relative to the start of the
             slice's `segment.text`.
 
-    Example of creating a `GlyphRun` from scratch:
-    >>> from types import SimpleNamespace
-    >>> text = "Hello"
-    >>> segment = Segment(text=text, bidi_level=0, start_index=0)
-    >>> glyphs = ['H', 'e', 'l', 'l', 'o']
-    >>> positions = [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]
-    >>> advances = [(50, 0), (40, 0), (30, 0), (30, 0), (50, 0)]
-    >>> clusters = [0, 1, 2, 3, 4]
-    >>> full_run = GlyphRun(
-    ...     segment=segment,
-    ...     glyphs=glyphs,
-    ...     positions=positions,
-    ...     advances=advances,
-    ...     clusters=clusters
-    ... )
-    >>> print(full_run.width)
-    200
-    >>> print(list(full_run.glyphs))
-    ['H', 'e', 'l', 'l', 'o']
-
-    Example of creating a `GlyphRun` by slicing:
-    >>> # Continuing from the previous example
-    >>> sliced_run = full_run.slice(1, 4)  # Slice "ell"
-    >>> print(sliced_run.segment.text)
-    ell
-    >>> print(sliced_run.segment.start_index)
-    1
-    >>> print(list(sliced_run.glyphs))
-    ['e', 'l', 'l']
-    >>> print(list(sliced_run.clusters)) # Clusters are relative to the new segment
-    [0, 1, 2]
-    >>> print(sliced_run.width)
-    100.0
     """
 
     __slots__ = (
@@ -97,17 +52,19 @@ class GlyphRun:
         "_end",
         "_relative_clusters",
         "_glyphs",
-        "_positions",
+        "_offsets",
         "_advances",
         "_clusters",
         "_width",
+        "_font",
     )
 
     def __init__(
         self,
         segment,
+        font,
         glyphs=None,
-        positions=None,
+        offsets=None,
         advances=None,
         clusters=None,
         source=None,
@@ -121,15 +78,17 @@ class GlyphRun:
             object.__setattr__(self, "_start", start)
             object.__setattr__(self, "_end", end)
             object.__setattr__(self, "_relative_clusters", relative_clusters)
+            object.__setattr__(self, "_font", source._font)
         else:
             object.__setattr__(self, "_source", self)
             object.__setattr__(self, "_glyphs", tuple(glyphs))
-            object.__setattr__(self, "_positions", tuple(positions))
+            object.__setattr__(self, "_offsets", tuple(offsets))
             object.__setattr__(self, "_advances", tuple(advances))
             object.__setattr__(self, "_clusters", tuple(clusters))
             object.__setattr__(self, "_relative_clusters", tuple(clusters))
             object.__setattr__(self, "_start", 0)
             object.__setattr__(self, "_end", len(glyphs))
+            object.__setattr__(self, "_font", font)
         object.__setattr__(self, "_width", None)
 
     def __setattr__(self, name, value):
@@ -137,6 +96,7 @@ class GlyphRun:
 
     @property
     def width(self):
+        """The total advance width of all glyphs in the run."""
         if self._width is None:
             adv_iter = islice(self._source._advances, self._start, self._end)
             calculated_width = sum(abs(adv[0]) for adv in adv_iter)
@@ -145,22 +105,34 @@ class GlyphRun:
 
     @property
     def segment(self):
+        """The original text segment associated with this run."""
         return self._segment
 
     @property
     def glyphs(self):
+        """An iterator for the glyph names in the run."""
         return islice(self._source._glyphs, self._start, self._end)
 
     @property
-    def positions(self):
-        return islice(self._source._positions, self._start, self._end)
+    def font(self):
+        """The font used for this glyph run."""
+        return self._font
+
+    @property
+    def offsets(self):
+        """An iterator for the (x_offset, y_offset) tuples for each glyph."""
+        return islice(self._source._offsets, self._start, self._end)
 
     @property
     def advances(self):
+        """An iterator for the (x_advance, y_advance) tuples for each glyph."""
         return islice(self._source._advances, self._start, self._end)
 
     @property
     def clusters(self):
+        """An iterator for the cluster indices, mapping each
+        glyph back to its corresponding character index in the `segment.text`.
+        """
         return iter(self._relative_clusters)
 
     def __len__(self):
@@ -172,17 +144,22 @@ class GlyphRun:
         return (
             self.segment == other.segment
             and list(self.glyphs) == list(other.glyphs)
-            and list(self.positions) == list(other.positions)
+            and list(self.offsets) == list(other.offsets)
             and list(self.advances) == list(other.advances)
             and list(self.clusters) == list(other.clusters)
         )
 
     def __repr__(self):
         return (f"GlyphRun(segment={self.segment!r}, glyphs={list(self.glyphs)!r}, "
-                f"positions={list(self.positions)!r}, advances={list(self.advances)!r}, "
+                f"offsets={list(self.offsets)!r}, advances={list(self.advances)!r}, "
                 f"clusters={list(self.clusters)!r})")
     
     def slice(self, start, end):
+        # This class uses a special mechanism for slicing. When a `GlyphRun` is
+        # sliced, it creates a new `GlyphRun` instance that acts as a
+        # lightweight "view" into the original, full `GlyphRun`'s data. This
+        # avoids data duplication and is efficient for operations like line
+        # breaking, which involves frequent slicing.
         if start < 0 or end > len(self) or start > end:
             raise IndexError('Slice indices are out of bounds')
         abs_clusters_for_slice = list(islice(self._source._clusters, self._start + start, self._start + end))
@@ -199,25 +176,27 @@ class GlyphRun:
         new_text_segment = Segment(new_text, self.segment.bidi_level, new_segment_start_index)
         return GlyphRun(
             segment=new_text_segment,
+            font=self.font,
             source=self,
             start=self._start + start,
             end=self._start + end,
             relative_clusters=new_clusters_relative,
         )
 
+_stylisticSets = {f"ss{i:02}" for i in range(1, 21)}
 
 class HBShaper:
 
     def __init__(self, font):
         """
-        Initializes the HBShaper with the given font and.
+        Initializes a harfbuzz shaper for the given font.
 
         Args:
             font: The font to use.
         """
 
         self._font = font
-        self.ttFont = font._emptyOTFWithFeatures
+        self.ttFont = font._otfForHBShaper
         self._fontData = font.compiler.getOTFData()
         self.face = hb.Face(self._fontData, 0)
         self.hbFont = hb.Font(self.face) # Separate hb.Font instance for shapeShape
@@ -225,34 +204,37 @@ class HBShaper:
         self.glyphOrder = self.ttFont.getGlyphOrder()
         hb.ot_font_set_funcs(self.hbFont)
 
-    def shapeTextToParagraphs(self, txt, features=None, language=None, script=None, variations=None):
+    def shapeTextToGlyphRuns(self, txt, base_level=None, features=None, language=None, script=None, variations=None):
         """
         Shapes the given text using the provided font and features.
 
         Args:
             txt (str): The unicode string to apply open type features shaping.
+            baseLevel (int): Base level for direction of the text.
             features (dict, optional): The font features. {feat_tag: False/True, ...}
             language (str, optional): The language.
             script (str, optional): The script.
             variations (dict, optional): The font variations. {axis_tag: value, ...}
 
         Returns:
-            list: list of Paragraph instances.
+            list: GlyphRun
         """
-        result = []
-        for parTxt in txt.split("\n"):
-            segments, baseLevel = textSegments(parTxt)
-            shapedSegmentList = []
-            for segment in segments:
-                runInfo = self._shapeTextSegment(
-                    segment=segment,
-                    features=features,
-                    language=language,
-                    variations=variations,
-                )
-                shapedSegmentList.append(runInfo)
-            result.append(Paragraph(baseLevel, shapedSegmentList))
-        return result
+        glyphRunList = []
+        segments, _baseLevel = textSegments(txt)
+        if base_level is None:
+            base_level = _baseLevel
+        isSegmentRTL = lambda s: s.bidi_level % 2 == 1
+        segments = reorderedSegments(segments, base_level, isSegmentRTL)
+        for segment in segments:
+            runInfo = self._shapeTextSegment(
+                segment=segment,
+                features=features,
+                language=language,
+                variations=variations,
+                script=script,
+            )
+            glyphRunList.append(runInfo)
+        return glyphRunList
 
     def _shapeTextSegment(self, segment, features=None, variations=None, language=None, script=None):
         if features is None:
@@ -276,13 +258,14 @@ class HBShaper:
         go = self.glyphOrder
         glyphs = [go[i] for i in gids]
         clusters = [info.cluster for info in buf.glyph_infos]
-        positions = [(pos.x_offset, pos.y_offset) for pos in buf.glyph_positions]
+        offsets = [(pos.x_offset, pos.y_offset) for pos in buf.glyph_positions]
         advances = [(pos.x_advance, pos.y_advance) for pos in buf.glyph_positions]
 
         return GlyphRun(
             segment=segment,
+            font=self._font,
             glyphs=glyphs,
-            positions=positions,
+            offsets=offsets,
             advances=advances,
             clusters=clusters,
         )
@@ -321,3 +304,27 @@ class HBShaper:
         for scriptIndex, script in enumerate(hb.ot_layout_table_get_script_tags(self.face, otTableTag)):
             scriptsAndLanguages[script] = set(hb.ot_layout_script_get_language_tags(self.face, otTableTag, scriptIndex))
         return scriptsAndLanguages
+
+
+@font_cached_property( "UnicodeData.Changed", "Layer.GlyphAdded",
+                      "Layer.GlyphDeleted", "Info.Changed",
+                      "Features.TextChanged", "Glyph.WidthChanged",
+                      "Anchor.Changed", "Groups.Changed", "Kerning.Changed",)
+def _otfForHBShaper(font):
+    """
+    OTF file without outlines for shaping text in harfbuzz.
+    """
+    otf = font._otfWithMetrics
+    fb = font.compiler.builder
+    compiler = font.compiler
+    compiler._otf = compiler.font.features.getCompiler(ttFont=compiler._otf, glyphSet=compiler._glyphSet).ttFont
+    return compiler._otf
+
+
+@font_cached_property( "UnicodeData.Changed", "Layer.GlyphAdded",
+                      "Layer.GlyphDeleted", "Info.Changed",
+                      "Features.TextChanged", "Glyph.WidthChanged",
+                      "Anchor.Changed", "Groups.Changed", "Kerning.Changed",)
+def _HBShaper(font):
+    hbshaper = HBShaper(font)
+    return hbshaper
