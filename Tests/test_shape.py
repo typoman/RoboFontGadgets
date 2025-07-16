@@ -130,5 +130,15 @@ class ShaperTest(unittest.TestCase):
         ]
         self.assertListEqual(actual, expected)
 
+    def test_shapeTextToGlyphRuns_with_scale(self):
+        text = "en فا"
+        original_run = self._shaper.shapeTextToGlyphRuns(text)[0]
+        original_advance_x = original_run.advances.__next__()[0]
+        scaled_run = self._shaper.shapeTextToGlyphRuns(text, scale=2000)[0]
+        scaled_advance_x = scaled_run.advances.__next__()[0]
+        upem = self._shaper.face.upem
+        expected_scaled_advance_x = original_advance_x * (2000 / upem)
+        self.assertAlmostEqual(scaled_advance_x, expected_scaled_advance_x, delta=1)
+
 if __name__ == "__main__":
     unittest.main()

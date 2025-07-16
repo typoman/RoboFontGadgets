@@ -5,12 +5,6 @@ from fontgadgets.extensions.layout.segmenting import textSegments, Segment, reor
 # based on drawbot-skia
 from itertools import islice
 
-"""
-todo:
-- Don't unpack and pack the offsets from harfbuzz, it's an extra operation.
-  Keep them raw, until you need to calculate their final offsets. It's
-  possible a layout engnine implementation, wouldn't need their abs offsets?
-"""
 
 class GlyphRun:
     """
@@ -199,12 +193,21 @@ class HBShaper:
         self.ttFont = font._otfForHBShaper
         self._fontData = font.compiler.getOTFData()
         self.face = hb.Face(self._fontData, 0)
-        self.hbFont = hb.Font(self.face) # Separate hb.Font instance for shapeShape
+        self.hbFont = hb.Font(self.face)
         self.hbFont.scale = (self.face.upem, self.face.upem)
         self.glyphOrder = self.ttFont.getGlyphOrder()
         hb.ot_font_set_funcs(self.hbFont)
 
-    def shapeTextToGlyphRuns(self, txt, base_level=None, features=None, language=None, script=None, variations=None):
+    def setFontScale(self, scale):
+            """
+            Sets the font scale for the HarfBuzz font object.
+
+            Args:
+                scale (int): The scale value to set for both x and y dimensions.
+            """
+            self.hbFont.scale = (scale, scale)
+
+    def shapeTextToGlyphRuns(self, txt, base_level=None, features=None, language=None, script=None, variations=None, scale=None):
         """
         Shapes the given text using the provided font and features.
 
@@ -215,10 +218,13 @@ class HBShaper:
             language (str, optional): The language.
             script (str, optional): The script.
             variations (dict, optional): The font variations. {axis_tag: value, ...}
+            scale (int, optional): If provided, sets the font scale before shaping.
 
         Returns:
             list: GlyphRun
         """
+        if scale is not None:
+            self.hbFont.scale = (scale, scale)
         glyphRunList = []
         segments, _baseLevel = textSegments(txt)
         if base_level is None:
