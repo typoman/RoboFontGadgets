@@ -83,11 +83,11 @@ class Compiler:
 
     def setupOTF(self):
         font = self.font
-        self.upm = font.info.unitsPerEm
+        self.upm = int(font.info.unitsPerEm)
         self._charstrings = {name: _EMPTY_CHAR_STRING for name in REQUIRED_GLYPHS}
         self._charstrings.update({name: _EMPTY_CHAR_STRING for name in font.keys()})
         self._metrics = {name: (self.upm, 0) for name in self._charstrings}
-        fb = self.builder = FontBuilder(self.font.info.unitsPerEm, isTTF=False)
+        fb = self.builder = FontBuilder(self.upm, isTTF=False)
         fb.setupGlyphOrder(sorted(set(self._charstrings.keys())))
         fb.setupCharacterMap(
             {uni: names[0] for uni, names in self.font.unicodeData.items()}
