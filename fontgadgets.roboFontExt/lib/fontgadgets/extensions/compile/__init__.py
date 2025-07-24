@@ -17,7 +17,7 @@ the font to be compiled faster.
 )
 def t2CharString(glyph):
     pen = T2CharStringPen(0, glyph.font)
-    glyph.removeOverlapCopy().draw(pen)
+    glyph.flattenedCopy().draw(pen)
     return pen.getCharString()
 
 
