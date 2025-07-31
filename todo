@@ -5,11 +5,14 @@
 - alternate name for the registered function, because the names are also
   polluting the module name space
 
+## glyph
+copyAttributesFromGlyph should get `leftMargin` or `rightMargin`
+
 ## fontGadgets.tools
-- Add font_property_setter or font_property.setter
+- Add font_property_setter or font_property.setter. decorator for setting a
+  value for a custom font property. This can be used to set kerning groups for
+  a glyph.
 - For cached methods, convert them to hashable?
-- decorator for setting a value for a custom font property. This can be used to
-  set kerning groups for a glyph.
 - Throw a warning when an object can't get destructive notification from a
   child or a same type as the first arg.
 - Expand destructive notifcations for cached functions depending on wether a function
