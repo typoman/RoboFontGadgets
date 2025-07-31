@@ -70,6 +70,21 @@ class GlyphFeatures:
         __getitem__(key): Returns the list of rules for a given
             feature name.
         __iter__(): Iterates through feature names.
+
+    Examples:
+        >>> # find which glyphs are going to replace a glyph in a substitution
+        >>> result = set()
+        >>> for gl, subs in glyph.features.targetGlyphs().items(): # assuming glyph is "i" or "f"
+        ...     result.update(gl)
+        >>> print(sorted(list(result)))
+        ['f_i']
+
+        >>> # find if a glyph is substituted from another glyph
+        >>> result = set()
+        >>> for gl, subs in glyph.features.sourceGlyphs().items(): # assuming glyph is "fi" ligature
+        ...     result.update(gl)
+        >>> print(sorted(list(result)))
+        ['f', 'i']
     """
 
     def __init__(self, glyph):
@@ -95,6 +110,7 @@ class GlyphFeatures:
     def sourceGlyphs(self):
         return self._sourceGlyphs
 
+    @property
     def targetGlyphs(self):
         return self._targetGlyphs
 
@@ -218,7 +234,7 @@ class GlyphFeatures:
         return 0
 
     def __str__(self):
-        return f"<GlyphFeatures: {str(self.rulesDict)}>"
+        return f"<GlyphFeatures: {str(self.toDict())}>"
 
 
 @font_property
@@ -569,7 +585,10 @@ class ParsedFeatureFile:
             ):
                 raise FeatureLibError(
                     "Within a named lookup block, all rules must be of "
-                    "the same lookup type and flag",
+                    "the same lookup type and flag:\n"
+                    f"Conflicting Statement: {rule} (type: {type(rule).__name__})\n"
+                    f"Previous Statement: {self._currentLookup.rules[0]} (type: {type(self._currentLookup.rules[0]).__name__})\n"
+                    f"Lookup: {self._currentLookup.name}\n",
                     rule.location,
                 )
 
