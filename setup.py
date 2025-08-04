@@ -22,7 +22,8 @@ setup(
     "ufonormalizer",
     "GitPython",
     "python-bidi==0.4.2",  # pin for now, 0.5 breaks things
-    "fontTools==4.55.2"
+    "fontTools==4.55.2",
+    "uharfbuzz==0.45.0",
     ],
     tests_require=[
         'pytest>=3.9',

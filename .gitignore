@@ -2,9 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.idea
 # C extensions
 *.so
+pyrightconfig.json
 
 # Distribution / packaging
 .Python
@@ -128,3 +129,4 @@ dmypy.json
 .pyre/
 .vscode
 .DS_Store
+.aider*

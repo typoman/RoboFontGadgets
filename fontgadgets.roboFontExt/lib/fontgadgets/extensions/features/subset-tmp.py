@@ -291,9 +291,16 @@ statement.adjustments
 '''
 
 class FeaturesTree(Parser):
+    # subclass of fontTools.feaLib.parser.Parser to make it possible to
+    # connect all the fea ast objects togther. All objects need to get a new
+    # attr called block in order to know where are they in the feature. Rules
+    # need to have lookup attr or languague or script based on the previous
+    # statements in order to create a unique id for them. This makes it
+    # possible to know if two feature files are merged, we can avoid
+    # duplicates.
 
     def __init__(self, *args, **kwargs):
-        Parser.__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.current_block_ = self.doc_
         # any statement or expression should belong to a block, it makes it
         # possible to create a unique id for any expression. Then this id

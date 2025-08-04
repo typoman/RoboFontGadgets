@@ -1,6 +1,7 @@
 from fontgadgets.decorators import *
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from defcon import Glyph
+from ufo2ft.outlineCompiler import StubGlyph, otRound
 from fontTools.fontBuilder import FontBuilder
 from warnings import warn
 import fontgadgets.extensions.glyph.boolean
@@ -16,12 +17,53 @@ the font to be compiled faster.
 )
 def t2CharString(glyph):
     pen = T2CharStringPen(0, glyph.font)
-    glyph.removeOverlapCopy().draw(pen)
+    glyph.flattenedCopy().draw(pen)
     return pen.getCharString()
 
 
 REQUIRED_GLYPHS = [".notdef", "space"]
 _EMPTY_CHAR_STRING = T2CharStringPen(100, None).getCharString()
+
+def NotdefGlyph(width, unitsPerEm, ascender, descender):
+    glyph = Glyph()
+    glyph.name = '.notdef'
+    drawing_pen = glyph.getPen()
+    width = otRound(unitsPerEm * 0.5)
+    glyph.width = width
+    stroke_thickness = otRound(unitsPerEm * 0.05)
+    outer_xMin = stroke_thickness
+    outer_xMax = width - stroke_thickness
+    outer_yMax = ascender
+    outer_yMin = descender
+    drawing_pen.moveTo((outer_xMin, outer_yMin))
+    drawing_pen.lineTo((outer_xMax, outer_yMin))
+    drawing_pen.lineTo((outer_xMax, outer_yMax))
+    drawing_pen.lineTo((outer_xMin, outer_yMax))
+    drawing_pen.closePath()
+    inner_xMin = outer_xMin + stroke_thickness
+    inner_xMax = outer_xMax - stroke_thickness
+    inner_yMax = outer_yMax - stroke_thickness
+    inner_yMin = outer_yMin + stroke_thickness
+    drawing_pen.moveTo((inner_xMin, inner_yMin))
+    drawing_pen.lineTo((inner_xMin, inner_yMax))
+    drawing_pen.lineTo((inner_xMax, inner_yMax))
+    drawing_pen.lineTo((inner_xMax, inner_yMin))
+    drawing_pen.closePath()
+    return glyph
+
+@font_cached_property(
+    "Layer.GlyphAdded", "Layer.GlyphDeleted"
+)
+def _fallbackNotDef(font):
+    if ".notdef" in font:
+        return font[".notdef"]
+    defaultWidth = otRound(font.info.unitsPerEm * 0.5)
+    return NotdefGlyph(
+        width=defaultWidth,
+        unitsPerEm=font.info.unitsPerEm,
+        ascender=font.info.ascender,
+        descender=font.info.descender,
+    )
 
 class Compiler:
 
@@ -35,23 +77,23 @@ class Compiler:
         for glyph_name in REQUIRED_GLYPHS:
             if glyph_name not in self._glyphSet:
                 g = Glyph()
-                g.width = 0
+                g.width = otRound(font.info.unitsPerEm * 0.5)
                 self._glyphSet[glyph_name] = g
         self._otf = None
 
     def setupOTF(self):
         font = self.font
-        self.upm = font.info.unitsPerEm
+        self.upm = int(font.info.unitsPerEm)
         self._charstrings = {name: _EMPTY_CHAR_STRING for name in REQUIRED_GLYPHS}
         self._charstrings.update({name: _EMPTY_CHAR_STRING for name in font.keys()})
         self._metrics = {name: (self.upm, 0) for name in self._charstrings}
-        fb = self.builder = FontBuilder(self.font.info.unitsPerEm, isTTF=False)
+        fb = self.builder = FontBuilder(self.upm, isTTF=False)
         fb.setupGlyphOrder(sorted(set(self._charstrings.keys())))
         fb.setupCharacterMap(
             {uni: names[0] for uni, names in self.font.unicodeData.items()}
         )
-        familyName = self.font.info.familyName
-        styleName = self.font.info.styleName
+        familyName = str(self.font.info.familyName)
+        styleName = str(self.font.info.styleName)
         version = "0.1"
         self.fontName = familyName + "-" + styleName
         self.fontName = self.fontName.replace(" ", "")
@@ -115,7 +157,7 @@ def _emptyOTF(font):
     return font.compiler.getOTF()
 
 @font_cached_property(
-    "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
+    "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed", "Glyph.WidthChanged",
 )
 def _otfWithMetrics(font):
     # otf cache for metrics without outlines
@@ -128,7 +170,7 @@ def _otfWithMetrics(font):
     return compiler._otf
 
 @font_cached_property(
-    "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
+    "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed", "Glyph.ContoursChanged", "Glyph.ComponentsChanged",
 )
 def _otfWithOutlines(font):
     """
@@ -143,7 +185,7 @@ def _otfWithOutlines(font):
     return compiler._otf
 
 @font_cached_property(
-    "Features.TextChanged", "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
+    "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed", "Features.TextChanged", "Glyph.WidthChanged", "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Anchor.Changed", "Groups.Changed", "Kerning.Changed",
 )
 def otf(font):
     """
@@ -155,7 +197,7 @@ def otf(font):
     return compiler._otf
 
 @font_cached_property(
-    "Features.TextChanged", "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Glyph.MetricsChanged", "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed"
+    "UnicodeData.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted", "Info.Changed", "Features.TextChanged", "Glyph.WidthChanged", "Anchor.Changed", "Groups.Changed", "Kerning.Changed",
 )
 def _emptyOTFWithFeatures(font):
     """

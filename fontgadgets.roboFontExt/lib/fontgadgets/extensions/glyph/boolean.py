@@ -1,11 +1,11 @@
 import booleanOperations
 from fontgadgets.decorators import *
 
-# caching helps to compile preview fonts faster
+
 @font_cached_method(
     "Glyph.ContoursChanged", "Glyph.ComponentsChanged", "Component.BaseGlyphChanged"
 )
-def removeOverlapCopy(glyph, returnNewGlyph=True, decompose=True) -> defcon.Glyph:
+def _flatten(glyph, returnNewGlyph=True, decompose=True) -> defcon.Glyph:
     """
     Removes overlap on the glyph. If 'returnNewGlyph' is True, the glyph will
     remain intact. If decompose is True, the glyph components will be decomposed
@@ -33,3 +33,23 @@ def removeOverlapCopy(glyph, returnNewGlyph=True, decompose=True) -> defcon.Glyp
         for c in result:
             glyph.appendContour(c)
     return glyph
+
+
+# choosing flatten to avoid conflict with RF
+@font_method
+def flatten(glyph) -> defcon.Glyph:
+    """
+    Removes overlap on the glyph.
+    """
+    return glyph._flatten(returnNewGlyph=False, decompose=True)
+
+@font_method
+def flattenedCopy(glyph) -> defcon.Glyph:
+    """
+    Removes overlap on a copy of the glyph and returns a new glyph, keeping
+    the original glyph intact.
+    """
+    # we still need to duplicate the result using `copy` otherwise modifying
+    # the result of cache would propogate on other places where the copy is 
+    # requested.
+    return glyph._flatten(returnNewGlyph=True, decompose=True).copy()

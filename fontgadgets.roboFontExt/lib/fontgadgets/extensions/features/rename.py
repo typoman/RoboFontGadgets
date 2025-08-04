@@ -1,11 +1,37 @@
 from fontgadgets.decorators import *
 
-_AST_ATTR_TO_ITER = {'statements', 'glyph', 'block', 'componentGlyphs', 'glyphclass', 'glyphs1',
-            'glyphs2', 'baseMarks', 'chainContexts', 'glyphs', 'lookups', 'lookup', 'marks',
-            'pos', 'markGlyphs', 'markClass', 'baseGlyphs', 'replacement',
-            'prefix', 'markAttachment', 'suffix', 'old_suffix', 'featureBlocks', 'subsetMarks',
-            'base', 'replacements', 'old_prefix', 'ligatures', 'markFilteringSet',
-            'ligatureGlyphs'}
+_AST_ATTR_TO_ITER = {
+    "base",
+    "baseGlyphs",
+    "baseMarks",
+    "block",
+    "chainContexts",
+    "componentGlyphs",
+    "featureBlocks",
+    "glyph",
+    "glyphclass",
+    "glyphs",
+    "glyphs1",
+    "glyphs2",
+    "ligatureGlyphs",
+    "ligatures",
+    "lookup",
+    "lookups",
+    "markAttachment",
+    "markClass",
+    "markFilteringSet",
+    "markGlyphs",
+    "marks",
+    "old_prefix",
+    "old_suffix",
+    "pos",
+    "prefix",
+    "replacement",
+    "replacements",
+    "statements",
+    "subsetMarks",
+    "suffix",
+}
 
 def _renameGlyphsInObj(obj, renameMap, checked=None):
     if checked is None:
@@ -20,13 +46,20 @@ def _renameGlyphsInObj(obj, renameMap, checked=None):
     elif isinstance(obj, (list, tuple, set)):
         obj = [_renameGlyphsInObj(e2, renameMap, checked) for e2 in obj]
     elif isinstance(obj, dict):
-        obj = {_renameGlyphsInObj(e2, renameMap, checked): _renameGlyphsInObj(e3, renameMap, checked)
-               for e2, e3 in obj.items()}
-    elif hasattr(obj, '__dict__'):
+        obj = {
+            _renameGlyphsInObj(e2, renameMap, checked): _renameGlyphsInObj(
+                e3, renameMap, checked
+            )
+            for e2, e3 in obj.items()
+        }
+    elif hasattr(obj, "__dict__"):
         for attributeName in obj.__dict__.keys() & _AST_ATTR_TO_ITER:
             old_value = getattr(obj, attributeName)
-            setattr(obj, attributeName, _renameGlyphsInObj(old_value, renameMap, checked))
+            setattr(
+                obj, attributeName, _renameGlyphsInObj(old_value, renameMap, checked)
+            )
     return obj
+
 
 @font_method
 def renameGlyphs(features, renameMap):

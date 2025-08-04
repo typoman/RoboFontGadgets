@@ -1,23 +1,18 @@
 # Main
-- add tests for property decorators
 - track file changes and post notifications. Example notifcations:
     'Features.IncludedFeaturesChanged'
     'Font.FileNameChanged'
-- alternate name for functions
+- alternate name for the registered function, because the names are also
+  polluting the module name space
 
-# todo
-- separate the modules into files that solve a problem, this will give the user ability
-  to load specific modules to prevent bloating the memory from all the functions
-- don't load all the methods in the main __init__
-
-
-## Tests
-- regsitration tests
+## glyph
+copyAttributesFromGlyph should get `leftMargin` or `rightMargin`
 
 ## fontGadgets.tools
-- For cached methods how to handle unhashble args?
-- decorator for setting a value for a custom font property. This can be used to
-  set kerning groups for a glyph.
+- Add font_property_setter or font_property.setter. decorator for setting a
+  value for a custom font property. This can be used to set kerning groups for
+  a glyph.
+- For cached methods, convert them to hashable?
 - Throw a warning when an object can't get destructive notification from a
   child or a same type as the first arg.
 - Expand destructive notifcations for cached functions depending on wether a function
@@ -45,7 +40,7 @@
 
 ## defcon
 - Keep track of changes in the included feature files for posting notifications.
-- this can be done using the mac.fileObserver from fontgoggles. Then whenever the font
+this can be done using the mac.fileObserver from fontgoggles. Then whenever the font
 opens, start observing these files and post "Features.IncludedFeaturesChanged"
 when a change is detected.
 
@@ -53,7 +48,7 @@ when a change is detected.
 - For glyph types use features to find the glyph type. 
 
 ## Unicode
-take a loot at unicodedata obj and if you can just use everything from there.
+take a look at unicodedata obj and if you can just use everything from there.
 - override the unicode property and change it to a subclass of tuple which provides
   these attributes: script, direction, interpreted (which stands for interpreted
   unicodes from features or glyph name)
@@ -65,7 +60,7 @@ take a loot at unicodedata obj and if you can just use everything from there.
 - Sort fonts based on os2/weight class or shared glyph widths or shared glyph bounds
 
 ## features
-- Add sctipt, language, lookups to the rules and glyphs to GlyphFeatures object
+- add test for https://github.com/fonttools/fonttools/issues/501
 - Add glyph.features.definitions from GDEF (glyphdefs or gdef or GDEF as the name?)
 - Add "IncludedFeatures.Changed" notification to defcon by keep tracking of the changes
   in the included feature files too.
@@ -84,15 +79,21 @@ def _compileFeatures(self, kern=True, mark=True, gdef=True, curs=True):
     pass
 ```
 
-### subsetter
+### featureos subsetter
 KNOWN BUGS:
 - Subsetting classes can cause the statement `sub @init_src by @init_des;` to drop. This
   could be because the subsetter doesn't subset the classes by making sure the matching
-  items between src and des inside these type of clasess also gets subset.
+  items between src and des inside these type of clasess also gets subset. Instead we
+  should track which classes are used as pairs, then which glyphs inside each pair class get 
+  subset, and drop the the same indexes in both.
 - If these objects are not referenced, they should be removed:
     Classes, LanguageSystemStatement, FeatureReferenceStatement
+    for language systems, there should be a way to keep referrences for their usages in lookups or rules.
 - If a class doesn't exist it shouldn't be referenced inside another class
     definition.
+- attatch comments to the next or previous statement. If the whole line is takes by the comment, the next
+rule is the parent, other wise previous. If the parent drops, also drop the comment.
+
 
 ## Kerning
 - merge (add kerning from another font without overriding the current)

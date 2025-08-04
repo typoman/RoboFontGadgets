@@ -4,10 +4,11 @@ import pytest
 import tempfile
 import random
 import operator
+import shutil
 from pathlib import Path
 from fontgadgets.tools import FontGadgetsError
 from unittest.mock import MagicMock, patch
-
+from fontTools.misc.testTools import stripVariableItemsFromTTX
 
 def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
     if tables is None:
@@ -26,11 +27,22 @@ def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
             font.saveXML(tmp.name, tables=arg_tables)
 
             with open(actual_ttx_path, "r", encoding="utf-8") as actual_file:
-                actual_lines = [line.rstrip() + "\n" for line in actual_file.readlines()]
+                actual_content = stripVariableItemsFromTTX(actual_file.read())
+                actual_lines = [line.rstrip() + "\n" for line in actual_content.splitlines()]
 
             ttx_path = Path(__file__).parent.joinpath("data/ttx/" + ttx)
-            with open(ttx_path, "r", encoding="utf-8") as expected_file:
-                expected_lines = [line.rstrip() + "\n" for line in expected_file.readlines()]
+            try:
+                with open(ttx_path, "r", encoding="utf-8") as expected_file:
+                    expected_content = stripVariableItemsFromTTX(expected_file.read())
+                    expected_lines = [line.rstrip() + "\n" for line in expected_content.splitlines()]
+            except FileNotFoundError:
+                ttx_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(actual_ttx_path, ttx_path)
+                raise FileNotFoundError(
+                    f"Expected TTX file '{ttx_path}' not found. "
+                    f"A new file has been created at this location with the actual TTX output. "
+                    f"Please review and commit this file if it is correct."
+                )
 
             differences = []
             for line_num, (actual_line, expected_line) in enumerate(zip(actual_lines, expected_lines)):
