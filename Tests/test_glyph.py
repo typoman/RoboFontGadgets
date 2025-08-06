@@ -15,7 +15,7 @@ def test_isComposite(defcon_ar_font_1):
     # add a contour to a composite
     source_glyph = defcon_ar_font_1[contour_glyphs[1]]
     target_glyph = defcon_ar_font_1[composite_names[0]]
-    target_glyph.copyAttributesFromGlyph(source_glyph)
+    target_glyph.copyContentsFromGlyph(source_glyph)
     assert target_glyph.isComposite is False
 
 @pytest.mark.parametrize(
@@ -79,13 +79,13 @@ def sample_empty_glyph():
     target = layer.instantiateGlyphObject()
     yield target
 
-def test_copyAttributesFromGlyph(sample_empty_glyph, sample_source_glyph, COPY_GLYPH_KWARGS):
+def test_copyContentsFromGlyph(sample_empty_glyph, sample_source_glyph, COPY_GLYPH_KWARGS):
     tmp_layer = defcon.Layer()
     for k, v in COPY_GLYPH_KWARGS.items():
         test_kwargs = dict(COPY_GLYPH_KWARGS)
         test_kwargs[k] = not v
         tmp_g = tmp_layer.instantiateGlyphObject()
-        tmp_g.copyAttributesFromGlyph(sample_source_glyph, **test_kwargs)
+        tmp_g.copyContentsFromGlyph(sample_source_glyph, **test_kwargs)
         assert_compared_glyphs_are_same(tmp_g, sample_source_glyph,
             **test_kwargs)
 
@@ -102,9 +102,9 @@ def test_swapGlyphData(sample_source_glyph, sample_other_glyph, COPY_GLYPH_KWARG
         test_kwargs = dict(base_test_kwargs)
         test_kwargs[k] = not v
         sample_source_glyph_tmp = tmp_layer.instantiateGlyphObject()
-        sample_source_glyph_tmp.copyAttributesFromGlyph(sample_source_glyph)
+        sample_source_glyph_tmp.copyContentsFromGlyph(sample_source_glyph)
         sample_other_glyph_tmp = tmp_layer.instantiateGlyphObject()
-        sample_other_glyph_tmp.copyAttributesFromGlyph(sample_other_glyph)
+        sample_other_glyph_tmp.copyContentsFromGlyph(sample_other_glyph)
         sample_source_glyph_tmp.swapGlyphData(sample_other_glyph_tmp, **test_kwargs)
 
         assert_compared_glyphs_are_same(sample_source_glyph, sample_other_glyph_tmp,
@@ -120,7 +120,7 @@ def test_clearData(sample_source_glyph, sample_empty_glyph, COPY_GLYPH_KWARGS):
         test_kwargs = dict(base_test_kwargs)
         test_kwargs[k] = not v
         test_g = defcon.Glyph()
-        test_g.copyAttributesFromGlyph(sample_source_glyph, **COPY_GLYPH_KWARGS) # overrding unicodes=False
+        test_g.copyContentsFromGlyph(sample_source_glyph, **COPY_GLYPH_KWARGS) # overrding unicodes=False
         test_g.clearData(**test_kwargs)
         assert_compared_glyphs_are_same(test_g, sample_empty_glyph, **test_kwargs)
 
@@ -166,45 +166,3 @@ def test_copyToBackground(sample_font_with_random_glyph_contents):
         # Clear the background layer for the next iteration
         if MASK_LAYER in font.layers:
             del font.layers[MASK_LAYER]
-
-    # Test clearBackground argument
-    # glyph_name = 'random glyph 1'
-    # glyph = font[glyph_name]
-    # combined_glyph = glyph.copy()
-    # glyph.copyToBackground(sourceGlyph=font['random glyph 2'], decompose=True, **COPY_BACKGROUND_KWARGS)
-    # combined_glyph.copyAttributesFromGlyph(font['random glyph 2'])
-    # glyph.copyToBackground(clearBackground=False)
-    # assert_compared_glyphs_are_same(font.layers[MASK_LAYER][glyph_name], combined_glyph, **COPY_BACKGROUND_KWARGS)
-    # glyph.copyToBackground(clearBackground=True)
-    # assert_compared_glyphs_are_same(font.layers[MASK_LAYER][glyph_name], glyph, unicodes=True)
-
-    # # Test decompose argument
-    # glyph_with_component = font.newGlyph("glyph_with_component")
-    # glyph_with_component.appendComponent(glyph_name)
-    # glyph_with_component.copyToBackground(decompose=False)
-    # assert len(font.layers[MASK_LAYER]["glyph_with_component"].components) == 1
-    # glyph_with_component.copyToBackground(decompose=True)
-    # assert len(font.layers[MASK_LAYER]["glyph_with_component"].components) == 0
-    # assert len(font.layers[MASK_LAYER]["glyph_with_component"].contours) > 0
-
-    # # Test sourceGlyph argument
-    # source_glyph = font.newGlyph("source_glyph")
-    # source_glyph.width = 500
-    # source_glyph.appendAnchor("test", (100, 100))
-    # glyph.copyToBackground(sourceGlyph=source_glyph)
-    # assert font.layers[MASK_LAYER][glyph_name].width == 500
-    # assert len(font.layers[MASK_LAYER][glyph_name].anchors) == 1
-
-    # # Test updateComponentReferences argument
-    # component_glyph = font.newGlyph("component_glyph")
-    # component_glyph.appendComponent(glyph_name)
-    # component_glyph.copyToBackground(updateComponentReferences=True)
-    # assert MASK_LAYER in font.layers
-    # assert glyph_name in font.layers[MASK_LAYER]
-    # assert_compared_glyphs_are_same(font.layers[MASK_LAYER][glyph_name], glyph)
-
-    # # Test copying to an existing background
-    # existing_background = font.layers[MASK_LAYER].newGlyph("existing_background")
-    # existing_background.width = 300
-    # glyph.copyToBackground(clearBackground=False)
-    # assert font.layers[MASK_LAYER][glyph_name].width == glyph.width

@@ -20,7 +20,7 @@ setup(
     "ufoLib2",
     "pytest",
     "ufonormalizer",
-    "GitPython",
+    "fontGit",
     "python-bidi==0.4.2",  # pin for now, 0.5 breaks things
     "fontTools==4.55.2",
     "uharfbuzz==0.45.0",

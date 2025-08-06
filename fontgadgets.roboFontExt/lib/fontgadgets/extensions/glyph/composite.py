@@ -39,7 +39,7 @@ def decomposeCopy(glyph, layerName=None) -> defcon.Glyph:
     dstPen = result.getPointPen()
     decomposePen = DecomposePointPen(f, dstPen)
     glyph.drawPoints(decomposePen)
-    result.copyAttributesFromGlyph(glyph, width=True, height=True, unicodes=True, note=True, image=True, contours=False,
+    result.copyContentsFromGlyph(glyph, width=True, height=True, unicodes=True, note=True, image=True, contours=False,
         components=False, anchors=True, guidelines=True, lib=True)
     return result
 

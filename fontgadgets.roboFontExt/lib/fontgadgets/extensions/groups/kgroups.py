@@ -1,3 +1,4 @@
+from fontParts.base import glyph
 from fontgadgets.decorators import *
 import fontgadgets.extensions.unicode.properties
 import re
@@ -46,7 +47,7 @@ def getGroupOrderFromGroupSideName(side, RTL):
     return order
 
 
-class KerningGroups:
+class FontKerningGroups:
     """
     Kerning group names don't contain the `public.kern1.` or `public.kern2.`
     prefix tags. They're defined based on which visual side of the glyph
@@ -262,127 +263,12 @@ class KerningGroups:
 
 @font_cached_property("Groups.Changed")
 def kerningGroups(font):
-    return KerningGroups(font.groups)
-
-
-@font_method
-def kerningGroupSide(glyph, side, groupNamePrefixes=False):
     """
-    Returns kerning group name for the given side.
-
-    if groupNamePrefixes is set to True, the `public.kern1.` or `public.kern2.`
-    prefixes will be added to the group name.
-
-    side: `left` or `right`
+    Kerning group names don't contain the `public.kern1.` or `public.kern2.`
+    prefix tags. They're defined based on which visual side of the glyph
+    they're grouped, `left` or `right` side.
     """
-    kerningGroups = glyph.font.kerningGroups
-    groupName = kerningGroups.glyphToKerningGroupMapping.get(glyph.name, {}).get(side, None)
-    if groupNamePrefixes and groupName is not None:
-        groupName = kerningGroups._kerningGroupName2PrefixedGroupName[side][groupName]
-    return groupName
-
-@font_method
-def kerningGroupSideMembers(glyph, side):
-    """
-    Returns all the glyph names that are also members of the kerning group for
-    the given side of this glyph.
-
-    side: `left` or `right`
-    """
-    font = glyph.font
-    group = glyph.kerningGroupSide(side)
-    members = font.kerningGroups.items().get(group, [])
-    return members
-
-
-@font_method
-def setKerningGroupSide(glyph, kernGroupName, side):
-    """
-    Set the kerning group name for the given side of the glyph.
-
-    side: `left` or `right`
-    """
-    if isKerningGroup(kernGroupName):
-        warn(f"Kerning group name already starts with a prefix, it will be removed:\n{kernGroupName}")
-        kernGroupName = kernGroupName[13:]
-    glyph.font.kerningGroups.update({side: {kernGroupName: [glyph.name, ]}})
-
-
-@font_property
-def getLeftSideKerningGroupMembers(glyph):
-    """
-    Returns the kerning group members for the left side of the glyph.
-    """
-    return glyph.kerningGroupSideMembers("left")
-
-
-@font_property
-def getRightSideKerningGroupMembers(glyph):
-    """
-    Returns the kerning group members for the right side of the glyph.
-    """
-    return glyph.kerningGroupSideMembers("right")
-
-
-@font_method
-def setLeftSideKerningGroup(glyph, kernGroupName):
-    """
-    Sets the kerning group name for the left side of the glyph.
-    """
-    glyph.setKerningGroupSide(kernGroupName, "left")
-
-
-@font_method
-def setRightSideKerningGroup(glyph, kernGroupName):
-    """
-    Sets the kerning group name for the right side of the glyph.
-    """
-    glyph.setKerningGroupSide(kernGroupName, "right")
-
-
-@font_method
-def getLeftSideKerningGroup(glyph, groupNamePrefixes=False):
-    """
-    Returns the kerning group name for the left side of the glyph.
-
-    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
-    prefixes will be added to the group name.
-    """
-    return glyph.kerningGroupSide("left", groupNamePrefixes)
-
-
-@font_method
-def getRightSideKerningGroup(glyph, groupNamePrefixes=False):
-    """
-    Returns the kerning group name for the right side of the glyph.
-
-    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
-    prefixes will be added to the group name.
-    """
-    return glyph.kerningGroupSide("right", groupNamePrefixes)
-
-
-@font_method
-def getKerningGroups(glyph, groupNamePrefixes=False):
-    """
-    Returns a dictionary with two keys `right` and `left`, each indicating the
-    group kerning name for that side. The values of the keys is set of names
-    indicating the kerning groups for the glyph.
-
-    groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
-    prefixes will be added to the group name.
-    """
-    return glyph.font.kerningGroups.getGroupNamesForGlyphs((glyph.name,), groupNamePrefixes=groupNamePrefixes)
-
-
-@font_property
-def isGrouped(glyph):
-    """
-    Returns True if glyph has any kerning group.
-    """
-    return (
-        glyph.kerningGroupSide("left") is not None or glyph.kerningGroupSide("right") is not None
-    )
+    return FontKerningGroups(font.groups)
 
 
 @font_cached_method("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
@@ -395,7 +281,9 @@ def getKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=False):
     groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
     prefixes will be added to the group name.
     """
-    return font.kerningGroups.getGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)
+    return font.kerningGroups.getGroupNamesForGlyphs(
+        glyphNames, groupNamePrefixes=groupNamePrefixes
+    )
 
 
 @font_cached_method("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
@@ -407,7 +295,9 @@ def getRightSideKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=F
     groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
     prefixes will be added to the group name.
     """
-    return font.kerningGroups.getRightSideGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)
+    return font.kerningGroups.getRightSideGroupNamesForGlyphs(
+        glyphNames, groupNamePrefixes=groupNamePrefixes
+    )
 
 
 @font_cached_method("Groups.Changed", "Layer.GlyphAdded", "Layer.GlyphDeleted")
@@ -419,4 +309,181 @@ def getLeftSideKerningGroupNamesForGlyphs(font, glyphNames, groupNamePrefixes=Fa
     groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
     prefixes will be added to the group name.
     """
-    return font.kerningGroups.getLeftSideGroupNamesForGlyphs(glyphNames, groupNamePrefixes=groupNamePrefixes)
+    return font.kerningGroups.getLeftSideGroupNamesForGlyphs(
+        glyphNames, groupNamePrefixes=groupNamePrefixes
+    )
+
+
+class GlyphKerningGroups:
+    """
+    Kerning group names don't contain the `public.kern1.` or `public.kern2.`
+    prefix tags. They're defined based on which visual side of the glyph
+    they're grouped, `left` or `right` side.
+    """
+
+    def __init__(self, glyph):
+        self._glyph = glyph
+
+    def getSide(self, side, groupNamePrefixes=False):
+        """
+        Returns kerning group name for the given side.
+
+        if groupNamePrefixes is set to True, the `public.kern1.` or `public.kern2.`
+        prefixes will be added to the group name.
+
+        side: `left` or `right`
+        """
+        glyph = self._glyph
+        kerningGroups = glyph.font.kerningGroups
+        groupName = kerningGroups.glyphToKerningGroupMapping.get(glyph.name, {}).get(
+            side, None
+        )
+        if groupNamePrefixes and groupName is not None:
+            groupName = kerningGroups._kerningGroupName2PrefixedGroupName[side][
+                groupName
+            ]
+        return groupName
+
+    def getSideMembers(self, side):
+        """
+        Returns all the glyph names that are also members of the kerning group for
+        the given side of this glyph.
+
+        side: `left` or `right`
+        """
+        glyph = self._glyph
+        font = glyph.font
+        group = self.getSide(side)
+        if group is None:
+            return []
+        members = font.kerningGroups.items()[side].get(group, [])
+        return members
+
+    def setSide(self, kernGroupName, side):
+        """
+        Set the kerning group name for the given side of the glyph.
+
+        side: `left` or `right`
+        """
+        if kernGroupName is not None:
+            if isKerningGroup(kernGroupName):
+                warn(
+                    f"Kerning group name already starts with a prefix, it will be removed:\n{kernGroupName}"
+                )
+                kernGroupName = kernGroupName[13:]
+        self._glyph.font.kerningGroups.update(
+            {side: {kernGroupName: [self._glyph.name]}}
+        )
+
+    def getLeftSideMembers(self):
+        """
+        Returns the kerning group members for the left side of the glyph.
+        """
+        return self.getSideMembers("left")
+
+    def getRightSideMembers(self):
+        """
+        Returns the kerning group members for the right side of the glyph.
+        """
+        return self.getSideMembers("right")
+
+    def setLeftSide(self, kernGroupName):
+        """
+        Sets the kerning group name for the left side of the glyph.
+        """
+        self.setSide(kernGroupName, "left")
+
+    def setRightSide(self, kernGroupName):
+        """
+        Sets the kerning group name for the right side of the glyph.
+        """
+        self.setSide(kernGroupName, "right")
+
+    def removeLeftSide(self):
+        """
+        Removes the kerning group for the left side of the glyph.
+        """
+        self.setSide(None, "left")
+
+    def removeRightSide(self):
+        """
+        Removes the kerning group for the right side of the glyph.
+        """
+        self.setSide(None, "right")
+
+    def getLeftSide(self, groupNamePrefixes=False):
+        """
+        Returns the kerning group name for the left side of the glyph.
+
+        groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+        prefixes will be added to the group name.
+        """
+        return self.getSide("left", groupNamePrefixes)
+
+    def getRightSide(self, groupNamePrefixes=False):
+        """
+        Returns the kerning group name for the right side of the glyph.
+
+        groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+        prefixes will be added to the group name.
+        """
+        return self.getSide("right", groupNamePrefixes)
+
+    def get(self, groupNamePrefixes=False):
+        """
+        Returns a dictionary with two keys `right` and `left`, each indicating the
+        group kerning name for that side. The values of the keys is set of names
+        indicating the kerning groups for the glyph.
+
+        groupNamePrefixes: If set to True, the `public.kern1.` or `public.kern2.`
+        prefixes will be added to the group name.
+        """
+        glyph = self._glyph
+        return glyph.font.kerningGroups.getGroupNamesForGlyphs(
+            (glyph.name,), groupNamePrefixes=groupNamePrefixes
+        )
+
+    def isGrouped(self):
+        """
+        Returns True if glyph has any kerning group.
+        """
+        return (
+            self.getSide("left") is not None
+            or self.getSide("right") is not None
+        )
+
+    @property
+    def left(self):
+        """Left kerning group"""
+        return self.getLeftSide()
+
+    @left.setter
+    def left(self, value):
+        self.setLeftSide(value)
+
+    @left.deleter
+    def left(self):
+        self.removeLeftSide()
+
+    @property
+    def right(self):
+        """Right kerning group"""
+        return self.getRightSide()
+
+    @right.setter
+    def right(self, value):
+        self.setRightSide(value)
+
+    @right.deleter
+    def right(self):
+        self.removeRightSide()
+
+
+@font_property
+def kerningGroups(glyph):
+    """
+    Kerning group names don't contain the `public.kern1.` or `public.kern2.`
+    prefix tags. They're defined based on which visual side of the glyph
+    they're grouped, `left` or `right` side.
+    """
+    return GlyphKerningGroups(glyph)

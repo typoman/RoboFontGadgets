@@ -136,3 +136,52 @@ def test_checkIfAttributeAlreadyExist_error():
 		fontgadgets.tools.checkIfAttributeAlreadyExist(fontParts.fontshell.RFont, 'Font', 'save', 'fontParts')
 	with pytest.raises(FontGadgetsError):
 		fontgadgets.tools.checkIfAttributeAlreadyExist(defcon.Font, 'Font', 'save', 'defcon')
+
+
+def test_registerAsfont_method_error():
+	def dummy_prop(glyph: defcon.Glyph): pass
+	functInfo = fontgadgets.tools.getFontFunctionProperties(dummy_prop)
+	with pytest.raises(FontGadgetsError, match="A function cannot be registered as both a property and a setter in the same call."):
+		fontgadgets.tools.registerAsfont_method(functInfo, isProperty=True, isPropertySetter=True)
+
+
+def test_font_property_setter():
+    defcon_glyph_1 = defcon.Glyph()
+    fontparts_glyph_1 = fontParts.fontshell.RGlyph(defcon_glyph_1)
+
+    @fontgadgets.decorators.font_property
+    def myCustomWidth(glyph):
+        """Gets the custom width."""
+        if not hasattr(glyph, '_customWidth'):
+            glyph._customWidth = None
+        return glyph._customWidth
+
+    @fontgadgets.decorators.font_property_setter
+    def myCustomWidth(glyph, value: int):
+        """Sets the custom width."""
+        glyph._customWidth = value
+
+    assert isinstance(getattr(defcon.Glyph, 'myCustomWidth'), property)
+    assert defcon_glyph_1.myCustomWidth == None
+    defcon_glyph_1.myCustomWidth = 555
+    assert defcon_glyph_1.myCustomWidth == 555
+    assert fontparts_glyph_1.myCustomWidth == 555
+
+
+def test_font_property_setter_errors():
+	# Error: trying to
+	with pytest.raises(FontGadgetsError, match="Cannot register setter. Property 'nonExistentProp' does not exist on 'defcon.Glyph'."):
+		@fontgadgets.decorators.font_property_setter
+		def nonExistentProp(glyph: defcon.Glyph, value):
+			pass
+
+	# Error: setter function with wrong number of arguments
+	with pytest.raises(AssertionError, match="should have an font object name and a value arguments to be registered as a property"):
+		# Need to define the property first
+		@fontgadgets.decorators.font_property
+		def anotherProp(glyph: defcon.Glyph):
+			return 123
+
+		@fontgadgets.decorators.font_property_setter
+		def anotherProp(glyph: defcon.Glyph): # Missing value argument
+			pass
