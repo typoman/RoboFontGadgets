@@ -583,7 +583,9 @@ def getFontFunctionProperties(funct):
     return result
 
 
-def registerAsfont_method(functInfo, isProperty=False, destructiveNotifications=[]):
+def registerAsfont_method(
+    functInfo, isProperty=False, destructiveNotifications=[], isPropertySetter=False
+):
     """
     Register a method for both defcon and fontParts objects.
 
@@ -604,11 +606,14 @@ def registerAsfont_method(functInfo, isProperty=False, destructiveNotifications=
             notifications that should trigger the destruction of
             representations when the registered method is used. Defaults
             to [].
+        isPropertySetter (bool, optional): A flag indicating that the function
+            is a setter for an existing property. Defaults to False.
 
     Raises:
         FontGadgetsError: If the target object does not exist in either
-            defcon or fontParts, or if there is a conflict with an
-            existing attribute/method name.
+            defcon or fontParts, if there is a conflict with an
+            existing attribute/method name, or if a function is registered
+            as both a property and a setter.
 
     Warns:
         UserWarning: If the function is already registered using
@@ -616,6 +621,10 @@ def registerAsfont_method(functInfo, isProperty=False, destructiveNotifications=
             issued to indicate that the existing method is being
             overridden.
     """
+    if isProperty and isPropertySetter:
+        raise FontGadgetsError(
+            "A function cannot be registered as both a property and a setter in the same call."
+        )
 
     defconObj = None
     packageHint = functInfo.packageHint
@@ -625,13 +634,13 @@ def registerAsfont_method(functInfo, isProperty=False, destructiveNotifications=
         packageHint = (packageHint,)
     if "defcon" in packageHint:
         defconObj = registerMethodForDefcon(
-            functInfo, isProperty, destructiveNotifications
+            functInfo, isProperty, destructiveNotifications, isPropertySetter
         )
     if "fontParts" in packageHint:
-        registerMethodForFontParts(functInfo, isProperty, defconObj)
+        registerMethodForFontParts(functInfo, isProperty, defconObj, isPropertySetter)
 
 
-def registerMethodForFontParts(functInfo, isProperty, defconObj=None):
+def registerMethodForFontParts(functInfo, isProperty, defconObj=None, isPropertySetter=False):
     """
     Registers a method for a fontParts object.
 
@@ -642,10 +651,13 @@ def registerMethodForFontParts(functInfo, isProperty, defconObj=None):
             should be registered as a property.
         defconObj: The defcon object to convert the method from.
             Defaults to None.
+        isPropertySetter (bool): A boolean indicating whether to register a
+            setter for an existing property. Defaults to False.
 
     Raises:
         FontGadgetsError: If the corresponding RObject does not
-            exist in fontParts.
+            exist in fontParts, or if registering a setter for a
+            non-existent property.
     """
 
     fontPartsObj = getFontPartsObject(functInfo.objectName)
@@ -653,6 +665,34 @@ def registerMethodForFontParts(functInfo, isProperty, defconObj=None):
         raise FontGadgetsError(
             f"`R{functInfo.objectName}` does't exist in 'fontParts'."
         )
+
+    if isPropertySetter:
+        assert (
+            len(functInfo.args) == 2
+        ), f"{functInfo.funct} should have an font object name and a value arguments to be registered as a property setter."
+        prop_name = functInfo.name
+        if not hasattr(fontPartsObj, prop_name) or not isinstance(
+            getattr(fontPartsObj, prop_name), property
+        ):
+            raise FontGadgetsError(
+                f"Cannot register setter. Property '{prop_name}' does not exist on 'fontParts.R{functInfo.objectName}'."
+            )
+
+        existing_prop = getattr(fontPartsObj, prop_name)
+
+        @wraps(functInfo.funct)
+        def fontparts_setter(self, value):
+            setattr(self.naked(), prop_name, value)
+
+        new_prop = property(
+            fget=existing_prop.fget,
+            fset=fontparts_setter,
+            fdel=existing_prop.fdel,
+            doc=existing_prop.__doc__,
+        )
+        setattr(fontPartsObj, prop_name, new_prop)
+        return
+
     methodID, exist = checkIfAttributeAlreadyExist(
         fontPartsObj, functInfo.objectName, functInfo.name, "fontParts"
     )
@@ -675,7 +715,9 @@ def registerMethodForFontParts(functInfo, isProperty, defconObj=None):
     _registeredMethods.append(methodID)
 
 
-def registerMethodForDefcon(functInfo, isProperty, destructiveNotifications=[]):
+def registerMethodForDefcon(
+    functInfo, isProperty, destructiveNotifications=[], isPropertySetter=False
+):
     """
     Registers a method for a Defcon object.
 
@@ -696,6 +738,8 @@ def registerMethodForDefcon(functInfo, isProperty, destructiveNotifications=[]):
             notifications that, when triggered, should destroy the
             representation associated with this function. Defaults to
             [].
+        isPropertySetter (bool): A boolean indicating whether to register a
+            setter for an existing property. Defaults to False.
 
     Returns:
         The Defcon object that the method was registered on, or None
@@ -704,8 +748,9 @@ def registerMethodForDefcon(functInfo, isProperty, destructiveNotifications=[]):
 
     Raises:
         FontGadgetsError: If the specified Defcon object does not exist
-            and the package hint is "defcon", or if the method already
-            exists and cannot be overridden.
+            and the package hint is "defcon", if the method already
+            exists and cannot be overridden, or if registering a setter
+            for a non-existent property.
     """
 
     defconObj = getDefconObject(functInfo.objectName)
@@ -716,6 +761,31 @@ def registerMethodForDefcon(functInfo, isProperty, destructiveNotifications=[]):
         else:
             warn(message)
             return
+
+    if isPropertySetter:
+        assert (
+            len(functInfo.args) == 2
+        ), f"{functInfo.funct} should have an font object name and a value arguments to be registered as a property setter."
+        prop_name = functInfo.name
+        if not hasattr(defconObj, prop_name) or not isinstance(
+            getattr(defconObj, prop_name), property
+        ):
+            raise FontGadgetsError(
+                f"Cannot register setter. Property '{prop_name}' does not exist on 'defcon.{functInfo.objectName}'."
+            )
+
+        existing_prop = getattr(defconObj, prop_name)
+        new_setter = functInfo.funct
+
+        new_prop = property(
+            fget=existing_prop.fget,
+            fset=new_setter,
+            fdel=existing_prop.fdel,
+            doc=existing_prop.__doc__,
+        )
+        setattr(defconObj, prop_name, new_prop)
+        return defconObj
+
     methodID, exist = checkIfAttributeAlreadyExist(
         defconObj, functInfo.objectName, functInfo.name, "defcon"
     )

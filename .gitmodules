@@ -1,0 +1,3 @@
+[submodule "Tests/git_data"]
+	path = Tests/git_data
+	url = https://github.com/typoman/fontgit-test-repo
