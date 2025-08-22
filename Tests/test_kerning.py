@@ -53,9 +53,9 @@ def test_flattenPair(kerning_with_missing_glyphs, pair, expected):
         ),
     ],
 )
-def test_isKerningPairValid(kerning_with_missing_glyphs, pair, expected):
+def test_isPairValid(kerning_with_missing_glyphs, pair, expected):
     f = kerning_with_missing_glyphs
-    assert f.kerning.isKerningPairValid(pair) is expected
+    assert f.kerning.isPairValid(pair) is expected
 
 def test_validKerningEntries(kerning_with_missing_glyphs):
     f = kerning_with_missing_glyphs

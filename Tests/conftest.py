@@ -20,6 +20,8 @@ def defcon_font_1():
         199: "Ccedilla",
         68: "D",
         69: "E",
+        70: "F",
+        46: "period",
         79: "O",
         210: "Ograve",
         1587: "seen",

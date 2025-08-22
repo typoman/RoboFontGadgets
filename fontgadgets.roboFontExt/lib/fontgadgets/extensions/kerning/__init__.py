@@ -20,7 +20,16 @@ def flattenPair(kerning, pair):
 
 
 @font_method
-def isKerningPairValid(kerning, pair):
+def getPairGlyphs(kerning, pair):
+    result = set()
+    groups = kerning.font.groups
+    for e in pair:
+        result.update(groups.get(e, (e, )))
+    return result
+
+
+@font_method
+def isPairValid(kerning, pair):
     """
     Returns `False` if kerning pair contains a missing glyph/group
     """
