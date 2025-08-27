@@ -44,7 +44,7 @@ def subset(font, glyphsToKeep) -> tuple[defcon.Font, dict]:
 
     newKerning = {}
     for pair, value in subsetFont.kerning.items():
-        if subsetFont.kerning.isKerningPairValid(pair):
+        if subsetFont.kerning.isPairValid(pair):
             newKerning[pair] = value
 
     subsetFont.kerning.clear()

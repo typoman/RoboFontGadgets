@@ -1,1 +1,1 @@
-from .properties import GlyphUnicodeProperties
+from .properties import *

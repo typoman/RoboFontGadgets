@@ -54,7 +54,7 @@ def fontIsSameAsTTXForGivenTables(font, ttx, tables=None):
                     )
             if differences:
                 error_message = "TTX output differs from expected:\n\n" + "\n".join(differences)
-                save_path = ttx_path.parent / f"expected_{ttx}"
+                save_path = ttx_path.parent / f"{ttx}_actual"
                 shutil.copy(actual_ttx_path, save_path)
                 raise AssertionError(error_message)
             return True

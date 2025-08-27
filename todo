@@ -125,3 +125,8 @@ Features:
 
 # Composites
 - glyph.relatedComposites: returns glyphs that are using the current glyph in their composite.
+
+# Anchors
+- anchor.type: For differentiating the anchors that are used for mark feature or creating composites or other types of features. Store on glyph lib for now.
+- anchor.ligatureIndex: for the ligatures, we can tell which ligature componnent this anchor belongs to.
+- anchor.group: the name of the anchor which this anchor belongs to like top, bottom, etc.

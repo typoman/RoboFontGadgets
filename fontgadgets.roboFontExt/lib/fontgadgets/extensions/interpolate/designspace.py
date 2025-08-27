@@ -76,6 +76,10 @@ class InterpolateFontsFromDesignSpace(ufoOperator.UFOOperator):
                    groups_references=True, glyphorder_references=False) # same as ufoprocessor and ufo2ft ver 2.7.1.dev722+g71ef6ca.d20221024
         return font
 
+    def collectSkippedGlyphs(self):
+        # this can cause issues with composites, so we dont' skip any glyphs
+        return []
+
 if __name__ == "__main__":
     import argparse
 

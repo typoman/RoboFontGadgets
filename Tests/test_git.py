@@ -4,7 +4,7 @@ from utils import *
 import fontgadgets.extensions.git
 
 
-TEST_FONT_PATH = Path(__file__).parent.joinpath("git_data/fonts/font_1.ufo")
+TEST_FONT_PATH = str(Path(__file__).parent.joinpath("git_data/fonts/font_1.ufo"))
 
 
 @pytest.fixture(scope="function")

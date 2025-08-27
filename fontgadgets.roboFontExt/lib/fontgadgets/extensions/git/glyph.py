@@ -2,6 +2,10 @@ from fontgadgets.decorators import font_property
 import fontgadgets.extensions.git.font
 import fontgadgets.extensions.glyph
 
+"""
+todo:
+- add options for resetting left and right margin
+"""
 
 class GlyphGit:
 

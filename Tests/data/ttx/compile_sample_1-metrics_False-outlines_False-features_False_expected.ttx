@@ -44,6 +44,9 @@
         <CharString name="E">
           100 endchar
         </CharString>
+        <CharString name="F">
+          100 endchar
+        </CharString>
         <CharString name="O">
           100 endchar
         </CharString>
@@ -51,6 +54,9 @@
           100 endchar
         </CharString>
         <CharString name="ain.medi">
+          100 endchar
+        </CharString>
+        <CharString name="period">
           100 endchar
         </CharString>
         <CharString name="sad">
@@ -79,9 +85,11 @@
   <cmap>
     <tableVersion version="0"/>
     <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x2e" name="period"/><!-- FULL STOP -->
       <map code="0x43" name="C"/><!-- LATIN CAPITAL LETTER C -->
       <map code="0x44" name="D"/><!-- LATIN CAPITAL LETTER D -->
       <map code="0x45" name="E"/><!-- LATIN CAPITAL LETTER E -->
+      <map code="0x46" name="F"/><!-- LATIN CAPITAL LETTER F -->
       <map code="0x4f" name="O"/><!-- LATIN CAPITAL LETTER O -->
       <map code="0xc7" name="Ccedilla"/><!-- LATIN CAPITAL LETTER C WITH CEDILLA -->
       <map code="0xd2" name="Ograve"/><!-- LATIN CAPITAL LETTER O WITH GRAVE -->
@@ -92,9 +100,11 @@
       <map code="0xfecc" name="ain.medi"/><!-- ARABIC LETTER AIN MEDIAL FORM -->
     </cmap_format_4>
     <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x2e" name="period"/><!-- FULL STOP -->
       <map code="0x43" name="C"/><!-- LATIN CAPITAL LETTER C -->
       <map code="0x44" name="D"/><!-- LATIN CAPITAL LETTER D -->
       <map code="0x45" name="E"/><!-- LATIN CAPITAL LETTER E -->
+      <map code="0x46" name="F"/><!-- LATIN CAPITAL LETTER F -->
       <map code="0x4f" name="O"/><!-- LATIN CAPITAL LETTER O -->
       <map code="0xc7" name="Ccedilla"/><!-- LATIN CAPITAL LETTER C WITH CEDILLA -->
       <map code="0xd2" name="Ograve"/><!-- LATIN CAPITAL LETTER O WITH GRAVE -->
@@ -112,9 +122,11 @@
     <mtx name="Ccedilla" width="1000" lsb="0"/>
     <mtx name="D" width="1000" lsb="0"/>
     <mtx name="E" width="1000" lsb="0"/>
+    <mtx name="F" width="1000" lsb="0"/>
     <mtx name="O" width="1000" lsb="0"/>
     <mtx name="Ograve" width="1000" lsb="0"/>
     <mtx name="ain.medi" width="1000" lsb="0"/>
+    <mtx name="period" width="1000" lsb="0"/>
     <mtx name="sad" width="1000" lsb="0"/>
     <mtx name="seen" width="1000" lsb="0"/>
     <mtx name="seen.init" width="1000" lsb="0"/>

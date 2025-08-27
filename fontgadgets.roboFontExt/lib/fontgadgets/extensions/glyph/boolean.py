@@ -11,6 +11,8 @@ def _flatten(glyph, returnNewGlyph=True, decompose=True) -> defcon.Glyph:
     remain intact. If decompose is True, the glyph components will be decomposed
     before removing overlap.
     """
+    if glyph.font is None:
+        raise AttributeError("Can't flatten an indiviual glyph without a parent font.")
     result = glyph.font.layers.defaultLayer.instantiateGlyphObject()
     result.name = glyph.name
     result.width = glyph.width

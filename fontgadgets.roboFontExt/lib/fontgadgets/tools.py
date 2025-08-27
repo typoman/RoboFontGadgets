@@ -7,6 +7,7 @@ from warnings import warn
 from collections import namedtuple
 import typing
 from typing import Type, List, Tuple, Union
+import functools
 
 VALID_DEFCON_NOTIFCATIONS = {
     "Glyph.Changed",
@@ -867,3 +868,16 @@ def checkIfAttributeAlreadyExist(
             warn(message, category=Warning)
             return methodID, True
     return methodID, False
+
+
+def cached_method(method):
+    """Decorator to create a cached method on a per-instance basis using lru_cache."""
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        cache_attr = f"_cached_{method.__name__}"
+        if not hasattr(self, cache_attr):
+            cached_func = functools.lru_cache(maxsize=None)(method.__get__(self))
+            setattr(self, cache_attr, cached_func)
+        cached_func = getattr(self, cache_attr)
+        return cached_func(*args, **kwargs)
+    return wrapper

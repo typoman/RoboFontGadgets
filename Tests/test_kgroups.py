@@ -1,4 +1,3 @@
-import pytest
 from fontgadgets.extensions.groups import kgroups
 from fontgadgets.decorators import FontGadgetsError
 from utils import *
@@ -714,7 +713,7 @@ def test_kerning_group_set_glyphset_change_direction(defcon_font_1):
     assert sorted(font.groups[new_prefixed_name]) == sorted(new_rtl_members)
     # The object's internal state should be updated
     assert new_kg_obj.prefixedName == new_prefixed_name
-    assert new_kg_obj.direction == kgroups.Direction.RightToLeft
+    assert new_kg_obj.direction == "R"
     assert sorted(new_kg_obj.glyphSet) == sorted(new_rtl_members)
 
 

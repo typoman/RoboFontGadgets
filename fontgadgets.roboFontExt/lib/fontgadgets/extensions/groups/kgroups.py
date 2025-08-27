@@ -2,7 +2,6 @@
 from fontgadgets.decorators import *
 import fontgadgets.extensions.unicode.properties
 import re
-from ufo2ft.featureWriters.kernFeatureWriter2 import Direction
 from warnings import warn
 from typing import (
     Union,
@@ -29,17 +28,20 @@ The module enables GUI tool development by offering a glyph-centered data model
 that simplifies kerning group operations. Users can copy/paste kerning groups
 between glyphs, modify group memberships, and manage groups without needing to
 understand the underlying UFO technical details or handle LTR/RTL direction
-considerations manually.
+considerations manually. Left or right in this context mean the glyphs which
+their left side or right side look visually similar.
 
 Usage:
     # Import this module to add the kering group extensions
     import fontgadgets.extensions.groups.kgroups
 
-    # Font-level modification of kerning groups based on visual side
+    # Font-level modification of kerning groups based on which side they look
+    # similar (left/right)
     font.kerningGroups.left["A"] = ["A", "Agrave", "Aacute"]
     font.kerningGroups.right["O"] = ["O", "Oacute", "Odieresis"]
  
-    # Glyph-level modification of kerning groups based on visual side
+    # Glyph-level modification of kerning groups based on which side they look
+    # similar (left/right)
     glyph.kerningGroups.left = "A"
     glyph.kerningGroups.right = "O"
  
@@ -128,8 +130,8 @@ class KerningGroup:
         name (str): The raw name of the group (without public.kern1/2 prefix).
         side (str): The visual side of the group ("left" or "right").
         glyph_set (list): A list of glyph names belonging to this group.
-        direction (Direction): The primary direction of the group members
-            (e.g., Direction.RightToLeft, Direction.LeftToRight).
+        direction (Optional[str]): The primary direction of the group members
+            ("L" for LTR, "R" for RTL, or None for neutral).
         font (defcon.Font): The font object this group belongs to.
     """
 
@@ -139,7 +141,7 @@ class KerningGroup:
         name: str,
         side: str,
         glyph_set: List[str],
-        direction: Direction,
+        direction: Optional[str],
         font: "defcon.Font",
     ) -> None:
         """
@@ -150,8 +152,8 @@ class KerningGroup:
             name (str): The raw name of the kerning group (without public.kern1/2 prefix).
             side (str): The visual side of the group ("left" or "right").
             glyph_set (list): A list of glyph names belonging to this group.
-            direction (Direction): The primary direction of the group members
-                                   (e.g., Direction.RightToLeft, Direction.LeftToRight).
+            direction (Optional[str]): The primary direction of the group members
+                                   ("L" for LTR, "R" for RTL, or None for neutral).
             font (defcon.Font): The font object this group belongs to.
         """
         self._prefixed_name = group_prefixed_name
@@ -222,7 +224,7 @@ class KerningGroup:
         return self._update()
 
     @property
-    def direction(self) -> Direction:
+    def direction(self) -> Optional[str]:
         """The primary direction of the group members."""
         return self._direction
 
@@ -295,7 +297,7 @@ class KerningGroupsAdapter:
         # {"left": {rawKerningGroupName: KerningGroup}, "right": {rawKerningGroupName: KerningGroup}}
         self._visual_side_groups: Dict[str, Dict[str, KerningGroup]] = {"left": {}, "right": {}}
 
-        self._getGlyphDirection = self._font.glyphsUnicodeProperties.getBidiTypeDirectionForGlyphName
+        self._getGlyphDirection = lambda glyphName: self._font[glyphName].unicodeProperties.bidiType
         self._changed = True
         self._updateInternalState()
 
@@ -314,7 +316,7 @@ class KerningGroupsAdapter:
                 side_and_name = self._getSideAndRawGroupName(prefixed_group_name)
                 if side_and_name is not None:
                     side, kerning_group_name = side_and_name
-                    direction = Direction.Neutral
+                    direction = None
                     if members:
                         direction = self._getGlyphSetDirection(members)
                     kg_object = KerningGroup(
@@ -416,7 +418,7 @@ class KerningGroupsAdapter:
                 del self._logical_order_groups[old_prefixed_name]
         else:
             # Determine the correct new prefixed name based on the members' direction.
-            isRTL = self._getGlyphSetDirection(members) == Direction.RightToLeft
+            isRTL = self._getGlyphSetDirection(members) == "R"
             new_prefixed_name = self._convertKerningGroupNameToPrefixedGroupName(kerning_group_name, side, isRTL)
 
             # If the prefixed name has changed (due to direction change), remove the old one.
@@ -461,7 +463,7 @@ class KerningGroupsAdapter:
             raise ValueError(f"A kerning group named '{new_name}' already exists for the '{side}' side.")
         old_group_obj = side_groups[old_name]
         old_prefixed_name = old_group_obj.prefixedName
-        isRTL = old_group_obj.direction == Direction.RightToLeft
+        isRTL = old_group_obj.direction == "R"
         new_prefixed_name = self._convertKerningGroupNameToPrefixedGroupName(new_name, side, isRTL)
         self._logical_order_groups[new_prefixed_name] = self._logical_order_groups.pop(old_prefixed_name)
         self._changed = True
@@ -515,16 +517,16 @@ class KerningGroupsAdapter:
         members.extend([g for g in new_members if g not in members])
         self.setKerningGroupFromNameSideAndMembers(kerning_group_name, side, members)
 
-    def _getGlyphSetDirection(self, glyph_set: List[str]) -> Direction:
+    def _getGlyphSetDirection(self, glyph_set: List[str]) -> Optional[str]:
         """
         Determines the dominant writing direction for a set of glyphs.
         """
         directions = {self._getGlyphDirection(gn) for gn in glyph_set}
-        directions.discard(Direction.Neutral)
+        directions.discard(None)
         if len(directions) > 1:
             raise FontGadgetsError(f'Mixed direction glyphs in the set `{glyph_set}`.')
         if not directions:
-            return Direction.Neutral
+            return None
         return directions.pop()
 
     def getKerningGroupsForGlyphSet(self, glyph_set: List[str]) -> Dict[str, List[KerningGroup]]:
@@ -727,7 +729,7 @@ class KerningGroupsAdapter:
         members = self._logical_order_groups.get(prefixed_group_name, [])
         uniDirection = self._getGlyphSetDirection(members)
         order = GROUP_SIDE_TAG.index(match.group(0))
-        is_rtl_direction = (uniDirection == Direction.RightToLeft)
+        is_rtl_direction = (uniDirection == "R")
         return (getGroupSideNameFromGroupOrder(order, is_rtl_direction),
                 re.split(RE_GROUP_TAG, prefixed_group_name)[-1],)
 
@@ -1224,7 +1226,9 @@ def kerningGroups(glyph):
 
     Manages kerning group assignments for both left and right sides of a glyph,
     using visual side names rather than UFO's logical order prefixes. Supports
-    getting, setting, and removing kerning group memberships.
+    getting, setting, and removing kerning group memberships. Left or right
+    in this object mean the glyphs which their left side or right side look
+    visually similar.
 
     Properties:
         left (Optional[KerningGroup]): The left-side kerning group.

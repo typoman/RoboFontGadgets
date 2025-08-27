@@ -44,6 +44,9 @@
         <CharString name="E">
           0 endchar
         </CharString>
+        <CharString name="F">
+          0 endchar
+        </CharString>
         <CharString name="O">
           0 endchar
         </CharString>
@@ -51,6 +54,9 @@
           0 endchar
         </CharString>
         <CharString name="ain.medi">
+          0 endchar
+        </CharString>
+        <CharString name="period">
           0 endchar
         </CharString>
         <CharString name="sad">

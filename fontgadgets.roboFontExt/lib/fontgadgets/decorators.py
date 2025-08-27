@@ -7,9 +7,9 @@ def checkNotifications(destructiveNotifications):
     if invalidNotifations:
         nl = "\n"
         raise FontGadgetsError(
-            f"Invalid passed destructive notification(s):"
-            f"{nl.join(invalidNotifations)}"
-            f"Valid choices are:"
+            f"Invalid passed destructive notification(s):\n"
+            f"{nl.join(invalidNotifations)}\n\n"
+            f"Valid choices are:\n"
             f"{nl.join(sorted(VALID_DEFCON_NOTIFCATIONS))}"
         )
 

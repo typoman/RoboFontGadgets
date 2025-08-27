@@ -23,8 +23,8 @@ class GlyphTypeInterpreter:
 
     def __init__(self, font):
         self.font = font
-        self.glyphTypesCache = {}
-        self.checkedGlyphs = {} # glyphs that was checked already to avoid infinite loops
+        self._glyphNameToType = {} # cache
+        self._checkedGlyphs = {} # glyphs that was checked already to avoid infinite loops
         for line in self.MARK_UNI_STR:
             if line and line[0] != "#":
                 splittedLine = line.split("..")
@@ -44,22 +44,22 @@ class GlyphTypeInterpreter:
         return False
 
     def _setGlyphType(self, glyphName, typeName):
-        self.glyphTypesCache[glyphName] = typeName
+        self._glyphNameToType[glyphName] = typeName
         return True
 
     def _checkCache(self, glyphName, typeName):
-        if glyphName in self.glyphTypesCache:
-            return self.glyphTypesCache[glyphName] == typeName
+        if glyphName in self._glyphNameToType:
+            return self._glyphNameToType[glyphName] == typeName
 
     def isMark(self, glyphName):
         cache = self._checkCache(glyphName, "mark")
         if cache is not None:
             return cache
-        if self.checkedGlyphs.get(glyphName, {}).get("mark", False) is True:
+        if self._checkedGlyphs.get(glyphName, {}).get("mark", False) is True:
             return
-        self.checkedGlyphs.setdefault(glyphName, {})["mark"] = True
+        self._checkedGlyphs.setdefault(glyphName, {})["mark"] = True
         glyph = self.font[glyphName]
-        for uni in glyph.pseudoUnicodes:
+        for uni in glyph.unicodeProperties.interpretedUnicodes:
             if self._isUnicodeDiacritic(uni):
                 return self._setGlyphType(glyphName, "mark")
         if glyph.width == 0:
@@ -82,9 +82,9 @@ class GlyphTypeInterpreter:
         cache = self._checkCache(glyphName, "ligature")
         if cache is not None:
             return cache
-        if self.checkedGlyphs.get(glyphName, {}).get("ligature", False) is True:
+        if self._checkedGlyphs.get(glyphName, {}).get("ligature", False) is True:
             return # avoids recursion
-        self.checkedGlyphs.setdefault(glyphName, {})["ligature"] = True
+        self._checkedGlyphs.setdefault(glyphName, {})["ligature"] = True
         if self.isMark(glyphName) is True:
             return False
         glyph = self.font[glyphName]
