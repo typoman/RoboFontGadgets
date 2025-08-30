@@ -99,3 +99,23 @@ def method(*target_classes, override=True):
         return func
 
     return decorator
+
+
+def doc(**kwargs):
+    """
+    A decorator to format the docstring of a function or class.
+
+    It takes keyword arguments and uses them to format the docstring
+    of the decorated object using `str.format()`.
+
+    Example:
+        @doc(version="1.0")
+        def my_function():
+            \"\"\"My function, version {version}.\"\"\"
+            pass
+    """
+    def decorator(obj):
+        if obj.__doc__:
+            obj.__doc__ = obj.__doc__.format(**kwargs)
+        return obj
+    return decorator

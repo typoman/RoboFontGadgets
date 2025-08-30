@@ -1,5 +1,6 @@
 # Copyright 2025 Bahman Eslami All Rights Reserved.
-from fontgadgets.decorators import *
+from fontgadgets.decorators import font_cached_property, font_property, FontGadgetsError
+from fontgadgets import patch
 import fontgadgets.extensions.unicode.properties
 import re
 from warnings import warn
@@ -15,12 +16,46 @@ from typing import (
     ValuesView,
     ItemsView,
 )
+GROUP_TERMINOLOGY_DOC = """
+It is essential to understand how this API names and uses kerning groups,
+as its terminology differs from other font editing software.
+
+In this API, a group's side ("left" or "right") is defined by the visual shape
+of the glyphs it contains. This differs from the traditional method of defining
+groups by their position in a kerning pair (a practice inherited from the UFO 1
+and 2 standards).
+
+  - A "left-side group" contains glyphs that are visually similar on their
+    **left side** (e.g., 'D', 'B', 'H'). To adjust the kerning against this
+    shared left side, the other glyph/group must be placed to its **left**.
+    Therefore, a left-side group is only kerned on its left.
+
+  - A "right-side group" contains glyphs that are visually similar on their
+    **right side** (e.g., 'w', 'y', 'v'). To adjust the kerning against this
+    shared right side, the other glyph/group must be placed to its **right**.
+    Therefore, a right-side group is only kerned on its right.
+
+Let's consider the kerning pair 'TA':
+
+     T A
+     | |
+     | +--- 'A' has a space on its LEFT side that needs kerning.
+     |      It belongs to a "left-side group" accessed via `font['A'].kerningGroups.left`.
+     |      Its left side kerning value is managed via `font['A'].kerning.left`.
+     |      Only right side kerning groups can be kerned against this group.
+     |
+     +----- 'T' has a shape on its RIGHT side that needs kerning.
+            It belongs to a "right-side group" accessed via `font['T'].kerningGroups.right`.
+            Its right side kerning value is managed via `font['T'].kerning.right`.
+            Only left side kerning groups can be kerned against this group.
+"""
+
 __doc__ = """
 UFO Kerning Groups Management with Visual Side-Based Access.
 
 This module provides a comprehensive API for managing UFO kerning groups using
 visual side terminology (left/right) rather than the UFO specification's
-logical order prefixes (public.kern1./public.kern2.). It abstracts away the
+logical order prefixes (public.kern1., public.kern2.). It abstracts away the
 complexities of bidirectional text handling and provides both font-level and
 glyph-level interfaces for kerning group manipulation. 
 
@@ -28,9 +63,10 @@ The module enables GUI tool development by offering a glyph-centered data model
 that simplifies kerning group operations. Users can copy/paste kerning groups
 between glyphs, modify group memberships, and manage groups without needing to
 understand the underlying UFO technical details or handle LTR/RTL direction
-considerations manually. Left or right in this context mean the glyphs which
-their left side or right side look visually similar.
+considerations manually. In this context, "left" or "right" refers to glyphs
+whose left or right sides are visually similar.
 
+""" + GROUP_TERMINOLOGY_DOC + """
 Usage:
     # Import this module to add the kering group extensions
     import fontgadgets.extensions.groups.kgroups
@@ -56,21 +92,21 @@ ORDER_2_SIDE = {0: "left", 1: "right"}
 SIDE_2_ORDER = {"left": 0, "right": 1}
 
 
-def isKerningGroup(entry: Optional[str]) -> bool:
+def isKerningGroup(name: Optional[str]) -> bool:
     """
-    Return True if the given entry is a kerning group name starting either with
+    Return True if the given name is a kerning group name starting either with
     `public.kern1.` or `public.kern2.`
 
     Args:
-        entry (Optional[str]): The string to check.
+        name (Optional[str]): The string to check.
 
     Returns:
         bool: True if the string is a valid prefixed kerning group name,
         False otherwise.
     """
-    if entry is None:
+    if name is None:
         return False
-    if re.match(RE_GROUP_TAG, entry) is None:
+    if re.match(RE_GROUP_TAG, name) is None:
         return False
     return True
 
@@ -183,8 +219,8 @@ class KerningGroup:
             raise TypeError("Group name must be a string.")
         if self._name == new_name:
             return
-        adapter = self._font._kerningGroupsAdapter
-        adapter.renameKerningGroupForSide(self._name, new_name, self._side)
+        adaptor = self._font._kerningGroupsAdapter
+        adaptor.renameKerningGroupForSide(self._name, new_name, self._side)
         self._name = new_name
         return self._update()
 
@@ -244,7 +280,10 @@ class KerningGroup:
     @property
     def kerning(self) -> 'VisualSideKerning':
         """
-        Accesses the kerning dictionary associated with this group.
+        Accesses the kerning dictionary associated with this group. Group
+        kerning work just like glyph kerning but only on the side of the group.
+        So for a left group, you can only kern it with glyphs that appear on
+        the right.
 
         Returns:
             VisualSideKerning: An object to query and modify kerning values
@@ -275,7 +314,7 @@ class KerningGroupsAdapter:
     KerningGroup objects organized by visual side (left/right) rather than
     logical order, which is the encoding method in the UFO 3 format.
 
-    The adapter automatically handles bidirectional text considerations,
+    The adaptor automatically handles bidirectional text considerations,
     converting between logical order (kern1/kern2) and visual sides based on
     the script direction of the group members.
 
@@ -303,7 +342,7 @@ class KerningGroupsAdapter:
 
     @property
     def font(self) -> 'defcon.Font':
-        """The font object this adapter belongs to."""
+        """The font object this adaptor belongs to."""
         return self._font
 
     def _updateInternalState(self) -> None:
@@ -550,7 +589,7 @@ class KerningGroupsAdapter:
 
         Example:
             # Find all groups containing glyphs A, B, or C
-            groups = adapter.getKerningGroupsForGlyphSet(["A", "B", "C"])
+            groups = adaptor.getKerningGroupsForGlyphSet(["A", "B", "C"])
             # Returns: {"left": [KerningGroup("left_group_1")],
             #           "right": [KerningGroup("right_group_2")]}
         """
@@ -585,7 +624,7 @@ class KerningGroupsAdapter:
 
         Example:
             # Find all right-side groups containing glyphs O, Q, or C
-            right_groups = adapter.getRightSideKerningGroupsForGlyphSet(
+            right_groups = adaptor.getRightSideKerningGroupsForGlyphSet(
                 ["O", "Q", "C"]
             )
             # Returns: [KerningGroup("round_letters"), KerningGroup("O")]
@@ -609,7 +648,7 @@ class KerningGroupsAdapter:
 
         Example:
             # Find all left-side groups containing glyphs A, V, or T
-            left_groups = adapter.getLeftSideKerningGroupsForGlyphSet(
+            left_groups = adaptor.getLeftSideKerningGroupsForGlyphSet(
                 ["A", "V", "T"]
             )
             # Returns: [KerningGroup("triangular"), KerningGroup("A")]
@@ -657,7 +696,7 @@ class KerningGroupsAdapter:
                     "O": ["O", "Q"]
                 }
             }
-            changed = adapter.updateKerningGroupsUsingDict(groups_dict)
+            changed = adaptor.updateKerningGroupsUsingDict(groups_dict)
 
             # Remove glyphs from groups
             remove_dict = {
@@ -665,7 +704,7 @@ class KerningGroupsAdapter:
                     None: ["unwanted_glyph"]
                 }
             }
-            adapter.updateKerningGroupsUsingDict(remove_dict)
+            adaptor.updateKerningGroupsUsingDict(remove_dict)
         """
         self._updateInternalState()
         self._logical_order_groups.holdNotifications(note='Requested by fontgadgets.extensions.groups.kgroups')
@@ -758,7 +797,7 @@ def _kerningGroupsAdapter(font):
     """
     A cached property that attaches a KerningGroupsAdapter to a font object.
 
-    This ensures that the adapter is created only once and is invalidated and
+    This ensures that the adaptor is created only once and is invalidated and
     recreated whenever the font's groups or relevant glyph data changes.
     """
     return KerningGroupsAdapter(font.groups)
@@ -795,8 +834,8 @@ class FontKerningGroupSide:
         self._side = side
 
     @property
-    def _adapter(self) -> KerningGroupsAdapter:
-        """Dynamically get the adapter to ensure it's always fresh."""
+    def _adaptor(self) -> KerningGroupsAdapter:
+        """Dynamically get the adaptor to ensure it's always fresh."""
         return self._font._kerningGroupsAdapter
 
     def __getitem__(self, kerning_group_name: str) -> KerningGroup:
@@ -807,7 +846,7 @@ class FontKerningGroupSide:
             KeyError: If the group is not found.
         """
         try:
-            return self._adapter._visual_side_groups[self._side][kerning_group_name]
+            return self._adaptor._visual_side_groups[self._side][kerning_group_name]
         except KeyError:
             raise KeyError(f"No '{self._side}' kerning group named '{kerning_group_name}' found.")
 
@@ -824,7 +863,7 @@ class FontKerningGroupSide:
         """
         if not isinstance(members, list):
             raise TypeError("Members must be a list of glyph names.")
-        self._adapter.setKerningGroupFromNameSideAndMembers(kerning_group_name, self._side, members)
+        self._adaptor.setKerningGroupFromNameSideAndMembers(kerning_group_name, self._side, members)
 
     def __delitem__(self, kerning_group_name: str) -> None:
         """
@@ -839,7 +878,7 @@ class FontKerningGroupSide:
             if prefixed_name in self._font.groups:
                 del self._font.groups[prefixed_name]
             else:
-                # This can happen if the adapter's state is stale, which
+                # This can happen if the adaptor's state is stale, which
                 # notifications should prevent.
                 raise KeyError
         except KeyError:
@@ -847,15 +886,15 @@ class FontKerningGroupSide:
 
     def __iter__(self) -> Iterator[str]:
         """Iterates over the names of the kerning groups on this side."""
-        return iter(self._adapter._visual_side_groups[self._side])
+        return iter(self._adaptor._visual_side_groups[self._side])
 
     def __len__(self) -> int:
         """Returns the number of kerning groups on this side."""
-        return len(self._adapter._visual_side_groups[self._side])
+        return len(self._adaptor._visual_side_groups[self._side])
 
     def __contains__(self, kerning_group_name: str) -> bool:
         """Checks if a kerning group with the given name exists on this side."""
-        return kerning_group_name in self._adapter._visual_side_groups[self._side]
+        return kerning_group_name in self._adaptor._visual_side_groups[self._side]
 
     def __repr__(self) -> str:
         return (
@@ -865,15 +904,15 @@ class FontKerningGroupSide:
 
     def keys(self) -> KeysView[str]:
         """Returns a view of the group names on this side."""
-        return self._adapter._visual_side_groups[self._side].keys()
+        return self._adaptor._visual_side_groups[self._side].keys()
 
     def values(self) -> ValuesView[KerningGroup]:
         """Returns a view of the KerningGroup objects on this side."""
-        return self._adapter._visual_side_groups[self._side].values()
+        return self._adaptor._visual_side_groups[self._side].values()
 
     def items(self) -> ItemsView[str, KerningGroup]:
         """Returns a view of the (name, KerningGroup) pairs on this side."""
-        return self._adapter._visual_side_groups[self._side].items()
+        return self._adaptor._visual_side_groups[self._side].items()
 
     def get(self, kerning_group_name: str, default: Any = None) -> Any:
         """
@@ -886,11 +925,11 @@ class FontKerningGroupSide:
         Returns:
             Union[KerningGroup, Any]: The KerningGroup object or the default value.
         """
-        return self._adapter._visual_side_groups[self._side].get(kerning_group_name, default)
+        return self._adaptor._visual_side_groups[self._side].get(kerning_group_name, default)
 
     def clear(self) -> None:
         """Removes all kerning groups from this visual side."""
-        self._adapter.clearSide(self._side)
+        self._adaptor.clearSide(self._side)
 
     def renameKerningGroup(self, old_name: str, new_name: str) -> None:
         """
@@ -910,7 +949,7 @@ class FontKerningGroupSide:
             return
         if new_name in self:
             raise ValueError(f"A kerning group named '{new_name}' already exists for the '{self._side}' side.")
-        return self._adapter.renameKerningGroupForSide(old_name, new_name, self._side)
+        return self._adaptor.renameKerningGroupForSide(old_name, new_name, self._side)
 
 class FontKerningGroups():
     """
@@ -941,8 +980,8 @@ class FontKerningGroups():
         self._right = FontKerningGroupSide(font, 'right')
 
     @property
-    def _adapter(self) -> KerningGroupsAdapter:
-        """Dynamically get the adapter to ensure it's always fresh."""
+    def _adaptor(self) -> KerningGroupsAdapter:
+        """Dynamically get the adaptor to ensure it's always fresh."""
         return self._font._kerningGroupsAdapter
 
     @property
@@ -989,7 +1028,7 @@ class FontKerningGroups():
         Returns:
             KerningGroup: The corresponding KerningGroup object.
         """
-        return self._adapter.getKerningGroupFromPrefixedGroupName(prefixed_group_name)
+        return self._adaptor.getKerningGroupFromPrefixedGroupName(prefixed_group_name)
 
     def __repr__(self) -> str:
         return (
@@ -1027,7 +1066,7 @@ class GlyphKerningGroups:
         self._glyph = glyph
 
     @property
-    def _adapter(self):
+    def _adaptor(self):
         return self._glyph.font._kerningGroupsAdapter
 
     def getKerningGroupForSide(self, side: str) -> Optional[KerningGroup]:
@@ -1042,7 +1081,7 @@ class GlyphKerningGroups:
             a group on that side, otherwise None.
         """
         glyph = self._glyph
-        return self._adapter._glyph_name_to_kerning_group_mapping.get(glyph.name, {}).get(side, None)
+        return self._adaptor._glyph_name_to_kerning_group_mapping.get(glyph.name, {}).get(side, None)
 
     def setKerningGroupForSide(self, kerning_group: Optional[Union[str, KerningGroup]], side: str) -> Optional[KerningGroup]:
         """
@@ -1090,11 +1129,11 @@ class GlyphKerningGroups:
                 )
             kerning_group_name = kerning_group.name
 
-        adapter = self._adapter
+        adaptor = self._adaptor
         if kerning_group_name is None:
             current_group = self.getKerningGroupForSide(side)
             if current_group is not None:
-                adapter.removeMembersFromKerningGroupOnSide(current_group.name, side, [self._glyph.name])
+                adaptor.removeMembersFromKerningGroupOnSide(current_group.name, side, [self._glyph.name])
             return None
 
         if not isinstance(kerning_group_name, str):
@@ -1103,13 +1142,13 @@ class GlyphKerningGroups:
             warn(f"Kerning group name already starts with a prefix, it will be removed:\n{kerning_group_name}")
             kerning_group_name = kerning_group_name[13:]
 
-        existing_group = adapter.getKerningGroupFromNameAndSide(kerning_group_name, side)
+        existing_group = adaptor.getKerningGroupFromNameAndSide(kerning_group_name, side)
         if existing_group is None:
             # Create a new group
-            adapter.setKerningGroupFromNameSideAndMembers(kerning_group_name, side, [self._glyph.name])
+            adaptor.setKerningGroupFromNameSideAndMembers(kerning_group_name, side, [self._glyph.name])
         else:
             # Add to an existing group
-            adapter.addMembersToKerningGroupOnSide(kerning_group_name, side, [self._glyph.name])
+            adaptor.addMembersToKerningGroupOnSide(kerning_group_name, side, [self._glyph.name])
         return self.getKerningGroupForSide(side)
 
     def setLeftSide(self, kerning_group: Union[str, KerningGroup, None]) -> Optional[KerningGroup]:
@@ -1169,7 +1208,7 @@ class GlyphKerningGroups:
         (A glyph can be in at most one left-side and one right-side group).
         """
         glyph = self._glyph
-        kerningGroupsDict = self._adapter._glyph_name_to_kerning_group_mapping.get(glyph.name, {})
+        kerningGroupsDict = self._adaptor._glyph_name_to_kerning_group_mapping.get(glyph.name, {})
         for kg_object in kerningGroupsDict.values():
             yield kg_object
 
@@ -1220,15 +1259,16 @@ class GlyphKerningGroups:
 
 
 @font_property
+@patch.doc(terminology=GROUP_TERMINOLOGY_DOC)
 def kerningGroups(glyph):
     """
     Provides kerning group access and manipulation for a single glyph.
 
     Manages kerning group assignments for both left and right sides of a glyph,
     using visual side names rather than UFO's logical order prefixes. Supports
-    getting, setting, and removing kerning group memberships. Left or right
-    in this object mean the glyphs which their left side or right side look
-    visually similar.
+    getting, setting, and removing kerning group memberships.
+
+    {terminology}
 
     Properties:
         left (Optional[KerningGroup]): The left-side kerning group.
@@ -1241,8 +1281,8 @@ def kerningGroups(glyph):
 
         # Iterating kerning groups of a glyph
         for kerning_group in glyph.kerningGroups:
-            print(f"Group: {kerning_group.name}, Side: {kerning_group.side}")
-            print(f"Members: {kerning_group.glyphSet}")
+            print(f"Group: {{kerning_group.name}}, Side: {{kerning_group.side}}")
+            print(f"Members: {{kerning_group.glyphSet}}")
 
         # Check if glyph has any kerning groups
         is_grouped = glyph.kerningGroups.isGrouped()  # Returns True
