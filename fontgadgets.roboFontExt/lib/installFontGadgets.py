@@ -1,6 +1,10 @@
+from importlib import reload
+from RFGadgets.pip import pipManager, PIP_PACKAGES
+from mojo.extensions import setExtensionDefault, getExtensionDefault
 import sys
 import os
 import logging
+
 logger = logging.getLogger(__name__)
 
 """
@@ -11,33 +15,38 @@ root = os.path.dirname(__file__)
 if root not in sys.path:
     sys.path.append(root)
 
-import fontgadgets
-try:
-    # in py2
-    reload
-except NameError:
-    # in py3
-    from importlib import reload
+not_found_pip_packages = {}
+for import_name, package_spec in PIP_PACKAGES.items():
+    dist_name = import_name
+    if 'git+' in package_spec:
+        dist_name = 'fontgadgets'
 
-reload(fontgadgets)
-
-pip_packages = {
-    "bidi": "python-bidi==0.4.2",
-    "git": "GitPython"
-}
-
-from fontgadgets.extensions.robofont.pip import installPIPPackage
-
-for import_name, package_spec in pip_packages.items():
-    try:
-        __import__(import_name)
+    if not pipManager._is_package_installed(dist_name):
+         logger.warning(f"Package '{package_spec}' (as '{import_name}') not found. Will be installed.")
+         not_found_pip_packages[import_name] = package_spec
+    else:
         logger.debug(f"Package '{package_spec}' (as '{import_name}') is already installed.")
-    except ImportError:
-        logger.warning(f"Package '{package_spec}' (as '{import_name}') not found. Attempting installation...")
-        if not installPIPPackage(package_spec):
+
+if not_found_pip_packages:
+    installed_packages = getExtensionDefault(
+        "design.bahman.fontgadgets.installedByPIP", fallback=[]
+    )
+    for import_name, package_spec in not_found_pip_packages.items():
+        logger.warning(
+            f"Package '{package_spec}' (as '{import_name}') not found or is not a proper package. Attempting installation..."
+        )
+        if pipManager.install_package(package_spec, install_dependencies=False):
+            # if installation is successful, add it to the list and save immediately
+            if package_spec not in installed_packages:
+                installed_packages.append(package_spec)
+                setExtensionDefault(
+                    "design.bahman.fontgadgets.installedByPIP", installed_packages
+                )
+        else:
             logger.error(f"Installation of '{package_spec}' failed.")
 
-import fontgadgets.extensions.robofont.font
-import fontgadgets.extensions.robofont.tools
-import fontgadgets.extensions.robofont.UI
-
+try:
+    import fontgadgets
+    reload(fontgadgets)
+except ImportError as e:
+    logger.error(f"Failed to import a required module: {e}")

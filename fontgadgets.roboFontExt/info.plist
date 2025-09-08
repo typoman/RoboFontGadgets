@@ -7,7 +7,7 @@
 	<key>developer</key>
 	<string>Bahman Eslami</string>
 	<key>developerURL</key>
-	<string>http://bahman.design</string>
+	<string>https://github.com/typoman</string>
 	<key>html</key>
 	<false/>
 	<key>launchAtStartUp</key>
@@ -19,10 +19,12 @@
 	<key>requiresVersionMajor</key>
 	<string>4</string>
 	<key>requiresVersionMinor</key>
-	<string>2</string>
+	<string>5</string>
 	<key>timeStamp</key>
-	<real>1665590985.5009432</real>
+	<real>1757344191.1770098</real>
+	<key>uninstallScript</key>
+	<string>uninstallFontGadgets.py</string>
 	<key>version</key>
-	<string>0.2.2.3</string>
+	<string>0.3.0.0</string>
 </dict>
 </plist>
