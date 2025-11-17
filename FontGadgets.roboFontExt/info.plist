@@ -15,7 +15,7 @@
 	<key>mainScript</key>
 	<string>installFontGadgets.py</string>
 	<key>name</key>
-	<string>fontgadgets</string>
+	<string>FontGadgets</string>
 	<key>requiresVersionMajor</key>
 	<string>4</string>
 	<key>requiresVersionMinor</key>
