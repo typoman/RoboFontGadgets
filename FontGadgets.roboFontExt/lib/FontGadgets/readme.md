@@ -1,0 +1,1 @@
+The only reason to have this folder is for the menu of RoboFont, because it creates the submenu based on the folder structure.

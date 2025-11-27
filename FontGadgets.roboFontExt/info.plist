@@ -3,7 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>addToMenu</key>
-	<array/>
+	<array>
+		<dict>
+			<key>nestInSubmenus</key>
+			<true/>
+			<key>path</key>
+			<string>FontGadgets/settingsWindow.py</string>
+			<key>preferredName</key>
+			<string>Settings</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+	</array>
 	<key>developer</key>
 	<string>Bahman Eslami</string>
 	<key>developerURL</key>
@@ -25,6 +36,6 @@
 	<key>uninstallScript</key>
 	<string>uninstallFontGadgets.py</string>
 	<key>version</key>
-	<string>0.3.0.0</string>
+	<string>0.3.1.0</string>
 </dict>
 </plist>

@@ -3,6 +3,14 @@ import sys
 import AppKit
 import subprocess
 from importlib import metadata
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+if (logger.hasHandlers()):
+    logger.handlers.clear()
+handler = logging.StreamHandler()
+logger.addHandler(handler)
 
 PIP_PACKAGES = {
     "git": "GitPython",
@@ -35,11 +43,11 @@ class PIPManager:
         command = [sys.executable, "-m", "pip"] + pip_args
         try:
             result = subprocess.run(command, check=True, capture_output=True, text=True)
-            print(result.stdout)
+            logger.debug(result.stdout)
             return result.returncode
         except subprocess.CalledProcessError as e:
-            print(f"Error executing pip command: {e}")
-            print(e.stderr)
+            logger.debug(f"Error executing pip command: {e}")
+            logger.debug(e.stderr)
             return e.returncode
 
     def install_package(self, package_name, install_dependencies=True):
@@ -69,7 +77,7 @@ class PIPManager:
         dist_name = self._get_dist_name_from_spec(package_spec)
 
         if not self._is_package_installed(dist_name):
-            print(
+            logger.debug(
                 f"Package '{dist_name}' not found in '{self.target_path}'. Already uninstalled."
             )
             return True
@@ -90,10 +98,19 @@ class PIPManager:
 
         found = False
         try:
+            # distribution name (e.g., 'GitPython')
             metadata.distribution(package_name)
             found = True
         except metadata.PackageNotFoundError:
-            found = False
+            # import name (e.g., 'git')
+            for dist in metadata.distributions():
+                try:
+                    top_levels = dist.read_text('top_level.txt')
+                    if top_levels and package_name in top_levels.split():
+                        found = True
+                        break
+                except Exception:
+                    continue
         finally:
             sys.path[:] = original_sys_path
 
