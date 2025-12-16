@@ -9,7 +9,7 @@ their positions in the composites will also move. In most of the time I don't
 want this to happen. This script keeps the position of the component fixated
 in same place if you move the outline of the base glyph, but if you change the
 outlines in any other way (scaling, modifying curves) it will not do any
-thing.
+thing and lets the changes to propoage to composites.
 """
 
 BOUNDS_KEY = f"{EXTENSION_ID}.previousBounds"
@@ -32,6 +32,8 @@ class AutoOffsetComponents(LazyGlyphSubscriber):
         if BOUNDS_KEY not in font.tempLib:
             font.tempLib[BOUNDS_KEY] = {}
         for g in font.naked().componentReferences:
+            if g not in font:
+                continue
             self.addPrevBounds(font[g])
 
     def fontDocumentDidOpen(self, info):
@@ -145,7 +147,7 @@ class AutoOffsetComponents(LazyGlyphSubscriber):
         if currentGlyph is None or eventName in APPLICATION_EVENTS | SAVE_EVENTS:
             # apply changes on everything, user can wait longer
             for f in AllFonts():
-                for gn in f.tempLib[CHANGES_KEY]:
+                for gn in f.tempLib.get(CHANGES_KEY, set()):
                     self._checkIfBaseGlyphMoved(f[gn])
                 f.tempLib[CHANGES_KEY] = set()
         else:
