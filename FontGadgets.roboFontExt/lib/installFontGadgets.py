@@ -6,6 +6,7 @@ import os
 import logging
 from RFGadgets.observers.startup import startActivatedObservers
 from RFGadgets import UI
+from mojo.UI import dontShowAgainYesOrNo
 """
 This is the start up script for robofont.
 """
@@ -53,6 +54,57 @@ if not_found_pip_packages:
                 )
         else:
             logger.error(f"Installation of '{package_spec}' failed.")
+
+# Offer to update fontgadgets when remote master declares a different
+# version than the one installed in RoboFont's packages folder.
+FONTGADGETS_SETUP_PY_URL = "https://raw.githubusercontent.com/typoman/fontgadgets/master/setup.py"
+DECLINED_UPDATE_VERSION_KEY = "design.bahman.fontgadgets.declinedUpdateVersion"
+
+installed_fontgadgets_version = pipManager.get_installed_version("fontgadgets")
+remote_fontgadgets_version = pipManager.get_repo_version(FONTGADGETS_SETUP_PY_URL)
+declined_update_version = getExtensionDefault(DECLINED_UPDATE_VERSION_KEY, fallback=None)
+
+if (installed_fontgadgets_version is not None
+        and remote_fontgadgets_version is not None
+        and remote_fontgadgets_version != installed_fontgadgets_version
+        and remote_fontgadgets_version != declined_update_version):
+    logger.warning(
+        f"fontgadgets {remote_fontgadgets_version} is available, "
+        f"{installed_fontgadgets_version} is installed."
+    )
+
+    def updateFontGadgetsCallback(result):
+        # result is the index of the pressed button:
+        # 0 Yes, 1 No, 2 Don't show this message again
+        if result == 0:
+            logger.warning(
+                f"Updating fontgadgets {installed_fontgadgets_version} "
+                f"-> {remote_fontgadgets_version} ..."
+            )
+            if pipManager.install_package(
+                    PIP_PACKAGES["fontgadgets"], install_dependencies=False):
+                logger.warning(
+                    f"fontgadgets updated to {remote_fontgadgets_version}. "
+                    "Restart RoboFont to load the new version.")
+            else:
+                logger.error("fontgadgets update failed.")
+        elif result == 2:
+            setExtensionDefault(
+                DECLINED_UPDATE_VERSION_KEY, remote_fontgadgets_version)
+
+    dontShowAgainYesOrNo(
+        f"Update FontGadgets to {remote_fontgadgets_version}?",
+        f"Version {remote_fontgadgets_version} is available in the fontgadgets "
+        f"repository, version {installed_fontgadgets_version} is installed.",
+        resultCallback=updateFontGadgetsCallback,
+        dontShowAgainKey="design.bahman.fontgadgets.skipFontGadgetsUpdatePrompt",
+    )
+elif remote_fontgadgets_version == declined_update_version != installed_fontgadgets_version:
+    logger.debug(
+        f"Update to fontgadgets {remote_fontgadgets_version} was declined "
+        "earlier, not asking again."
+    )
+
 
 try:
     import fontgadgets

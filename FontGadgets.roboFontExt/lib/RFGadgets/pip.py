@@ -1,7 +1,9 @@
 import os
+import re
 import sys
 import AppKit
 import subprocess
+import urllib.request
 from importlib import metadata
 import logging
 
@@ -115,6 +117,39 @@ class PIPManager:
             sys.path[:] = original_sys_path
 
         return found
+
+
+    def get_installed_version(self, package_name):
+        """
+        Return the version string of an installed package, or None when the
+        package is not installed in the RoboFont packages folder.
+        """
+        original_sys_path = sys.path[:]
+        if self.target_path not in sys.path:
+            sys.path.insert(0, self.target_path)
+        try:
+            return metadata.version(package_name)
+        except metadata.PackageNotFoundError:
+            return None
+        finally:
+            sys.path[:] = original_sys_path
+
+    def get_repo_version(self, setupPyURL):
+        """
+        Return the version string declared in the setup.py of a remote git
+        repository, or None when it cannot be fetched or parsed.
+        """
+        try:
+            with urllib.request.urlopen(setupPyURL, timeout=10) as response:
+                content = response.read().decode("utf-8")
+        except Exception as e:
+            logger.debug(f"Could not fetch '{setupPyURL}': {e}")
+            return None
+        match = re.search(r'^\s*version\s*=\s*["\']([^"\']+)["\']', content, re.MULTILINE)
+        if match is None:
+            logger.debug(f"No version found in '{setupPyURL}'.")
+            return None
+        return match.group(1)
 
 
 pipManager = PIPManager()
