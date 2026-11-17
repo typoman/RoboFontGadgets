@@ -26,6 +26,8 @@ logger.addHandler(handler)
 # installed by this script are only live after the app is restarted.
 INSTALLED_BY_PIP_KEY = "design.bahman.fontgadgets.installedByPIP"
 SKIP_RESTART_PROMPT_KEY = "design.bahman.fontgadgets.skipRestartPrompt"
+INSTALLED_FONTGADGETS_VERSION_KEY = "design.bahman.fontgadgets.installedFontGadgetsVersion"
+
 restartNeeded = False
 
 def askToRestart(informativeText):
@@ -35,12 +37,6 @@ def askToRestart(informativeText):
         dontShowAgainKey=SKIP_RESTART_PROMPT_KEY,
     )
 
-# an earlier launch already installed packages, so a restart is needed
-if getExtensionDefault(INSTALLED_BY_PIP_KEY, fallback=[]):
-    askToRestart(
-        "FontGadgets installed packages in an earlier session. "
-        "They are loaded only when RoboFont starts."
-    )
 
 logs = startActivatedObservers()
 logger.debug("\n".join(logs))
@@ -73,12 +69,20 @@ if not_found_pip_packages:
             if package_spec not in installed_packages:
                 installed_packages.append(package_spec)
                 setExtensionDefault(INSTALLED_BY_PIP_KEY, installed_packages)
+            if import_name == "fontgadgets":
+                # record what this install contains, so a later launch can tell
+                # that the repository moved ahead of it
+                setExtensionDefault(
+                    INSTALLED_FONTGADGETS_VERSION_KEY,
+                    pipManager.get_installed_version("fontgadgets"),
+                )
         else:
             logger.error(f"Installation of '{package_spec}' failed.")
-
-if installed_packages != previousInstalledPackages:
-    restartNeeded = True
-    removeExtensionDefault(SKIP_RESTART_PROMPT_KEY)
+    # the list changed in this session: a restart is needed, and an older
+    # "don't show again" answer must not silence the new prompt
+    if installed_packages != previousInstalledPackages:
+        restartNeeded = True
+        removeExtensionDefault(SKIP_RESTART_PROMPT_KEY)
 
 # Offer to update fontgadgets when remote master declares a different
 # version than the one installed in RoboFont's packages folder.
@@ -87,12 +91,13 @@ DECLINED_UPDATE_VERSION_KEY = "design.bahman.fontgadgets.declinedUpdateVersion"
 
 installed_fontgadgets_version = pipManager.get_installed_version("fontgadgets")
 remote_fontgadgets_version = pipManager.get_repo_version(FONTGADGETS_SETUP_PY_URL)
-declined_update_version = getExtensionDefault(DECLINED_UPDATE_VERSION_KEY, fallback=None)
+recorded_fontgadgets_version = getExtensionDefault(INSTALLED_FONTGADGETS_VERSION_KEY, fallback=None)
 
-if (installed_fontgadgets_version is not None
+# the recorded version is the one loaded by the running app: when the
+# repository declares another one, that update is only live after a restart
+if (recorded_fontgadgets_version is not None
         and remote_fontgadgets_version is not None
-        and remote_fontgadgets_version != installed_fontgadgets_version
-        and remote_fontgadgets_version != declined_update_version):
+        and remote_fontgadgets_version != recorded_fontgadgets_version):
     logger.warning(
         f"fontgadgets {remote_fontgadgets_version} is available, "
         f"{installed_fontgadgets_version} is installed."
@@ -108,6 +113,7 @@ if (installed_fontgadgets_version is not None
             )
             if pipManager.install_package(
                     PIP_PACKAGES["fontgadgets"], install_dependencies=False):
+                setExtensionDefault(INSTALLED_FONTGADGETS_VERSION_KEY, remote_fontgadgets_version)
                 logger.warning(f"fontgadgets updated to {remote_fontgadgets_version}.")
                 removeExtensionDefault(SKIP_RESTART_PROMPT_KEY)
                 askToRestart(
@@ -126,11 +132,6 @@ if (installed_fontgadgets_version is not None
         f"repository, version {installed_fontgadgets_version} is installed.",
         resultCallback=updateFontGadgetsCallback,
         dontShowAgainKey="design.bahman.fontgadgets.skipFontGadgetsUpdatePrompt",
-    )
-elif remote_fontgadgets_version == declined_update_version != installed_fontgadgets_version:
-    logger.debug(
-        f"Update to fontgadgets {remote_fontgadgets_version} was declined "
-        "earlier, not asking again."
     )
 
 
