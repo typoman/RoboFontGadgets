@@ -3,7 +3,9 @@ import re
 import sys
 import AppKit
 import subprocess
+import ssl
 import urllib.request
+
 from importlib import metadata
 import logging
 
@@ -22,6 +24,19 @@ PIP_PACKAGES = {
     "uharfbuzz": "uharfbuzz==0.45.0",
     "fontgadgets": "git+https://github.com/typoman/fontgadgets.git",
 }
+
+
+def _sslContext():
+    """
+    Return an SSL context holding the certifi certificates, or None to use
+    the Python defaults. RoboFont's Python has no usable system trust store,
+    so urllib fails to verify HTTPS servers without this.
+    """
+    try:
+        import certifi
+    except ImportError:
+        return None
+    return ssl.create_default_context(cafile=certifi.where())
 
 
 class PIPManager:
@@ -140,10 +155,11 @@ class PIPManager:
         repository, or None when it cannot be fetched or parsed.
         """
         try:
-            with urllib.request.urlopen(setupPyURL, timeout=10) as response:
+            with urllib.request.urlopen(
+                    setupPyURL, timeout=10, context=_sslContext()) as response:
                 content = response.read().decode("utf-8")
         except Exception as e:
-            logger.debug(f"Could not fetch '{setupPyURL}': {e}")
+            logger.warning(f"Could not fetch '{setupPyURL}': {e}")
             return None
         match = re.search(r'^\s*version\s*=\s*["\']([^"\']+)["\']', content, re.MULTILINE)
         if match is None:
