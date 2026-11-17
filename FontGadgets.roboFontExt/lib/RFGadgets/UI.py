@@ -70,5 +70,15 @@ def _getVisibleGlyphNames():
     visibleGlyphs = mojo.UI.CurrentFontWindow().getGlyphCollection().getVisibleGlyphs()
     return [g.name for g in visibleGlyphs]
 
-
 mojo.UI.getVisibleGlyphNames = _getVisibleGlyphNames
+
+def _getDefaultC(name):
+    DARK_MODE_SUFFIX = ".dark" if mojo.UI.inDarkMode() else ""
+    return mojo.UI.getDefault(name + DARK_MODE_SUFFIX)
+
+def _setDefaultC(name, value):
+    DARK_MODE_SUFFIX = ".dark" if mojo.UI.inDarkMode() else ""
+    return mojo.UI.setDefault(name + DARK_MODE_SUFFIX, value)
+
+mojo.UI.getDefaultColor = _getDefaultC
+mojo.UI.setDefaultColor = _setDefaultC

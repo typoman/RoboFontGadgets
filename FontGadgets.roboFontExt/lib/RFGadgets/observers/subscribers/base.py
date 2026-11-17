@@ -1,5 +1,4 @@
-from re import S
-from mojo.subscriber import Subscriber
+from mojo.subscriber import Subscriber, listRegisteredSubscribers
 from mojo.roboFont import AllFonts
 from typing import Any, Optional
 from Foundation import NSTimer
@@ -21,17 +20,6 @@ class BaseSubscriber(Subscriber):
     checkbox: str = "Used in settings window, keep it short."
     description: str = "Subclass long description goes here."
     _instances: dict = {}  # store the singleton instance for each subclass
-
-    def __new__(cls, *args: Any, **kwargs: Any):
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__new__(cls)
-        return cls._instances[cls]
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        if getattr(self, "_initialized", False):
-            return
-        super().__init__(*args, **kwargs)
-        self._initialized = True
 
     @classmethod
     def activate(cls) -> "BaseSubscriber":
@@ -58,7 +46,9 @@ class BaseSubscriber(Subscriber):
         Returns:
             An active instance of the subscriber class.
         """
-        return cls()
+        if cls.__name__ not in cls._instances:
+            cls._instances[cls.__name__] = cls()
+        return cls._instances[cls.__name__]
 
     @classmethod
     def deactivate(cls) -> None:
@@ -82,11 +72,11 @@ class BaseSubscriber(Subscriber):
         Refer to:
         https://robofont.com/documentation/reference/api/mojo/mojo-subscriber/
         """
-        if cls in cls._instances:
-            instance = cls._instances[cls]
+        if cls.__name__ in cls._instances:
+            instance = cls._instances[cls.__name__]
             instance.terminate()
             instance.destroy()
-            del cls._instances[cls]
+            del cls._instances[cls.__name__]
             if hasattr(instance, "_initialized"):
                 del instance._initialized
 
@@ -98,7 +88,7 @@ class BaseSubscriber(Subscriber):
         Returns:
             True if an instance is registered, False otherwise.
         """
-        return cls in cls._instances
+        return cls.__name__ in cls._instances
 
     @classmethod
     def activeInstance(cls) -> Optional["BaseSubscriber"]:
@@ -108,7 +98,7 @@ class BaseSubscriber(Subscriber):
         Returns:
             The subscriber instance if found, otherwise None.
         """
-        return cls._instances.get(cls)
+        return cls._instances.get(cls.__name__)
 
 
 class LazyGlyphSubscriber(BaseSubscriber):
@@ -160,9 +150,9 @@ class LazyGlyphSubscriber(BaseSubscriber):
         implement their logic.
 
         Args:
-            changed_objects (list): List of objects that will be passed to this
-            method that has received change notifications (e.g. glyphs,
-            fonts, etc).
+            info (dict): Event information dictionary from the triggering
+                         subscriber event (e.g., save events, glyph events,
+                         or application events).
         """
         raise NotImplementedError()
 

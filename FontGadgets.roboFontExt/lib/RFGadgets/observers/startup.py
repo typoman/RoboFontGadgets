@@ -19,20 +19,17 @@ def getRoboFontGadgetsSubscribers():
     for f in os.listdir(subscribersPath):
         if f.endswith(".py") and (not f.startswith("_")):
             moduleName = f[:-3]
-            if moduleName == 'base':
-                continue
-            try:
-                module = importlib.import_module(moduleName)
-                for name, obj in inspect.getmembers(module):
-                    if (
-                        inspect.isclass(obj)
-                        and issubclass(obj, Subscriber)
-                        and (obj is not Subscriber)
-                    ):
-                        if obj.__module__ == module.__name__:
-                            subscribers.append(obj)
-            except Exception as e:
-                print(f"Error loading module {moduleName}: {e}")
+        if moduleName == 'base':
+            continue
+        module = importlib.import_module(moduleName)
+        for _, obj in inspect.getmembers(module):
+            if (
+                inspect.isclass(obj)
+                and issubclass(obj, Subscriber)
+                and (obj is not Subscriber)
+            ):
+                if obj.__module__ == module.__name__:
+                    subscribers.append(obj)
     return subscribers
 
 
@@ -56,4 +53,4 @@ def startActivatedObservers():
     return log
 
 if __name__ == '__main__':
-    startActivatedObservers()
+    l = startActivatedObservers()
