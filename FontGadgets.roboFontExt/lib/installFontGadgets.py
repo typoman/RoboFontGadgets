@@ -1,12 +1,16 @@
 import importlib
 from RFGadgets.pip import pipManager, PIP_PACKAGES
-from mojo.extensions import setExtensionDefault, getExtensionDefault
+from mojo.extensions import (
+    setExtensionDefault, getExtensionDefault, removeExtensionDefault)
+
+
 import sys
 import os
 import logging
 from RFGadgets.observers.startup import startActivatedObservers
 from RFGadgets import UI
-from mojo.UI import dontShowAgainYesOrNo
+from mojo.UI import dontShowAgainYesOrNo, dontShowAgainMessage
+
 """
 This is the start up script for robofont.
 """
@@ -17,6 +21,26 @@ if (logger.hasHandlers()):
     logger.handlers.clear()
 handler = logging.StreamHandler()
 logger.addHandler(handler)
+
+# RoboFont loads the extension and its pip packages at launch, so packages
+# installed by this script are only live after the app is restarted.
+INSTALLED_BY_PIP_KEY = "design.bahman.fontgadgets.installedByPIP"
+SKIP_RESTART_PROMPT_KEY = "design.bahman.fontgadgets.skipRestartPrompt"
+restartNeeded = False
+
+def askToRestart(informativeText):
+    dontShowAgainMessage(
+        "Restart RoboFont",
+        informativeText,
+        dontShowAgainKey=SKIP_RESTART_PROMPT_KEY,
+    )
+
+# an earlier launch already installed packages, so a restart is needed
+if getExtensionDefault(INSTALLED_BY_PIP_KEY, fallback=[]):
+    askToRestart(
+        "FontGadgets installed packages in an earlier session. "
+        "They are loaded only when RoboFont starts."
+    )
 
 logs = startActivatedObservers()
 logger.debug("\n".join(logs))
@@ -38,9 +62,8 @@ for import_name, package_spec in PIP_PACKAGES.items():
         logger.debug(f"Package '{package_spec}' (as '{import_name}') is already installed.")
 
 if not_found_pip_packages:
-    installed_packages = getExtensionDefault(
-        "design.bahman.fontgadgets.installedByPIP", fallback=[]
-    )
+    installed_packages = getExtensionDefault(INSTALLED_BY_PIP_KEY, fallback=[])
+    previousInstalledPackages = list(installed_packages)
     for import_name, package_spec in not_found_pip_packages.items():
         logger.warning(
             f"Attempting installation of package '{package_spec}' ..."
@@ -49,11 +72,13 @@ if not_found_pip_packages:
             # if installation is successful, add it to the list and save immediately
             if package_spec not in installed_packages:
                 installed_packages.append(package_spec)
-                setExtensionDefault(
-                    "design.bahman.fontgadgets.installedByPIP", installed_packages
-                )
+                setExtensionDefault(INSTALLED_BY_PIP_KEY, installed_packages)
         else:
             logger.error(f"Installation of '{package_spec}' failed.")
+
+if installed_packages != previousInstalledPackages:
+    restartNeeded = True
+    removeExtensionDefault(SKIP_RESTART_PROMPT_KEY)
 
 # Offer to update fontgadgets when remote master declares a different
 # version than the one installed in RoboFont's packages folder.
@@ -83,9 +108,12 @@ if (installed_fontgadgets_version is not None
             )
             if pipManager.install_package(
                     PIP_PACKAGES["fontgadgets"], install_dependencies=False):
-                logger.warning(
-                    f"fontgadgets updated to {remote_fontgadgets_version}. "
-                    "Restart RoboFont to load the new version.")
+                logger.warning(f"fontgadgets updated to {remote_fontgadgets_version}.")
+                removeExtensionDefault(SKIP_RESTART_PROMPT_KEY)
+                askToRestart(
+                    f"fontgadgets was updated to {remote_fontgadgets_version}. "
+                    "The new version is loaded only when RoboFont starts."
+                )
             else:
                 logger.error("fontgadgets update failed.")
         elif result == 2:
@@ -111,3 +139,9 @@ try:
     importlib.reload(fontgadgets)
 except ImportError as e:
     logger.error(f"Failed to import a required module: {e}")
+
+if restartNeeded:
+    askToRestart(
+        "FontGadgets installed packages in this session. "
+        "They are loaded only when RoboFont starts."
+    )
