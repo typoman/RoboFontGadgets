@@ -32,10 +32,10 @@
 	<key>requiresVersionMinor</key>
 	<string>5</string>
 	<key>timeStamp</key>
-	<real>1757344191.1770098</real>
+	<real>1794931256.319805</real>
 	<key>uninstallScript</key>
 	<string>uninstallFontGadgets.py</string>
 	<key>version</key>
-	<string>0.3.2.0</string>
+	<string>0.3.3.0</string>
 </dict>
 </plist>
